@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <ProjectGuid>{5E51DCBF-995C-45AE-BCD6-1D4866B912F0}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <OutputPath>bin</OutputPath>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <TypeScriptToolsVersion>1.8</TypeScriptToolsVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
+  </PropertyGroup>
+  <ItemGroup>
+    <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="default.html" />
+    <Content Include="Global.asax" />
+    <Content Include="Views\BinderView.html" />
+    <Content Include="Views\ContentWithShowByUrl.html" />
+    <Content Include="Views\DummyContent.html" />
+    <Content Include="Views\footer.html" />
+    <Content Include="Views\header.html" />
+    <Content Include="Views\MultipleBindings.html" />
+    <Content Include="Views\TestContent.html" />
+    <Content Include="Views\WebApiFormView.html" />
+    <Content Include="web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Classes\Ajax.ts" />
+    <TypeScriptCompile Include="Classes\Binder.ts" />
+    <TypeScriptCompile Include="Classes\DataObject.ts" />
+    <TypeScriptCompile Include="Classes\ListBinder.ts" />
+    <TypeScriptCompile Include="Classes\View.ts" />
+    <TypeScriptCompile Include="Classes\ViewContainer.ts" />
+    <TypeScriptCompile Include="Classes\ViewInstance.ts" />
+    <TypeScriptCompile Include="Interfaces\CustomEvent.ts" />
+    <TypeScriptCompile Include="Interfaces\IView.ts" />
+    <TypeScriptCompile Include="Interfaces\IViewContainer.ts" />
+    <TypeScriptCompile Include="Modules\Formatters.ts" />
+    <TypeScriptCompile Include="Modules\HistoryManager.ts" />
+    <TypeScriptCompile Include="Modules\Initializer.ts" />
+    <TypeScriptCompile Include="Modules\Is.ts" />
+    <TypeScriptCompile Include="Modules\ProgressManager.ts" />
+    <TypeScriptCompile Include="Modules\RegularExpression.ts" />
+    <TypeScriptCompile Include="Prototypes\Array.ts" />
+    <TypeScriptCompile Include="Prototypes\Date.ts" />
+    <TypeScriptCompile Include="Prototypes\HTMLElement.ts" />
+    <TypeScriptCompile Include="Prototypes\HTMLSelectElement.ts" />
+    <TypeScriptCompile Include="Prototypes\String.ts" />
+    <TypeScriptCompile Include="Prototypes\Window.ts" />
+    <TypeScriptCompile Include="TestScripts\BinderTest.ts" />
+    <TypeScriptCompile Include="TestScripts\ContentWithShowByUrlContainer.ts" />
+    <TypeScriptCompile Include="TestScripts\ContentWithShowByUrlContent.ts" />
+    <TypeScriptCompile Include="TestScripts\DummyContent.ts" />
+    <TypeScriptCompile Include="TestScripts\DummyViewManager.ts" />
+    <TypeScriptCompile Include="TestScripts\ViewContent.ts" />
+    <TypeScriptCompile Include="TestScripts\ViewFooter.ts" />
+    <TypeScriptCompile Include="TestScripts\ViewHeader.ts" />
+    <TypeScriptCompile Include="TestScripts\ViewModelTest.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config" />
+    <None Include="web.Debug.config">
+      <DependentUpon>web.config</DependentUpon>
+    </None>
+    <None Include="web.Release.config">
+      <DependentUpon>web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Api\GenericSelectDataController.cs" />
+    <Compile Include="Api\WebApiBinder.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="BattleAxe, Version=16.11.3.12, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\BattleAxe.16.11.03.12\lib\net45\BattleAxe.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.3\lib\net45\System.Web.Http.WebHost.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>mace</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets')" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>60698</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:58000/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
+    <TypeScriptSourceMap>true</TypeScriptSourceMap>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <TypeScriptRemoveComments>true</TypeScriptRemoveComments>
+    <TypeScriptSourceMap>false</TypeScriptSourceMap>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
+</Project>
