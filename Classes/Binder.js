@@ -1,11 +1,16 @@
 //disable the active context or readonly it while the new stuff is coming in?
+//OnUpdateComplete not ready
+//Delete not ready
 var Binder = (function () {
     function Binder() {
         this.PrimaryKeys = new Array();
         this.eventHandlers = new Array();
+        this.DataObjects = new Array();
         this.AssociatedElementIDs = new Array();
         this.AutomaticallyUpdatesToWebApi = false;
         this.AutomaticallySelectsFromWebApi = false;
+        this.DataRowTemplates = new Array();
+        this.IsFormBinding = true;
     }
     Binder.prototype.WebApiGetParameters = function () {
         var ret = HistoryManager.CurrentRoute().Parameters;
@@ -15,8 +20,14 @@ var Binder = (function () {
         this.PrimaryKeys = null;
         this.WebApi = null;
         this.AssociatedElementIDs = null;
-        this.DataObject.RemoveObjectStateListener();
-        this.DataObject.RemovePropertyListeners();
+        if (this.DataObject) {
+            this.DataObject.RemoveObjectStateListener();
+            this.DataObject.RemovePropertyListeners();
+        }
+        this.DataObjects.forEach(function (d) {
+            d.RemoveObjectStateListener();
+            d.RemovePropertyListeners();
+        });
         this.RemoveListeners();
     };
     Binder.prototype.Execute = function () {
@@ -33,12 +44,49 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnAjaxComplete = function (arg) {
+        var _this = this;
         if (arg.EventType === EventType.Completed) {
             var data = arg.Sender.GetRequestData();
             if (data) {
-                var newDataObject = this.NewObject(data);
-                this.BindToDataObject(newDataObject);
+                if (!Is.Array(data)) {
+                    this.IsFormBinding = true;
+                    this.BindToDataObject(this.NewObject(data));
+                }
+                else {
+                    data.forEach(function (d) { return _this.Add(_this.NewObject(d)); });
+                }
+                this.Dispatch(EventType.Completed);
             }
+        }
+    };
+    //not ready need to figure out the elements associated with this data element
+    //namely the base element that insigated the 
+    Binder.prototype.Delete = function (objectToRemove) {
+    };
+    Binder.prototype.Add = function (objectToAdd) {
+        var _this = this;
+        this.prepDataRowTemplates();
+        this.DataRowTemplates.forEach(function (t) {
+            var newElement = t.CreateElementFromHtml();
+            var boundElements = newElement.Get(function (e) { return e.HasDataSet(); });
+            boundElements.Add(newElement);
+            _this.DataRowFooter ? _this.Element.insertBefore(newElement, _this.DataRowFooter) : _this.Element.appendChild(newElement);
+            _this.DataObjects.Add(objectToAdd);
+            _this.BindToDataObject(objectToAdd, boundElements);
+        });
+    };
+    Binder.prototype.prepDataRowTemplates = function () {
+        var _this = this;
+        if (this.DataRowTemplates.length == 0) {
+            var elements = this.Element.Get(function (e) { return true; });
+            var rows = elements.Where(function (e) { return e.getAttribute("data-template") != null; });
+            if (elements[elements.length - 1] != rows[rows.length - 1]) {
+                this.DataRowFooter = elements[elements.indexOf(rows[rows.length - 1]) + 1];
+            }
+            rows.forEach(function (r) {
+                _this.DataRowTemplates.Add(r.outerHTML);
+                r.Remove();
+            });
         }
     };
     Binder.prototype.onObjectStateChanged = function (obj) {
@@ -52,18 +100,22 @@ var Binder = (function () {
     Binder.prototype.OnUpdateComplete = function (arg) {
         //reverse stuff here?
     };
-    Binder.prototype.BindToDataObject = function (dataObject) {
+    Binder.prototype.BindToDataObject = function (dataObject, elementsToBind) {
         var _this = this;
-        this.DataObject = dataObject;
-        this.DataObject.AddObjectStateListener(this.onObjectStateChanged.bind(this));
-        var boundElements = this.Element.Get(function (e) { return e.HasDataSet(); });
-        boundElements.Add(this.Element);
-        boundElements.forEach(function (e) {
+        if (elementsToBind === void 0) { elementsToBind = null; }
+        if (!elementsToBind) {
+            elementsToBind = this.Element.Get(function (e) { return e.HasDataSet(); });
+            elementsToBind.Add(this.Element);
+        }
+        if (this.IsFormBinding) {
+            this.DataObject = dataObject;
+        }
+        dataObject.AddObjectStateListener(this.onObjectStateChanged.bind(this));
+        elementsToBind.forEach(function (e) {
             var element = e;
             _this.setListeners(element, dataObject);
         });
-        this.DataObject.AllPropertiesChanged();
-        this.Dispatch(EventType.Completed);
+        dataObject.AllPropertiesChanged();
     };
     Binder.prototype.setListeners = function (element, dataObject) {
         var _this = this;

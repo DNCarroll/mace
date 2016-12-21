@@ -172,6 +172,14 @@ class MultipleBindingsContainer extends ViewContainer {
     UrlPattern() { return "multiplebindings"; }
     UrlTitle(route: ViewInstance) { return "multiplebindings view"; }
 }
+//auto suggest?
+//it wants to use a promise 
+//keypress happens => we need to start forming a list for the selectelement
+//that list comes from something that is already made or comes from something
+//that is retrieved from server
+//this is getting in to the business of making controls
+//avoiding it for now
+
 class WebApiFormView extends View {
     static GenericSelectData: any;
     constructor() {
@@ -228,4 +236,56 @@ class WebApiBinder extends Binder {
         return new BinderTestObject(obj);
     }
 }
-
+class ListBinderTest extends ListBinder {
+    constructor() {
+        super();
+        this.AutomaticallySelectsFromWebApi = true;
+        this.AutomaticallyUpdatesToWebApi = true;
+        //need to change this because we need a list
+        this.WebApi = "/Api/WebApiBinder";
+    }
+    NewObject(obj: any) {
+        return new BinderTestObject(obj);
+    }
+}
+//add a Preload to this before do it
+class ListBinderView extends View {    
+    constructor() {
+        super();        
+        this.Cache();
+    }
+    //can we detect name of this class?
+    ViewUrl() { return "/Views/ListBinderView.html" };
+    ContainerID() {
+        return "content";
+    }    
+}
+class ListBinderContainer extends ViewContainer {
+    private static instance: ListBinderContainer;
+    constructor() {
+        if (ListBinderContainer.instance) {
+            return ListBinderContainer.instance;
+        }
+        super();
+        this.Views.push(new ListBinderView());
+        this.Views.push(new ViewHeader());
+        this.Views.push(new ViewFooter());
+        this.IsDefault = true;
+        ListBinderContainer.instance = this;
+    }
+    DocumentTitle(route: ViewInstance) { return "Listbinder Data"; }
+    Url(route: ViewInstance) {
+        var routeVariable = "/";
+        if (route.Parameters) {
+            if (Is.Array(route.Parameters)) {
+                routeVariable += route.Parameters.join("/");
+            }
+            else {
+                routeVariable += route.Parameters.toString();
+            }
+        }
+        return "ListBinder" + (routeVariable.length > 1 ? routeVariable : "");
+    }
+    UrlPattern() { return "ListBinder"; }
+    UrlTitle(route: ViewInstance) { return "ListBinder view"; }
+}

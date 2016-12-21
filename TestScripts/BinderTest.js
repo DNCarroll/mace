@@ -220,6 +220,13 @@ var MultipleBindingsContainer = (function (_super) {
     MultipleBindingsContainer.prototype.UrlTitle = function (route) { return "multiplebindings view"; };
     return MultipleBindingsContainer;
 }(ViewContainer));
+//auto suggest?
+//it wants to use a promise 
+//keypress happens => we need to start forming a list for the selectelement
+//that list comes from something that is already made or comes from something
+//that is retrieved from server
+//this is getting in to the business of making controls
+//avoiding it for now
 var WebApiFormView = (function (_super) {
     __extends(WebApiFormView, _super);
     function WebApiFormView() {
@@ -281,4 +288,63 @@ var WebApiBinder = (function (_super) {
     };
     return WebApiBinder;
 }(Binder));
+var ListBinderTest = (function (_super) {
+    __extends(ListBinderTest, _super);
+    function ListBinderTest() {
+        _super.call(this);
+        this.AutomaticallySelectsFromWebApi = true;
+        this.AutomaticallyUpdatesToWebApi = true;
+        //need to change this because we need a list
+        this.WebApi = "/Api/WebApiBinder";
+    }
+    ListBinderTest.prototype.NewObject = function (obj) {
+        return new BinderTestObject(obj);
+    };
+    return ListBinderTest;
+}(ListBinder));
+//add a Preload to this before do it
+var ListBinderView = (function (_super) {
+    __extends(ListBinderView, _super);
+    function ListBinderView() {
+        _super.call(this);
+        this.Cache();
+    }
+    //can we detect name of this class?
+    ListBinderView.prototype.ViewUrl = function () { return "/Views/ListBinderView.html"; };
+    ;
+    ListBinderView.prototype.ContainerID = function () {
+        return "content";
+    };
+    return ListBinderView;
+}(View));
+var ListBinderContainer = (function (_super) {
+    __extends(ListBinderContainer, _super);
+    function ListBinderContainer() {
+        if (ListBinderContainer.instance) {
+            return ListBinderContainer.instance;
+        }
+        _super.call(this);
+        this.Views.push(new ListBinderView());
+        this.Views.push(new ViewHeader());
+        this.Views.push(new ViewFooter());
+        this.IsDefault = true;
+        ListBinderContainer.instance = this;
+    }
+    ListBinderContainer.prototype.DocumentTitle = function (route) { return "Listbinder Data"; };
+    ListBinderContainer.prototype.Url = function (route) {
+        var routeVariable = "/";
+        if (route.Parameters) {
+            if (Is.Array(route.Parameters)) {
+                routeVariable += route.Parameters.join("/");
+            }
+            else {
+                routeVariable += route.Parameters.toString();
+            }
+        }
+        return "ListBinder" + (routeVariable.length > 1 ? routeVariable : "");
+    };
+    ListBinderContainer.prototype.UrlPattern = function () { return "ListBinder"; };
+    ListBinderContainer.prototype.UrlTitle = function (route) { return "ListBinder view"; };
+    return ListBinderContainer;
+}(ViewContainer));
 //# sourceMappingURL=BinderTest.js.map

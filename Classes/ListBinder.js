@@ -7,16 +7,7 @@ var ListBinder = (function (_super) {
     __extends(ListBinder, _super);
     function ListBinder() {
         _super.apply(this, arguments);
-        this.DataObjects = new Array();
     }
-    ListBinder.prototype.OnAjaxComplete = function (arg) {
-        if (arg.EventType === EventType.Completed) {
-            //presumably this should be an array
-            var data = arg.Sender.GetRequestData();
-            if (data) {
-            }
-        }
-    };
     return ListBinder;
 }(Binder));
 //# sourceMappingURL=ListBinder.js.map

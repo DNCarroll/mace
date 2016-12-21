@@ -58,4 +58,12 @@ String.prototype.CreateElement = function (objectProperties) {
     }
     return obj;
 };
+String.prototype.CreateElementFromHtml = function () {
+    var ret = new Array();
+    var div = "div".CreateElement({ innerHTML: this });
+    while (div.children.length > 0) {
+        var child = div.children[div.children.length - 1];
+        return child;
+    }
+};
 //# sourceMappingURL=String.js.map

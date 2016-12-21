@@ -1,4 +1,6 @@
 ﻿//disable the active context or readonly it while the new stuff is coming in?
+//OnUpdateComplete not ready
+//Delete not ready
 
 abstract class Binder implements IBinder {
     PrimaryKeys: Array<string> = new Array<string>();
@@ -10,19 +12,28 @@ abstract class Binder implements IBinder {
     Element: HTMLElement;
     private eventHandlers = new Array<Listener<IBinder>>();
     DataObject: IObjectState;
+    DataObjects: Array<IObjectState> = new Array<IObjectState>();
     AssociatedElementIDs: Array<string> = new Array<string>();    
     AutomaticallyUpdatesToWebApi: boolean = false;
     AutomaticallySelectsFromWebApi: boolean = false;
-    abstract NewObject(rawObj: any): IObjectState;    
-    Dispose() {        
+    DataRowTemplates = new Array<string>();
+    DataRowFooter :HTMLElement;
+    IsFormBinding: boolean = true;
+    abstract NewObject(rawObj: any): IObjectState;  
+     
+    Dispose() {
         this.PrimaryKeys = null;
         this.WebApi = null;
         this.AssociatedElementIDs = null;
-        
-        this.DataObject.RemoveObjectStateListener();
-        this.DataObject.RemovePropertyListeners();
-        
-        this.RemoveListeners();        
+        if (this.DataObject) {
+            this.DataObject.RemoveObjectStateListener();
+            this.DataObject.RemovePropertyListeners();
+        }
+        this.DataObjects.forEach(d => {
+            d.RemoveObjectStateListener();
+            d.RemovePropertyListeners();
+        });
+        this.RemoveListeners();
     }
     Execute() {
         if (this.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(this.WebApi)) {
@@ -42,9 +53,43 @@ abstract class Binder implements IBinder {
         if (arg.EventType === EventType.Completed) {
             var data = arg.Sender.GetRequestData();
             if (data) {
-                var newDataObject = this.NewObject(data);
-                this.BindToDataObject(newDataObject);
+                if (!Is.Array(data)) {
+                    this.IsFormBinding = true;        
+                    this.BindToDataObject(this.NewObject(data));
+                }
+                else {                
+                    (<Array<any>>data).forEach(d => this.Add(this.NewObject(d)));
+                }
+                this.Dispatch(EventType.Completed);
             }
+        }
+    }
+    //not ready need to figure out the elements associated with this data element
+    //namely the base element that insigated the 
+    Delete(objectToRemove: IObjectState) {
+    }    
+    Add(objectToAdd: IObjectState) {
+        this.prepDataRowTemplates();  
+        this.DataRowTemplates.forEach(t => {
+            var newElement = t.CreateElementFromHtml();
+            var boundElements = newElement.Get(e => e.HasDataSet());
+            boundElements.Add(newElement);
+            this.DataRowFooter ? this.Element.insertBefore(newElement, this.DataRowFooter) : this.Element.appendChild(newElement);            
+            this.DataObjects.Add(objectToAdd);
+            this.BindToDataObject(objectToAdd, boundElements);
+        });
+    }    
+    private prepDataRowTemplates() {
+        if (this.DataRowTemplates.length == 0) {            
+            var elements = this.Element.Get(e => true);
+            var rows = elements.Where(e => e.getAttribute("data-template") != null);            
+            if (elements[elements.length - 1] != rows[rows.length - 1]) {
+                this.DataRowFooter = elements[elements.indexOf(rows[rows.length - 1]) + 1];
+            }
+            rows.forEach(r => {
+                this.DataRowTemplates.Add(r.outerHTML);
+                r.Remove();
+            });
         }
     }
     private onObjectStateChanged(obj: IObjectState) {
@@ -59,17 +104,20 @@ abstract class Binder implements IBinder {
         //reverse stuff here?
 
     }
-    BindToDataObject(dataObject: IObjectState) {        
-        this.DataObject = dataObject;
-        this.DataObject.AddObjectStateListener(this.onObjectStateChanged.bind(this));
-        var boundElements = this.Element.Get(e => e.HasDataSet());
-        boundElements.Add(this.Element);
-        boundElements.forEach(e => {
+    BindToDataObject(dataObject: IObjectState, elementsToBind: Array<HTMLElement> = null) {   
+        if (!elementsToBind) {
+            elementsToBind = this.Element.Get(e => e.HasDataSet());
+            elementsToBind.Add(this.Element);
+        }
+        if (this.IsFormBinding) {
+            this.DataObject = dataObject;            
+        }
+        dataObject.AddObjectStateListener(this.onObjectStateChanged.bind(this));
+        elementsToBind.forEach(e => {
             let element = e;
             this.setListeners(element, dataObject);
         });        
-        this.DataObject.AllPropertiesChanged();
-        this.Dispatch(EventType.Completed);
+        dataObject.AllPropertiesChanged();
     }
     private setListeners(element: HTMLElement, dataObject: IObjectState) {
         var boundAttributes = element.GetDataSetAttributes();

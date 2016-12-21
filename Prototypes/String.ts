@@ -71,3 +71,11 @@ String.prototype.CreateElement = function (objectProperties?): HTMLElement {
     }
     return obj;
 };
+String.prototype.CreateElementFromHtml = function (): HTMLElement {
+    var ret = new Array<HTMLElement>();
+    var div = "div".CreateElement({ innerHTML: this });
+    while (div.children.length > 0) {
+        var child = div.children[div.children.length - 1];
+        return <HTMLElement>child;
+    }
+};
