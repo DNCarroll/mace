@@ -13,7 +13,6 @@ var DummyViewManager = (function (_super) {
         this.Views.push(new DummyContent());
         this.Views.push(new ViewHeader());
         this.Views.push(new ViewFooter());
-        this.IsDefault = true;
         DummyViewManager.instance = this;
     }
     DummyViewManager.prototype.DocumentTitle = function (route) { return "Dummy Content"; };

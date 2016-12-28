@@ -40,7 +40,6 @@
     <TypeScriptCompile Include="Classes\Ajax.ts" />
     <TypeScriptCompile Include="Classes\Binder.ts" />
     <TypeScriptCompile Include="Classes\DataObject.ts" />
-    <TypeScriptCompile Include="Classes\ListBinder.ts" />
     <TypeScriptCompile Include="Classes\View.ts" />
     <TypeScriptCompile Include="Classes\ViewContainer.ts" />
     <TypeScriptCompile Include="Classes\ViewInstance.ts" />

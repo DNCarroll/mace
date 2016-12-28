@@ -1,5 +1,4 @@
 //disable the active context or readonly it while the new stuff is coming in?
-//OnUpdateComplete not ready
 //Delete not ready
 var Binder = (function () {
     function Binder() {
@@ -10,7 +9,7 @@ var Binder = (function () {
         this.AutomaticallyUpdatesToWebApi = true;
         this.AutomaticallySelectsFromWebApi = true;
         this.DataRowTemplates = new Array();
-        this.IsFormBinding = true;
+        this.IsFormBinding = false;
     }
     Binder.prototype.WebApiGetParameters = function () {
         return null;
@@ -108,7 +107,25 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnUpdateComplete = function (arg) {
-        //reverse stuff here?
+        var _this = this;
+        var incoming = arg.Sender.GetRequestData();
+        var obj = this.DataObject ? this.DataObject : this.DataObjects.First(function (d) { return _this.IsPrimaryKeymatch(d, incoming); });
+        obj ? this.SetServerObjectValue(obj, incoming) : null;
+    };
+    Binder.prototype.SetServerObjectValue = function (data, incoming) {
+        for (var p in incoming) {
+            if (!this.PrimaryKeys.First(function (k) { return k === p; })) {
+                data.SetServerProperty(p, incoming[p]);
+            }
+        }
+    };
+    Binder.prototype.IsPrimaryKeymatch = function (data, incoming) {
+        for (var i = 0; i < this.PrimaryKeys.length; i++) {
+            if (data.ServerObject[this.PrimaryKeys[i]] != incoming[this.PrimaryKeys[i]]) {
+                return false;
+            }
+        }
+        return true;
     };
     Binder.prototype.BindToDataObject = function (dataObject, elementsToBind) {
         var _this = this;

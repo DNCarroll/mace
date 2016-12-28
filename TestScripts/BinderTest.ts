@@ -170,14 +170,6 @@ class MultipleBindingsContainer extends ViewContainer {
     UrlPattern() { return "multiplebindings"; }
     UrlTitle(route: ViewInstance) { return "multiplebindings view"; }
 }
-//auto suggest?
-//it wants to use a promise 
-//keypress happens => we need to start forming a list for the selectelement
-//that list comes from something that is already made or comes from something
-//that is retrieved from server
-//this is getting in to the business of making controls
-//avoiding it for now
-
 class WebApiFormView extends View {
     static GenericSelectData: any;
     constructor() {
@@ -225,7 +217,8 @@ class WebApiBindingContainer extends ViewContainer {
 class WebApiBinder extends Binder {
     constructor() {
         super();
-        this.WebApi = "/Api/WebApiBinder";        
+        this.WebApi = "/Api/WebApiBinder";      
+        this.PrimaryKeys.Add("ID");  
     }
     NewObject(obj: any) {
         return new BinderTestObject(obj);
@@ -234,7 +227,8 @@ class WebApiBinder extends Binder {
 class ListBinderTest extends Binder {
     constructor() {
         super();
-        this.WebApi = "/Api/ListView";
+        this.WebApi = "/Api/ListView";   
+        this.PrimaryKeys.Add("ID");     
     }
     NewObject(obj: any) {
         return new BinderTestObject(obj);
@@ -245,8 +239,7 @@ class ListBinderView extends View {
     constructor() {
         super();        
         this.Cache();
-    }
-    //can we detect name of this class?
+    }    
     ViewUrl() { return "/Views/ListBinderView.html" };
     ContainerID() {
         return "content";

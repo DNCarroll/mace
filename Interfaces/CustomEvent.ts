@@ -59,6 +59,7 @@ interface IObjectState extends IPropertyChangedDispatcher {
     OnElementChanged(value: any, propertyName: string);
     AllPropertiesChanged();
     ServerObject: any;
+    SetServerProperty(propertyName: string, value: any);
 }
 enum ObjectState {
     Dirty,

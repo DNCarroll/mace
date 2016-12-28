@@ -1,5 +1,4 @@
 ﻿//disable the active context or readonly it while the new stuff is coming in?
-//OnUpdateComplete not ready
 //Delete not ready
 abstract class Binder implements IBinder {
     PrimaryKeys: Array<string> = new Array<string>();
@@ -16,7 +15,7 @@ abstract class Binder implements IBinder {
     AutomaticallySelectsFromWebApi: boolean = true;
     DataRowTemplates = new Array<string>();
     DataRowFooter :HTMLElement;
-    IsFormBinding: boolean = true;
+    IsFormBinding: boolean = false;
     abstract NewObject(rawObj: any): IObjectState;  
      
     Dispose() {
@@ -109,8 +108,24 @@ abstract class Binder implements IBinder {
         }
     }
     OnUpdateComplete(arg: CustomEventArg<Ajax>) {
-        //reverse stuff here?
-
+        var incoming = <any>arg.Sender.GetRequestData();
+        var obj = this.DataObject ? this.DataObject : this.DataObjects.First(d => this.IsPrimaryKeymatch(d, incoming));
+        obj ? this.SetServerObjectValue(obj, incoming) : null;
+    }
+    SetServerObjectValue(data: IObjectState, incoming: any) {
+        for (var p in incoming) {
+            if (!this.PrimaryKeys.First(k => k === p)) {
+                data.SetServerProperty(p, incoming[p]);
+            }
+        }
+    }
+    IsPrimaryKeymatch(data: IObjectState, incoming: any): boolean {
+        for (var i = 0; i < this.PrimaryKeys.length; i++) {
+            if (data.ServerObject[this.PrimaryKeys[i]] != incoming[this.PrimaryKeys[i]]) {
+                return false;
+            }
+        }
+        return true;
     }
     BindToDataObject(dataObject: IObjectState, elementsToBind: Array<HTMLElement> = null) {   
         if (!elementsToBind) {

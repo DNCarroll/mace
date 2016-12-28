@@ -182,7 +182,6 @@ var BinderViewContainer = (function (_super) {
         this.Views.push(new BinderView());
         this.Views.push(new ViewHeader());
         this.Views.push(new ViewFooter());
-        this.IsDefault = true;
         BinderViewContainer.instance = this;
     }
     BinderViewContainer.prototype.DocumentTitle = function (route) { return "Bound content"; };
@@ -213,7 +212,6 @@ var MultipleBindingsContainer = (function (_super) {
         this.Views.push(new MultipleViewBinder());
         this.Views.push(new ViewHeader());
         this.Views.push(new ViewFooter());
-        this.IsDefault = true;
         MultipleBindingsContainer.instance = this;
     }
     MultipleBindingsContainer.prototype.DocumentTitle = function (route) { return "Multiple bindings"; };
@@ -222,13 +220,6 @@ var MultipleBindingsContainer = (function (_super) {
     MultipleBindingsContainer.prototype.UrlTitle = function (route) { return "multiplebindings view"; };
     return MultipleBindingsContainer;
 }(ViewContainer));
-//auto suggest?
-//it wants to use a promise 
-//keypress happens => we need to start forming a list for the selectelement
-//that list comes from something that is already made or comes from something
-//that is retrieved from server
-//this is getting in to the business of making controls
-//avoiding it for now
 var WebApiFormView = (function (_super) {
     __extends(WebApiFormView, _super);
     function WebApiFormView() {
@@ -257,7 +248,6 @@ var WebApiBindingContainer = (function (_super) {
         this.Views.push(new WebApiFormView());
         this.Views.push(new ViewHeader());
         this.Views.push(new ViewFooter());
-        this.IsDefault = true;
         WebApiBindingContainer.instance = this;
     }
     WebApiBindingContainer.prototype.DocumentTitle = function (route) { return "WebApi Data"; };
@@ -281,9 +271,8 @@ var WebApiBinder = (function (_super) {
     __extends(WebApiBinder, _super);
     function WebApiBinder() {
         _super.call(this);
-        this.AutomaticallySelectsFromWebApi = true;
-        this.AutomaticallyUpdatesToWebApi = true;
         this.WebApi = "/Api/WebApiBinder";
+        this.PrimaryKeys.Add("ID");
     }
     WebApiBinder.prototype.NewObject = function (obj) {
         return new BinderTestObject(obj);
@@ -294,10 +283,8 @@ var ListBinderTest = (function (_super) {
     __extends(ListBinderTest, _super);
     function ListBinderTest() {
         _super.call(this);
-        this.AutomaticallySelectsFromWebApi = true;
-        this.AutomaticallyUpdatesToWebApi = true;
-        //need to change this because we need a list
         this.WebApi = "/Api/ListView";
+        this.PrimaryKeys.Add("ID");
     }
     ListBinderTest.prototype.NewObject = function (obj) {
         return new BinderTestObject(obj);
@@ -311,7 +298,6 @@ var ListBinderView = (function (_super) {
         _super.call(this);
         this.Cache();
     }
-    //can we detect name of this class?
     ListBinderView.prototype.ViewUrl = function () { return "/Views/ListBinderView.html"; };
     ;
     ListBinderView.prototype.ContainerID = function () {
@@ -329,7 +315,6 @@ var ListBinderContainer = (function (_super) {
         this.Views.push(new ListBinderView());
         this.Views.push(new ViewHeader());
         this.Views.push(new ViewFooter());
-        this.IsDefault = true;
         ListBinderContainer.instance = this;
     }
     ListBinderContainer.prototype.DocumentTitle = function (route) { return "Listbinder Data"; };

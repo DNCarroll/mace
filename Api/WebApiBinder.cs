@@ -21,6 +21,7 @@ namespace mace.Api {
 
         [Route]
         public BindingTestObject Put([FromBody]BindingTestObject value) {
+            value.Name = value.Name = "bound object updated";
             return value;
         }
 
