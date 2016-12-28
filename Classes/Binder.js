@@ -7,14 +7,13 @@ var Binder = (function () {
         this.eventHandlers = new Array();
         this.DataObjects = new Array();
         this.AssociatedElementIDs = new Array();
-        this.AutomaticallyUpdatesToWebApi = false;
-        this.AutomaticallySelectsFromWebApi = false;
+        this.AutomaticallyUpdatesToWebApi = true;
+        this.AutomaticallySelectsFromWebApi = true;
         this.DataRowTemplates = new Array();
         this.IsFormBinding = true;
     }
     Binder.prototype.WebApiGetParameters = function () {
-        var ret = HistoryManager.CurrentRoute().Parameters;
-        return ret && ret.length == 1 ? ret[0] : ret;
+        return null;
     };
     Binder.prototype.Dispose = function () {
         this.PrimaryKeys = null;
@@ -30,13 +29,17 @@ var Binder = (function () {
         });
         this.RemoveListeners();
     };
-    Binder.prototype.Execute = function () {
+    Binder.prototype.Execute = function (viewInstance) {
+        if (viewInstance === void 0) { viewInstance = null; }
         if (this.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(this.WebApi)) {
-            var parameters = this.WebApiGetParameters();
+            var parameters = viewInstance.Parameters ? viewInstance.Parameters : this.WebApiGetParameters();
             var ajax = new Ajax();
             ajax.AddListener(EventType.Completed, this.OnAjaxComplete.bind(this));
             var url = this.WebApi;
-            url += (url.lastIndexOf("/") + 1 == url.length ? "" : "/") + (Is.Array(parameters) ? parameters.join("/") : parameters);
+            if (parameters) {
+                url += (url.lastIndexOf("/") + 1 == url.length ? "" : "/");
+                url += Is.Array(parameters) ? parameters.join("/") : parameters;
+            }
             ajax.Get(url);
         }
         else {
@@ -64,24 +67,31 @@ var Binder = (function () {
     Binder.prototype.Delete = function (objectToRemove) {
     };
     Binder.prototype.Add = function (objectToAdd) {
-        var _this = this;
         this.prepDataRowTemplates();
+        var that = this;
         this.DataRowTemplates.forEach(function (t) {
             var newElement = t.CreateElementFromHtml();
             var boundElements = newElement.Get(function (e) { return e.HasDataSet(); });
             boundElements.Add(newElement);
-            _this.DataRowFooter ? _this.Element.insertBefore(newElement, _this.DataRowFooter) : _this.Element.appendChild(newElement);
-            _this.DataObjects.Add(objectToAdd);
-            _this.BindToDataObject(objectToAdd, boundElements);
+            that.DataRowFooter ? that.Element.insertBefore(newElement, that.DataRowFooter) : that.Element.appendChild(newElement);
+            that.DataObjects.Add(objectToAdd);
+            that.BindToDataObject(objectToAdd, boundElements);
         });
     };
     Binder.prototype.prepDataRowTemplates = function () {
         var _this = this;
         if (this.DataRowTemplates.length == 0) {
-            var elements = this.Element.Get(function (e) { return true; });
-            var rows = elements.Where(function (e) { return e.getAttribute("data-template") != null; });
+            var elements = this.Element.children;
+            var rows = new Array();
+            var lastIndex = 0;
+            for (var i = 0; i < elements.length; i++) {
+                if (elements[i].getAttribute("data-template") != null) {
+                    rows.Add(elements[i]);
+                    lastIndex = i;
+                }
+            }
             if (elements[elements.length - 1] != rows[rows.length - 1]) {
-                this.DataRowFooter = elements[elements.indexOf(rows[rows.length - 1]) + 1];
+                this.DataRowFooter = elements[elements.length - 1];
             }
             rows.forEach(function (r) {
                 _this.DataRowTemplates.Add(r.outerHTML);

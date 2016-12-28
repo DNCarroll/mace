@@ -130,7 +130,8 @@ var BinderTest = (function (_super) {
     BinderTest.prototype.NewObject = function (obj) {
         return new BinderTestObject(obj);
     };
-    BinderTest.prototype.Execute = function () {
+    BinderTest.prototype.Execute = function (viewInstance) {
+        if (viewInstance === void 0) { viewInstance = null; }
         var bo = new BinderTestObject();
         bo.Name = "Test the name";
         bo.ID = 1;
@@ -148,7 +149,8 @@ var BinderTest2 = (function (_super) {
     BinderTest2.prototype.NewObject = function (obj) {
         return new BinderTestObject(obj);
     };
-    BinderTest2.prototype.Execute = function () {
+    BinderTest2.prototype.Execute = function (viewInstance) {
+        if (viewInstance === void 0) { viewInstance = null; }
         var bo = new BinderTestObject();
         bo.Name = "Test the name";
         bo.ID = 1;
@@ -295,13 +297,13 @@ var ListBinderTest = (function (_super) {
         this.AutomaticallySelectsFromWebApi = true;
         this.AutomaticallyUpdatesToWebApi = true;
         //need to change this because we need a list
-        this.WebApi = "/Api/WebApiBinder";
+        this.WebApi = "/Api/ListView";
     }
     ListBinderTest.prototype.NewObject = function (obj) {
         return new BinderTestObject(obj);
     };
     return ListBinderTest;
-}(ListBinder));
+}(Binder));
 //add a Preload to this before do it
 var ListBinderView = (function (_super) {
     __extends(ListBinderView, _super);

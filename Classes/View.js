@@ -36,6 +36,7 @@ var View = (function () {
         }
     };
     View.prototype.Show = function (viewInstance) {
+        this.ViewInstance = viewInstance;
         if (this.Preload) {
             this.Preload.Execute(this.postPreloaded.bind(this));
         }
@@ -90,7 +91,7 @@ var View = (function () {
                 elements.forEach(function (e) {
                     if (e.Binder) {
                         try {
-                            e.Binder.Execute();
+                            e.Binder.Execute(_this.ViewInstance);
                         }
                         catch (ex) {
                             var exmessage = ex;

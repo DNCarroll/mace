@@ -34,7 +34,8 @@ abstract class View implements IView {
             ajax.Get(this.ViewUrl());
         }
     }
-    Show(viewInstance: ViewInstance) {                        
+    Show(viewInstance: ViewInstance) {     
+        this.ViewInstance = viewInstance;                   
         if (this.Preload) {
             this.Preload.Execute(this.postPreloaded.bind(this));
         }
@@ -88,7 +89,7 @@ abstract class View implements IView {
                 elements.forEach(e => {
                     if (e.Binder) {
                         try {
-                            e.Binder.Execute();
+                            e.Binder.Execute(this.ViewInstance);
                         }
                         catch (ex) {
                             var exmessage = ex;
@@ -117,8 +118,8 @@ abstract class View implements IView {
         boundElements.forEach(e => e.Binder.Dispose());
         containter.Clear();
         while (this.cachedElement.childNodes.length > 0) {
-            var node = this.cachedElement.childNodes[0];
-            this.cachedElement.removeChild(node);
+            var node = this.cachedElement.childNodes[0];            
+            this.cachedElement.removeChild(node);            
             containter.appendChild(node);
         }
         this.Dispatch(EventType.Completed);

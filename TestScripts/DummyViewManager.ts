@@ -7,8 +7,7 @@
         super();
         this.Views.push(new DummyContent());
         this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        this.IsDefault = true;
+        this.Views.push(new ViewFooter());        
         DummyViewManager.instance = this;
     }
     DocumentTitle(route: ViewInstance) { return "Dummy Content"; }

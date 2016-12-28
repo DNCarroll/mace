@@ -5,7 +5,7 @@
     
 }
 interface IBinder extends IEventDispatcher<IBinder> {
-    Execute: () => void;
+    Execute: (viewInstance: ViewInstance) => void;
     Dispose: () => void;
     Element: HTMLElement;
 }

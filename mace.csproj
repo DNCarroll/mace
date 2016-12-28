@@ -24,6 +24,7 @@
   <ItemGroup>
     <Content Include="default.html" />
     <Content Include="Global.asax" />
+    <Content Include="Styles\UnorderList.css" />
     <Content Include="Views\BinderView.html" />
     <Content Include="Views\ContentWithShowByUrl.html" />
     <Content Include="Views\DummyContent.html" />
@@ -79,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\GenericSelectDataController.cs" />
+    <Compile Include="Api\ListViewControllerController.cs" />
     <Compile Include="Api\WebApiBinder.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Global.asax.cs">

@@ -1,21 +1,19 @@
 ﻿//disable the active context or readonly it while the new stuff is coming in?
 //OnUpdateComplete not ready
 //Delete not ready
-
 abstract class Binder implements IBinder {
     PrimaryKeys: Array<string> = new Array<string>();
     WebApi: string;
     WebApiGetParameters(): any {
-        var ret = HistoryManager.CurrentRoute().Parameters;        
-        return ret && ret.length == 1 ? ret[0] : ret;
+        return null;
     }
     Element: HTMLElement;
     private eventHandlers = new Array<Listener<IBinder>>();
     DataObject: IObjectState;
     DataObjects: Array<IObjectState> = new Array<IObjectState>();
     AssociatedElementIDs: Array<string> = new Array<string>();    
-    AutomaticallyUpdatesToWebApi: boolean = false;
-    AutomaticallySelectsFromWebApi: boolean = false;
+    AutomaticallyUpdatesToWebApi: boolean = true;
+    AutomaticallySelectsFromWebApi: boolean = true;
     DataRowTemplates = new Array<string>();
     DataRowFooter :HTMLElement;
     IsFormBinding: boolean = true;
@@ -35,20 +33,22 @@ abstract class Binder implements IBinder {
         });
         this.RemoveListeners();
     }
-    Execute() {
+    Execute(viewInstance: ViewInstance = null) {
         if (this.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(this.WebApi)) {
-            var parameters = this.WebApiGetParameters();
+            var parameters = viewInstance.Parameters ? viewInstance.Parameters : this.WebApiGetParameters();
             var ajax = new Ajax();
             ajax.AddListener(EventType.Completed, this.OnAjaxComplete.bind(this));
             var url = this.WebApi;
-            url += (url.lastIndexOf("/") + 1 == url.length ? "" : "/") + (Is.Array(parameters) ? parameters.join("/") : parameters);
+            if (parameters) {
+                url += (url.lastIndexOf("/") + 1 == url.length ? "" : "/");
+                url += Is.Array(parameters) ? parameters.join("/") : parameters;
+            }
             ajax.Get(url);
         }
         else {
             this.Dispatch(EventType.Completed);
         }
-    }
-    
+    }    
     OnAjaxComplete(arg: CustomEventArg<Ajax>) {  
         if (arg.EventType === EventType.Completed) {
             var data = arg.Sender.GetRequestData();
@@ -70,21 +70,29 @@ abstract class Binder implements IBinder {
     }    
     Add(objectToAdd: IObjectState) {
         this.prepDataRowTemplates();  
+        var that = this;
         this.DataRowTemplates.forEach(t => {
             var newElement = t.CreateElementFromHtml();
             var boundElements = newElement.Get(e => e.HasDataSet());
             boundElements.Add(newElement);
-            this.DataRowFooter ? this.Element.insertBefore(newElement, this.DataRowFooter) : this.Element.appendChild(newElement);            
-            this.DataObjects.Add(objectToAdd);
-            this.BindToDataObject(objectToAdd, boundElements);
+            that.DataRowFooter ? that.Element.insertBefore(newElement, that.DataRowFooter) : that.Element.appendChild(newElement);
+            that.DataObjects.Add(objectToAdd);
+            that.BindToDataObject(objectToAdd, boundElements);
         });
     }    
     private prepDataRowTemplates() {
         if (this.DataRowTemplates.length == 0) {            
-            var elements = this.Element.Get(e => true);
-            var rows = elements.Where(e => e.getAttribute("data-template") != null);            
+            var elements = this.Element.children;
+            var rows = new Array<HTMLElement>();
+            var lastIndex = 0;
+            for (var i = 0; i < elements.length; i++) {
+                if (elements[i].getAttribute("data-template") != null) {
+                    rows.Add(elements[i]);
+                    lastIndex = i;
+                }
+            }          
             if (elements[elements.length - 1] != rows[rows.length - 1]) {
-                this.DataRowFooter = elements[elements.indexOf(rows[rows.length - 1]) + 1];
+                this.DataRowFooter = <HTMLElement>elements[elements.length - 1];
             }
             rows.forEach(r => {
                 this.DataRowTemplates.Add(r.outerHTML);
@@ -223,5 +231,4 @@ abstract class Binder implements IBinder {
         var listeners = this.eventHandlers.Where(e => e.EventType === eventType);
         listeners.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, eventType)));
     }
-
 }

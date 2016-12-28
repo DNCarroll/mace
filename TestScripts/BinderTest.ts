@@ -91,11 +91,11 @@ class BinderTest extends Binder {
     NewObject(obj:any) {
         return new BinderTestObject(obj);
     }
-    Execute() {        
+    Execute(viewInstance: ViewInstance = null) {
         var bo = new BinderTestObject();
         bo.Name = "Test the name";
         bo.ID = 1;
-        bo.Value = "test the value";        
+        bo.Value = "test the value";
         this.BindToDataObject(bo);
         this.Dispatch(EventType.Completed);
     }
@@ -108,7 +108,7 @@ class BinderTest2 extends Binder {
     NewObject(obj: any) {
         return new BinderTestObject(obj);
     }
-    Execute() {
+    Execute(viewInstance: ViewInstance = null) {
         var bo = new BinderTestObject();
         bo.Name = "Test the name";
         bo.ID = 1;
@@ -136,8 +136,7 @@ class BinderViewContainer extends ViewContainer {
         super();
         this.Views.push(new BinderView());
         this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        this.IsDefault = true;
+        this.Views.push(new ViewFooter());        
         BinderViewContainer.instance = this;
     }
     DocumentTitle(route: ViewInstance) { return "Bound content"; }
@@ -163,8 +162,7 @@ class MultipleBindingsContainer extends ViewContainer {
         super();
         this.Views.push(new MultipleViewBinder());
         this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        this.IsDefault = true;
+        this.Views.push(new ViewFooter());        
         MultipleBindingsContainer.instance = this;
     }
     DocumentTitle(route: ViewInstance) { return "Multiple bindings"; }
@@ -205,8 +203,7 @@ class WebApiBindingContainer extends ViewContainer {
         super();
         this.Views.push(new WebApiFormView());
         this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        this.IsDefault = true;
+        this.Views.push(new ViewFooter());        
         WebApiBindingContainer.instance = this;
     }
     DocumentTitle(route: ViewInstance) { return "WebApi Data"; }
@@ -228,21 +225,16 @@ class WebApiBindingContainer extends ViewContainer {
 class WebApiBinder extends Binder {
     constructor() {
         super();
-        this.AutomaticallySelectsFromWebApi = true;
-        this.AutomaticallyUpdatesToWebApi = true;
         this.WebApi = "/Api/WebApiBinder";        
     }
     NewObject(obj: any) {
         return new BinderTestObject(obj);
     }
 }
-class ListBinderTest extends ListBinder {
+class ListBinderTest extends Binder {
     constructor() {
         super();
-        this.AutomaticallySelectsFromWebApi = true;
-        this.AutomaticallyUpdatesToWebApi = true;
-        //need to change this because we need a list
-        this.WebApi = "/Api/WebApiBinder";
+        this.WebApi = "/Api/ListView";
     }
     NewObject(obj: any) {
         return new BinderTestObject(obj);
@@ -269,8 +261,7 @@ class ListBinderContainer extends ViewContainer {
         super();
         this.Views.push(new ListBinderView());
         this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        this.IsDefault = true;
+        this.Views.push(new ViewFooter());        
         ListBinderContainer.instance = this;
     }
     DocumentTitle(route: ViewInstance) { return "Listbinder Data"; }
