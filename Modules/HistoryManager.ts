@@ -1,8 +1,4 @@
-﻿//not done
-//should we be removing stuff from the history when we do this?
-//if we make this a class i can hide stuff that should be acted on
-
-module HistoryContainer {
+﻿module HistoryContainer {
     export class History {
         private ViewInstances = new Array<ViewInstance>();
         CurrentRoute(): ViewInstance {
@@ -36,11 +32,9 @@ module HistoryContainer {
             var title = viewInstance.ViewContainer.UrlTitle(viewInstance);
             var documentTitle = viewInstance.ViewContainer.DocumentTitle(viewInstance);
             var url = viewInstance.ViewContainer.Url(viewInstance);
-            if (url && !Is.NullOrEmpty(title)) {
-                if (history && history.pushState) {
-                    url = this.FormatUrl(!Is.NullOrEmpty(url) ? url.indexOf("/") != 0 ? "/" + url : url : "/");
-                    history.pushState(null, title, url);
-                }
+            if (url && !Is.NullOrEmpty(title) && history && history.pushState) {
+                url = this.FormatUrl(!Is.NullOrEmpty(url) ? url.indexOf("/") != 0 ? "/" + url : url : "/");
+                history.pushState(null, title, url);
             }
             if (documentTitle) {
                 document.title = documentTitle;

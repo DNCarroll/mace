@@ -22,8 +22,33 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Classes\Ajax.js" />
+    <Content Include="Classes\Binder.js" />
+    <Content Include="Classes\DataObject.js" />
+    <Content Include="Classes\View.js" />
+    <Content Include="Classes\ViewContainer.js" />
+    <Content Include="Classes\ViewInstance.js" />
     <Content Include="default.html" />
     <Content Include="Global.asax" />
+    <Content Include="Interfaces\CustomEvent.js" />
+    <Content Include="Interfaces\IView.js" />
+    <Content Include="Interfaces\IViewContainer.js" />
+    <Content Include="Modules\Formatters.js" />
+    <Content Include="Modules\HistoryManager.js" />
+    <Content Include="Modules\Initializer.js" />
+    <Content Include="Modules\Is.js" />
+    <Content Include="Modules\ProgressManager.js" />
+    <Content Include="Modules\RegularExpression.js" />
+    <Content Include="Prototypes\Array.js" />
+    <Content Include="Prototypes\Date.js" />
+    <Content Include="Prototypes\HTMLElement.js" />
+    <Content Include="Prototypes\HTMLSelectElement.js" />
+    <Content Include="Prototypes\String.js" />
+    <Content Include="Prototypes\Window.js" />
+    <Content Include="Scripts\mace.js" />
+    <Content Include="Scripts\mace.min.js">
+      <DependentUpon>mace.js</DependentUpon>
+    </Content>
     <Content Include="Styles\UnorderList.css" />
     <Content Include="Views\BinderView.html" />
     <Content Include="Views\ContentWithShowByUrl.html" />
@@ -70,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
+    <None Include="bundleconfig.json" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

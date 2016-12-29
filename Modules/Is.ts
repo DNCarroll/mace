@@ -26,18 +26,12 @@
         return obj && getType.toString.call(obj) === '[object Function]';
     }
     export function NullOrEmpty(value): boolean {
-        if (value == null) {
-            return true;
-        }
-        else if (value.length == 0) {
-            return true;
-        }
+        return value == null || (value.length && value.length == 0);
     }
     export function Numeric(input: string): boolean {
         var RE = /^-{0,1}\d*\.{0,1}\d+$/;
         return (RE.test(input));
     }
-
     export function Object(value) {
         return value && typeof value === 'object';
     }

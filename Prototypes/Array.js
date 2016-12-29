@@ -163,25 +163,4 @@ Array.prototype.Where = function (func) {
     }
     return matches;
 };
-Array.prototype.Select = function (keySelector) {
-    var ret = new Array();
-    for (var i = 0; i < this.length; i++) {
-        var obj = this[i];
-        var newObj = keySelector(obj);
-        ret.push(newObj);
-    }
-    return ret;
-};
-Array.prototype.Ascend = function (keySelector) {
-    return this.sort(function (a, b) {
-        return keySelector(a) < keySelector(b) ? -1 :
-            keySelector(a) > keySelector(b) ? 1 : 0;
-    });
-};
-Array.prototype.Descend = function (keySelector) {
-    return this.sort(function (a, b) {
-        return keySelector(a) < keySelector(b) ? 1 :
-            keySelector(a) > keySelector(b) ? -1 : 0;
-    });
-};
 //# sourceMappingURL=Array.js.map

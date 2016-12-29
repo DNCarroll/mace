@@ -55,13 +55,6 @@ HTMLElement.prototype.Parent = function (predicate) {
     }
     return null;
 };
-HTMLElement.prototype.Delete = function (predicate) {
-    var that = this;
-    var found = that.First(predicate);
-    if (found) {
-        found.Remove();
-    }
-};
 HTMLElement.prototype.Clear = function (predicate, notRecursive) {
     var that = this;
     var children = that.childNodes;
@@ -89,15 +82,6 @@ HTMLElement.prototype.Clear = function (predicate, notRecursive) {
         }
     }
 };
-HTMLElement.prototype.AddRange = function () {
-    var elements = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        elements[_i - 0] = arguments[_i];
-    }
-    var that = this;
-    elements.forEach(function (e) { return that.appendChild(e); });
-    return that;
-};
 HTMLElement.prototype.Remove = function () {
     this.parentNode.removeChild(this);
 };
@@ -116,27 +100,6 @@ HTMLElement.prototype.OffSet = function () {
         el = el.offsetParent;
     }
     return { top: _y, left: _x };
-};
-HTMLElement.prototype.Dimensions = function () {
-    var ret = { width: 0, height: 0 };
-    ret.width = this.offsetWidth;
-    ret.height = this.offsetHeight;
-    return ret;
-};
-HTMLElement.prototype.DimAndOff = function () {
-    var ret = {
-        Height: 0,
-        Width: 0,
-        Top: 0,
-        Left: 0
-    };
-    var dim = this.Dimensions();
-    var pos = this.OffSet();
-    ret.Height = dim.height;
-    ret.Width = dim.width;
-    ret.Top = pos.top;
-    ret.Left = pos.left;
-    return ret;
 };
 HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);

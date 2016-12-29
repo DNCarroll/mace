@@ -61,8 +61,7 @@ var Binder = (function () {
             }
         }
     };
-    //not ready need to figure out the elements associated with this data element
-    //namely the base element that insigated the 
+    //not ready
     Binder.prototype.Delete = function (objectToRemove) {
     };
     Binder.prototype.Add = function (objectToAdd) {

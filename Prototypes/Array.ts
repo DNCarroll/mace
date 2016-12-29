@@ -11,9 +11,6 @@
     Last(func: (obj: T) => boolean): T;
     Remove(func: (obj: T) => boolean): T[];
     Where(func: (obj: T) => boolean): T[];    
-    Select<U>(keySelector: (element: T) => U): Array<U>;
-    Ascend(keySelector: (element: T) => any): T[];
-    Descend(keySelector: (element: T) => any): T[]; 
 }
 Array.prototype.GroupBy = function (...groupBy: string[]) {
     var ret = new Array();
@@ -175,25 +172,4 @@ Array.prototype.Where = function (func: (obj) => boolean): Array<any> {
         }
     }
     return matches;
-};
-Array.prototype.Select = function (keySelector: (element: any) => any): Array<any> {
-    var ret = new Array<any>();
-    for (var i = 0; i < this.length; i++) {
-        var obj = this[i];
-        var newObj = keySelector(obj);
-        ret.push(newObj);
-    }
-    return ret;
-};
-Array.prototype.Ascend = function (keySelector: (element: any) => any): Array<any> {
-    return this.sort((a, b) => {
-        return keySelector(a) < keySelector(b) ? -1 :
-            keySelector(a) > keySelector(b) ? 1 : 0;
-    });
-};
-Array.prototype.Descend = function (keySelector: (element: any) => any): Array<any> {
-    return this.sort((a, b) => {
-        return keySelector(a) < keySelector(b) ? 1 :
-            keySelector(a) > keySelector(b) ? -1 : 0;
-    });
 };

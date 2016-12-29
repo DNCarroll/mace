@@ -67,8 +67,8 @@
         }
     }
     function ignoreTheseNames(): Array<string> {
-        return ["Ajax", "ViewContainer", "View", "ViewInstance", "Formatters",
-            "HistoryManager", "Is", "RegularExpression", "Initializer", "ViewContainers",
+        return ["Ajax", "ViewContainer", "View", "ViewInstance",
+            "HistoryManager", "Is", "Initializer", "ViewContainers",
             "ActionEvent", "DataBinding", "ActionType", "AutoSuggest", "Binding",
             "KeyPress", "Thing", "What"];
     }

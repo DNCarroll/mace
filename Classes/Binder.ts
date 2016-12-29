@@ -62,10 +62,10 @@ abstract class Binder implements IBinder {
             }
         }
     }
-    //not ready need to figure out the elements associated with this data element
-    //namely the base element that insigated the 
+    //not ready
     Delete(objectToRemove: IObjectState) {
-    }    
+        
+    }   
     Add(objectToAdd: IObjectState) {
         this.prepDataRowTemplates();  
         var that = this;

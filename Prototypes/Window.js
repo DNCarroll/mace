@@ -33,34 +33,4 @@ Window.prototype.ShowByUrl = function (url) {
         HistoryManager.Add(viewInstance);
     }
 };
-Window.prototype.Dimensions = function () {
-    var ret = { Height: 0, Width: 0 };
-    var temp = window;
-    if (typeof temp.innerWidth != 'undefined') {
-        ret.Width = temp.innerWidth,
-            ret.Height = temp.innerHeight;
-    }
-    else if (typeof document.documentElement != 'undefined'
-        && typeof document.documentElement.clientWidth !=
-            'undefined' && document.documentElement.clientWidth != 0) {
-        ret.Width = document.documentElement.clientWidth,
-            ret.Height = document.documentElement.clientHeight;
-    }
-    else {
-        ret.Width = document.getElementsByTagName('body')[0].clientWidth,
-            ret.Height = document.getElementsByTagName('body')[0].clientHeight;
-    }
-    return ret;
-};
-Window.prototype.SplitPathName = function () {
-    var ret = new Array();
-    var pathName = window.location.pathname;
-    pathName = pathName.substring(1);
-    var lastCharacter = pathName.charAt(pathName.length - 1);
-    if (lastCharacter === "/") {
-        pathName = pathName.substring(0, pathName.length - 1);
-    }
-    var split = pathName.split("/");
-    return split;
-};
 //# sourceMappingURL=Window.js.map

@@ -31,12 +31,7 @@ var Is;
     }
     Is.Function = Function;
     function NullOrEmpty(value) {
-        if (value == null) {
-            return true;
-        }
-        else if (value.length == 0) {
-            return true;
-        }
+        return value == null || (value.length && value.length == 0);
     }
     Is.NullOrEmpty = NullOrEmpty;
     function Numeric(input) {

@@ -5,8 +5,7 @@
 }
 abstract class View implements IView {
     abstract ViewUrl(): string;
-    abstract ContainerID(): string;
-    
+    abstract ContainerID(): string;    
     private countBinders: number;
     private countBindersReported: number;
     private cachedElement: HTMLElement    

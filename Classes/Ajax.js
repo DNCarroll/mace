@@ -163,9 +163,7 @@ var Ajax = (function () {
             switch (type) {
                 case "Date":
                     if (val) {
-                        val = val.substring(6);
-                        val = val.replace(")/", "");
-                        val = parseInt(val);
+                        val = parseInt(val.substring(6).replace(")/", ""));
                         if (val > -62135575200000) {
                             val = new Date(val);
                             obj[key] = val;

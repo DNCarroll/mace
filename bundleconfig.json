@@ -1,0 +1,25 @@
+[
+  {
+    "outputFileName": "Scripts/mace.js",
+    "inputFiles": [
+      "Classes/Ajax.js",
+      "Classes/Binder.js",
+      "Classes/DataObject.js",
+      "Classes/View.js",
+      "Classes/ViewContainer.js",
+      "Classes/ViewInstance.js",
+      "Interfaces/CustomEvent.js",      
+      "Modules/HistoryManager.js",
+      "Modules/Initializer.js",
+      "Modules/Is.js",
+      "Modules/ProgressManager.js",
+      "Modules/RegularExpression.js",
+      "Prototypes/Array.js",
+      "Prototypes/Date.js",
+      "Prototypes/HTMLElement.js",
+      "Prototypes/HTMLSelectElement.js",
+      "Prototypes/String.js",
+      "Prototypes/Window.js"
+    ]
+  }
+]
