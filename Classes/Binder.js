@@ -68,28 +68,28 @@ var Binder = (function () {
         this.prepDataRowTemplates();
         var that = this;
         this.DataRowTemplates.forEach(function (t) {
-            var newElement = t.CreateElementFromHtml();
-            var boundElements = newElement.Get(function (e) { return e.HasDataSet(); });
-            boundElements.Add(newElement);
-            that.DataRowFooter ? that.Element.insertBefore(newElement, that.DataRowFooter) : that.Element.appendChild(newElement);
+            var newEle = t.CreateElementFromHtml();
+            var boundEle = newEle.Get(function (e) { return e.HasDataSet(); });
+            boundEle.Add(newEle);
+            that.DataRowFooter ? that.Element.insertBefore(newEle, that.DataRowFooter) : that.Element.appendChild(newEle);
             that.DataObjects.Add(objectToAdd);
-            that.BindToDataObject(objectToAdd, boundElements);
+            that.BindToDataObject(objectToAdd, boundEle);
         });
     };
     Binder.prototype.prepDataRowTemplates = function () {
         var _this = this;
         if (this.DataRowTemplates.length == 0) {
-            var elements = this.Element.children;
+            var eles = this.Element.children;
             var rows = new Array();
             var lastIndex = 0;
-            for (var i = 0; i < elements.length; i++) {
-                if (elements[i].getAttribute("data-template") != null) {
-                    rows.Add(elements[i]);
+            for (var i = 0; i < eles.length; i++) {
+                if (eles[i].getAttribute("data-template") != null) {
+                    rows.Add(eles[i]);
                     lastIndex = i;
                 }
             }
-            if (elements[elements.length - 1] != rows[rows.length - 1]) {
-                this.DataRowFooter = elements[elements.length - 1];
+            if (eles[eles.length - 1] != rows[rows.length - 1]) {
+                this.DataRowFooter = eles[eles.length - 1];
             }
             rows.forEach(function (r) {
                 _this.DataRowTemplates.Add(r.outerHTML);
@@ -99,81 +99,81 @@ var Binder = (function () {
     };
     Binder.prototype.onObjectStateChanged = function (obj) {
         if (this.AutomaticallyUpdatesToWebApi && this.WebApi) {
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, this.OnUpdateComplete.bind(this));
-            ajax.Put(this.WebApi, obj.ServerObject);
+            var jx = new Ajax();
+            jx.AddListener(EventType.Completed, this.OnUpdateComplete.bind(this));
+            jx.Put(this.WebApi, obj.ServerObject);
             obj.ObjectState = ObjectState.Clean;
         }
     };
     Binder.prototype.OnUpdateComplete = function (arg) {
         var _this = this;
-        var incoming = arg.Sender.GetRequestData();
-        var obj = this.DataObject ? this.DataObject : this.DataObjects.First(function (d) { return _this.IsPrimaryKeymatch(d, incoming); });
-        obj ? this.SetServerObjectValue(obj, incoming) : null;
+        var income = arg.Sender.GetRequestData();
+        var obj = this.DataObject ? this.DataObject : this.DataObjects.First(function (d) { return _this.IsPrimaryKeymatch(d, income); });
+        obj ? this.SetServerObjectValue(obj, income) : null;
     };
-    Binder.prototype.SetServerObjectValue = function (data, incoming) {
-        for (var p in incoming) {
+    Binder.prototype.SetServerObjectValue = function (data, income) {
+        for (var p in income) {
             if (!this.PrimaryKeys.First(function (k) { return k === p; })) {
-                data.SetServerProperty(p, incoming[p]);
+                data.SetServerProperty(p, income[p]);
             }
         }
     };
-    Binder.prototype.IsPrimaryKeymatch = function (data, incoming) {
+    Binder.prototype.IsPrimaryKeymatch = function (data, income) {
         for (var i = 0; i < this.PrimaryKeys.length; i++) {
-            if (data.ServerObject[this.PrimaryKeys[i]] != incoming[this.PrimaryKeys[i]]) {
+            if (data.ServerObject[this.PrimaryKeys[i]] != income[this.PrimaryKeys[i]]) {
                 return false;
             }
         }
         return true;
     };
-    Binder.prototype.BindToDataObject = function (dataObject, elementsToBind) {
+    Binder.prototype.BindToDataObject = function (obj, elesToBind) {
         var _this = this;
-        if (elementsToBind === void 0) { elementsToBind = null; }
-        if (!elementsToBind) {
-            elementsToBind = this.Element.Get(function (e) { return e.HasDataSet(); });
-            elementsToBind.Add(this.Element);
+        if (elesToBind === void 0) { elesToBind = null; }
+        if (!elesToBind) {
+            elesToBind = this.Element.Get(function (e) { return e.HasDataSet(); });
+            elesToBind.Add(this.Element);
         }
         if (this.IsFormBinding) {
-            this.DataObject = dataObject;
+            this.DataObject = obj;
         }
-        dataObject.AddObjectStateListener(this.onObjectStateChanged.bind(this));
-        elementsToBind.forEach(function (e) {
+        obj.AddObjectStateListener(this.onObjectStateChanged.bind(this));
+        elesToBind.forEach(function (e) {
             var element = e;
-            _this.setListeners(element, dataObject);
+            _this.setListeners(element, obj);
         });
-        dataObject.AllPropertiesChanged();
+        obj.AllPropertiesChanged();
     };
-    Binder.prototype.setListeners = function (element, dataObject) {
+    Binder.prototype.setListeners = function (ele, obj) {
         var _this = this;
-        var boundAttributes = element.GetDataSetAttributes();
-        if (element.tagName === "SELECT") {
-            var datasource = boundAttributes.First(function (f) { return f.Attribute == "datasource"; });
-            var displayMember = boundAttributes.First(function (f) { return f.Attribute == "displaymember"; });
-            var valueMember = boundAttributes.First(function (f) { return f.Attribute == "valuemember"; });
-            if (datasource) {
-                var fun = new Function("return " + datasource.Property);
+        var attrs = ele.GetDataSetAttributes();
+        if (ele.tagName === "SELECT") {
+            var dsource = attrs.First(function (f) { return f.Attribute == "datasource"; });
+            var dMemb = attrs.First(function (f) { return f.Attribute == "displaymember"; });
+            var vMemb = attrs.First(function (f) { return f.Attribute == "valuemember"; });
+            if (dsource) {
+                var fun = new Function("return " + dsource.Property);
                 var data = fun();
-                element.AddOptions(data, valueMember ? valueMember.Property : null, displayMember ? displayMember.Property : null);
+                ele.AddOptions(data, vMemb ? vMemb.Property : null, dMemb ? dMemb.Property : null);
             }
         }
-        var nonbindingAttributes = ["binder", "datasource", "displaymember", "valuemember"];
-        boundAttributes.forEach(function (b) {
-            if (!nonbindingAttributes.First(function (v) { return v === b.Attribute; })) {
-                var attribute = _this.getAttribute(b.Attribute);
-                _this.setObjectPropertyListener(b.Property, attribute, element, dataObject);
-                var elementAttribute = b.Attribute === "checked" && element["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
-                if (elementAttribute) {
+        var nonBindAttr = ["binder", "datasource", "displaymember", "valuemember"];
+        attrs.forEach(function (b) {
+            if (!nonBindAttr.First(function (v) { return v === b.Attribute; })) {
+                var attr = _this.getAttribute(b.Attribute);
+                _this.setObjectPropertyListener(b.Property, attr, ele, obj);
+                var eleAttr = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
+                if (eleAttr) {
                     var fun = function (evt) {
-                        dataObject.OnElementChanged.bind(dataObject)(element[elementAttribute], b.Property);
+                        obj.OnElementChanged.bind(obj)(ele[eleAttr], b.Property);
                     };
-                    element.addEventListener("change", fun);
+                    ele.addEventListener("change", fun);
                 }
             }
         });
     };
-    Binder.prototype.getAttribute = function (attribute) {
-        attribute = attribute.toLowerCase();
-        switch (attribute) {
+    Binder.prototype.getAttribute = function (attr) {
+        attr = attr.toLowerCase();
+        switch (attr) {
             case "class":
             case "classname":
                 return "className";
@@ -182,33 +182,33 @@ var Binder = (function () {
             case "readonly":
                 return "readOnly";
             default:
-                return attribute;
+                return attr;
         }
     };
-    Binder.prototype.setObjectPropertyListener = function (property, attribute, element, dataObject) {
+    Binder.prototype.setObjectPropertyListener = function (property, attr, ele, obj) {
         var _this = this;
         var objectPropertyChangedForElement = function (attribute, value) {
-            if (Has.Properties(element, attribute)) {
-                if (element.tagName === "INPUT" && element["type"] === "radio") {
-                    var radios = element.parentElement.Get(function (e2) { return e2["name"] === element["name"] && e2["type"] === "radio"; });
+            if (Has.Properties(ele, attribute)) {
+                if (ele.tagName === "INPUT" && ele["type"] === "radio") {
+                    var radios = ele.parentElement.Get(function (e2) { return e2["name"] === ele["name"] && e2["type"] === "radio"; });
                     radios.forEach(function (r) { return r["checked"] = false; });
                     var first = radios.First(function (r) { return r["value"] === value.toString(); });
                     first["checked"] = true;
                 }
                 else if (attribute === "className") {
-                    element.className = null;
-                    element.className = value;
+                    ele.className = null;
+                    ele.className = value;
                 }
                 else {
-                    element[attribute] = value;
+                    ele[attribute] = value;
                 }
             }
             else {
                 var style = _this.getStyle(attribute);
-                style ? element["style"][style] = value : element[attribute] = value;
+                style ? ele["style"][style] = value : ele[attribute] = value;
             }
         };
-        dataObject.AddPropertyListener(property, attribute, objectPropertyChangedForElement);
+        obj.AddPropertyListener(property, attr, objectPropertyChangedForElement);
     };
     Binder.prototype.getStyle = function (value) {
         for (var prop in document.body.style) {
