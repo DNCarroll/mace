@@ -34,7 +34,7 @@ abstract class Binder implements IBinder {
     }
     Execute(viewInstance: ViewInstance = null) {
         if (this.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(this.WebApi)) {
-            var parameters = viewInstance.Parameters ? viewInstance.Parameters : this.WebApiGetParameters();
+            var parameters = this.WebApiGetParameters() ? this.WebApiGetParameters() : viewInstance.Parameters;
             var ajax = new Ajax();
             ajax.AddListener(EventType.Completed, this.OnAjaxComplete.bind(this));
             var url = this.WebApi;
@@ -202,12 +202,7 @@ abstract class Binder implements IBinder {
             }
             else {
                 var style = this.getStyle(attribute);
-                if (style) {
-                    element["style"][style] = value;
-                }
-                else {
-                    element[attribute] = value;
-                }
+                style ? element["style"][style] = value : element[attribute] = value;
             }
         };
         dataObject.AddPropertyListener(property, attribute, objectPropertyChangedForElement);

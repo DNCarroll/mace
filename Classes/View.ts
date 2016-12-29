@@ -34,14 +34,9 @@ abstract class View implements IView {
             ajax.Get(this.ViewUrl());
         }
     }
-    Show(viewInstance: ViewInstance) {     
-        this.ViewInstance = viewInstance;                   
-        if (this.Preload) {
-            this.Preload.Execute(this.postPreloaded.bind(this));
-        }
-        else {
-            this.postPreloaded();
-        }
+    Show(viewInstance: ViewInstance) {
+        this.ViewInstance = viewInstance;
+        this.Preload ? this.Preload.Execute(this.postPreloaded.bind(this)) : this.postPreloaded();
     }
     private postPreloaded() {
         var found = sessionStorage.getItem(this.ViewUrl());
@@ -84,6 +79,7 @@ abstract class View implements IView {
                         }
                     }
                     catch (e) {
+                        window.Exception ? window.Exception(e) : alert(e);
                     }
                 });
                 elements.forEach(e => {
@@ -92,7 +88,7 @@ abstract class View implements IView {
                             e.Binder.Execute(this.ViewInstance);
                         }
                         catch (ex) {
-                            var exmessage = ex;
+                            window.Exception ? window.Exception(e) : alert(ex);
                         }
                     }
                 });
@@ -192,8 +188,3 @@ class DataLoader {
         this._completed();
     }
 }
-//would like to have this be a Promise structure
-//class GenericPreloader {
-//    //this isnt async
-//    constructor(executor:(...parameters:any)=>any, callback:
-//}

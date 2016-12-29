@@ -53,9 +53,7 @@ var Is;
             return typeof (inObject[property]) !== 'undefined';
         }
         catch (e) {
-            if (window.Exception) {
-                window.Exception(e);
-            }
+            window.Exception ? window.Exception(e) : alert(e);
         }
         return false;
     }
@@ -76,44 +74,26 @@ var Is;
     function ValidDate(value) {
         try {
             if (Object.prototype.toString.call(value) === "[object Date]") {
-                if (isNaN(value.getTime())) {
-                    return false;
-                }
-                else {
-                    return true;
-                }
+                return isNaN(value.getTime()) ? false : true;
             }
             else if (String(value)) {
                 var objDate = new Date(value);
-                //what was doing
-                //var objDate = new Date(Date.parse(value));
                 var parts = value.split("/");
                 var year = parseInt(parts[2]);
                 var month = parseInt(parts[0].indexOf("0") == 0 ? parts[0].substring(1) : parts[0]);
                 var day = parseInt(parts[1].indexOf("0") == 0 ? parts[1].substring(1) : parts[1]);
-                if (objDate.getFullYear() != year)
-                    return false;
-                if (objDate.getMonth() != month - 1)
-                    return false;
-                if (objDate.getDate() != day)
-                    return false;
-                return true;
+                return objDate.getFullYear() != year || objDate.getMonth() != month - 1 || objDate.getDate() != day ? false : true;
             }
         }
         catch (e) {
-            if (window.Exception) {
-                window.Exception(e);
-            }
+            window.Exception(e);
         }
         return false;
     }
     Is.ValidDate = ValidDate;
     function ValidEmail(address) {
         var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-        if (reg.test(address) == false) {
-            return false;
-        }
-        return true;
+        return !reg.test(address) ? false : true;
     }
     Is.ValidEmail = ValidEmail;
 })(Is || (Is = {}));

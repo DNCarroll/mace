@@ -31,7 +31,7 @@ var Binder = (function () {
     Binder.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
         if (this.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(this.WebApi)) {
-            var parameters = viewInstance.Parameters ? viewInstance.Parameters : this.WebApiGetParameters();
+            var parameters = this.WebApiGetParameters() ? this.WebApiGetParameters() : viewInstance.Parameters;
             var ajax = new Ajax();
             ajax.AddListener(EventType.Completed, this.OnAjaxComplete.bind(this));
             var url = this.WebApi;
@@ -206,12 +206,7 @@ var Binder = (function () {
             }
             else {
                 var style = _this.getStyle(attribute);
-                if (style) {
-                    element["style"][style] = value;
-                }
-                else {
-                    element[attribute] = value;
-                }
+                style ? element["style"][style] = value : element[attribute] = value;
             }
         };
         dataObject.AddPropertyListener(property, attribute, objectPropertyChangedForElement);

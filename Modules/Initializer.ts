@@ -42,6 +42,7 @@
                     }
                 }
                 catch (e) {
+                    window.Exception ? window.Exception(e) : alert(e);
                 }
             }
         }

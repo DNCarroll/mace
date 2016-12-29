@@ -37,12 +37,7 @@ var View = (function () {
     };
     View.prototype.Show = function (viewInstance) {
         this.ViewInstance = viewInstance;
-        if (this.Preload) {
-            this.Preload.Execute(this.postPreloaded.bind(this));
-        }
-        else {
-            this.postPreloaded();
-        }
+        this.Preload ? this.Preload.Execute(this.postPreloaded.bind(this)) : this.postPreloaded();
     };
     View.prototype.postPreloaded = function () {
         var found = sessionStorage.getItem(this.ViewUrl());
@@ -86,6 +81,7 @@ var View = (function () {
                         }
                     }
                     catch (e) {
+                        window.Exception ? window.Exception(e) : alert(e);
                     }
                 });
                 elements.forEach(function (e) {
@@ -94,7 +90,7 @@ var View = (function () {
                             e.Binder.Execute(_this.ViewInstance);
                         }
                         catch (ex) {
-                            var exmessage = ex;
+                            window.Exception ? window.Exception(e) : alert(ex);
                         }
                     }
                 });
@@ -195,9 +191,4 @@ var DataLoader = (function () {
     };
     return DataLoader;
 }());
-//would like to have this be a Promise structure
-//class GenericPreloader {
-//    //this isnt async
-//    constructor(executor:(...parameters:any)=>any, callback:
-//} 
 //# sourceMappingURL=View.js.map
