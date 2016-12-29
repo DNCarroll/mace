@@ -3,37 +3,30 @@ interface HTMLSelectElement {
 }
 HTMLSelectElement.prototype.AddOptions= function(arrayOrObject, valueProperty ? : string, displayProperty?: string, selectedValue?): HTMLSelectElement {
     var select = <HTMLSelectElement>this;
+    var addOption = (display, value) => {
+        var option = new Option(display, value);
+        select["options"][select.options.length] = option;
+        if (selectedValue && value === selectedValue) {
+            option.selected = true;
+        }
+    };
     if (Is.Array(arrayOrObject)) {
         var tempArray = <Array<any>>arrayOrObject;
         if (displayProperty && valueProperty) {
             tempArray.forEach(t => {  
-                var option = new Option(t[displayProperty], t[valueProperty]);              
-                select["options"][select.options.length] = option;
-                if (selectedValue &&
-                    t[valueProperty] == selectedValue) {
-                    option.selected = true;
-                }
+                addOption(t[displayProperty], t[valueProperty]);              
             });                        
         }
         else if (tempArray.length > 1 && Is.String(tempArray[0])) {
             tempArray.forEach(t => {
-                var option = new Option(t, t);
-                select["options"][select.options.length] = option;
-                if (selectedValue &&
-                    t == selectedValue) {
-                    option.selected = true;
-                }
+                addOption(t, t);
             });
         }
     }
     else if (arrayOrObject) {        
         for (var prop in arrayOrObject) {
             if (Is.Function(prop)) {
-                var option = new Option(prop, prop);
-                select["options"][select.options.length] = option;
-                if (selectedValue && selectedValue == prop) {
-                    option.selected = true;
-                }
+                addOption(prop, prop);                
             }
         }
     }    

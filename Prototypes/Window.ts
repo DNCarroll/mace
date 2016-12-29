@@ -22,9 +22,7 @@ Window.prototype.Exception = function (...parameters: any[]) {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function <T extends IViewContainer>(type: {
-    new (): T;
-}, parameters?: Array<any>) {    
+Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, parameters?: Array<any>) {    
     var viewContainer = new type();    
     var viewInstance = new ViewInstance(parameters, viewContainer);    
     viewContainer.Show(viewInstance);
@@ -64,7 +62,7 @@ Window.prototype.SplitPathName = function (): Array<string> {
     var pathName = window.location.pathname;
     pathName = pathName.substring(1);
     var lastCharacter = pathName.charAt(pathName.length - 1);
-    if (lastCharacter == "/") {
+    if (lastCharacter === "/") {
         pathName = pathName.substring(0, pathName.length - 1);
     }
     var split = pathName.split("/");

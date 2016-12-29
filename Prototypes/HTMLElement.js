@@ -73,7 +73,7 @@ HTMLElement.prototype.Clear = function (predicate, notRecursive) {
     else {
         var pos = children.length - 1;
         while (pos > 0) {
-            if (children[pos].nodeType == 1) {
+            if (children[pos].nodeType === 1) {
                 var child = children[pos];
                 if (predicate(child)) {
                     that.removeChild(child);
@@ -139,12 +139,7 @@ HTMLElement.prototype.DimAndOff = function () {
     return ret;
 };
 HTMLElement.prototype.AddListener = function (eventName, method) {
-    if (this.addEventListener) {
-        this.addEventListener(eventName, method);
-    }
-    else {
-        this.attachEvent(eventName, method);
-    }
+    this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
 HTMLElement.prototype.Set = function (objectProperties) {
     var that = this;

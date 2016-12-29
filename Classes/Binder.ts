@@ -17,7 +17,6 @@ abstract class Binder implements IBinder {
     DataRowFooter :HTMLElement;
     IsFormBinding: boolean = false;
     abstract NewObject(rawObj: any): IObjectState;  
-     
     Dispose() {
         this.PrimaryKeys = null;
         this.WebApi = null;
@@ -156,7 +155,7 @@ abstract class Binder implements IBinder {
         }
         var nonbindingAttributes = ["binder", "datasource", "displaymember", "valuemember"];
         boundAttributes.forEach(b => {
-            if (nonbindingAttributes.First(v => v === b.Attribute) == null) {
+            if (!nonbindingAttributes.First(v => v === b.Attribute)) {
                 var attribute = this.getAttribute(b.Attribute);
                 this.setObjectPropertyListener(b.Property, attribute, element, dataObject);
                 var elementAttribute = b.Attribute === "checked" && element["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
@@ -186,7 +185,7 @@ abstract class Binder implements IBinder {
     private setObjectPropertyListener(property: string, attribute: string, element: HTMLElement, dataObject: IObjectState) {
         var objectPropertyChangedForElement = (attribute: string, value: any) => {
             if (Is.Property(attribute, element)) {
-                if (element.tagName == "INPUT" && element["type"] === "radio") {
+                if (element.tagName === "INPUT" && element["type"] === "radio") {
                     var radios = element.parentElement.Get(e2 => e2["name"] === element["name"] && e2["type"] === "radio");
                     radios.forEach(r => r["checked"] = false);
                     var first = radios.First(r => r["value"] === value.toString());

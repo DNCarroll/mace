@@ -6,7 +6,7 @@
         }
     }
     export function Hide() {
-        if (ProgressManager.ProgressElement != null) {
+        if (ProgressManager.ProgressElement) {
             ProgressManager.ProgressElement.style.display = "none";
         }
     }

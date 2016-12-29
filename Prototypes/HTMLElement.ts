@@ -6,7 +6,6 @@ interface HTMLElement extends Element {
     Clear(predicate?: (element: HTMLElement) => boolean, notRecursive?: boolean);
     AddRange(...elements: HTMLElement[]): HTMLElement;
     Remove();
-
     SetClass(className: string);    
     OffSet(): { top: number; left: number; };
     Dimensions(): { width: number; height: number; };
@@ -14,8 +13,7 @@ interface HTMLElement extends Element {
     AddListener(eventName, method);
     Set(objectProperties): HTMLElement;
     HasDataSet: () => boolean;
-    GetDataSetAttributes: () => { Attribute: string; Property: any; }[];
-        
+    GetDataSetAttributes: () => { Attribute: string; Property: any; }[];        
     Binder: IBinder;
 }
 HTMLElement.prototype.Get = function (predicate: (element: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
@@ -66,7 +64,6 @@ HTMLElement.prototype.First = function (predicate: (element: HTMLElement) => boo
     return null;
 };
 HTMLElement.prototype.Parent = function (predicate: (element: HTMLElement) => boolean): HTMLElement {
-
     var el = this;
     while (el && el.parentNode) {
         el = el.parentNode;
@@ -94,7 +91,7 @@ HTMLElement.prototype.Clear = function (predicate?: (element: HTMLElement) => bo
     else {
         var pos = children.length - 1;
         while (pos > 0) {
-            if (children[pos].nodeType == 1) {
+            if (children[pos].nodeType === 1) {
                 var child = <HTMLElement>children[pos];
                 if (predicate(child)) {
                     that.removeChild(child);
@@ -156,19 +153,13 @@ HTMLElement.prototype.DimAndOff = function (): { Height: number; Width: number; 
     return ret;
 };
 HTMLElement.prototype.AddListener = function (eventName, method) {
-    if (this.addEventListener) {
-        this.addEventListener(eventName, method);
-    }
-    else {
-        this.attachEvent(eventName, method);
-    }
+    this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
 HTMLElement.prototype.Set = function (objectProperties) {
     var that = <HTMLElement>this;
     if (objectProperties) {
         for (var prop in objectProperties) {
             var tempPropName = prop;
-
             if (tempPropName != "cls" && tempPropName != "className") {
                 var isStyleProp = Is.Style(tempPropName);
                 if (isStyleProp) {

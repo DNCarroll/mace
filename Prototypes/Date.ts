@@ -1,16 +1,13 @@
 //reviewed and updated NC - 2015-04-02
 interface Date {
-    format(mask: string, utc?: boolean): string;
-    ShortDate(): any;
-    SmallDate(): Date;
+    format(mask: string, utc?: boolean): string;        
     Equals(date: Date): boolean;
     AddDays(days: number): Date;
     Add(years?:number, months?:number, days?:number, hours?:number, minutes?: number, seconds?:number): Date;
     DaysInMonth(): number;
     MonthName(): string;
     DaysDiff(subtractDate: Date): number;
-    MinuteDiff(subtractDate: Date): number;
-    Clone(): Date;
+    MinuteDiff(subtractDate: Date): number;    
     DayOfWeek(): string;
     Date(): number;
     Month(): number;
@@ -45,28 +42,17 @@ Date.prototype.DayOfWeek = function (): string {
             return "Saturday";
     }
 }
-Date.prototype.Clone = function (): Date {
-    return this.AddDays(0);
-};
 Date.prototype.format = function (mask: string, utc?: boolean) {
     return Formatters.DateTime.Format(this, mask, utc);
 };
-Date.prototype.ShortDate = function () {
-    return this.format("mm/dd/yyyy");
-};
-Date.prototype.SmallDate = function (): Date {
-    var now = new Date(this.getFullYear(), this.getMonth(), this.getDate(), 0, 0, 0, 0);
-    return now;
-};
 Date.prototype.Equals = function (date) {
-    var ret = this.getMonth() == date.getMonth() && this.getFullYear() == date.getFullYear() && this.getDate() == date.getDate();
+    var ret = this.getMonth() === date.getMonth() && this.getFullYear() === date.getFullYear() && this.getDate() === date.getDate();
     return ret;
 };
 Date.prototype.AddDays = function (days) {
     return this.Add(0, 0, days);
 };
 Date.prototype.Add = function (years?: number, months?: number, days?: number, hours?: number, minutes?: number, seconds?: number): Date {
-
     years = years ? years : 0;
     months = months ? months : 0;
     days = days ? days : 0;
@@ -80,7 +66,6 @@ Date.prototype.Add = function (years?: number, months?: number, days?: number, h
     var mm = this.getMinutes() + minutes;
     var s = this.getSeconds() + seconds;
     var ms = this.getMilliseconds();
-
     return new Date(y, m, d, h, mm, s, ms);
 };
 Date.prototype.DaysInMonth = function () {

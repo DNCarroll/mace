@@ -21,7 +21,7 @@ abstract class ViewContainer implements IViewContainer {
         return false;
     }
     ViewLoadCompleted(arg: ICustomEventArg<IView>) {
-        if (arg.EventType == EventType.Completed) {
+        if (arg.EventType === EventType.Completed) {
             this.NumberViewsShown = this.NumberViewsShown + 1;
         }
         if (this.NumberViewsShown === this.Views.length) {            

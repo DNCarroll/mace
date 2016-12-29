@@ -22,7 +22,7 @@ var ViewContainer = (function () {
         return false;
     };
     ViewContainer.prototype.ViewLoadCompleted = function (arg) {
-        if (arg.EventType == EventType.Completed) {
+        if (arg.EventType === EventType.Completed) {
             this.NumberViewsShown = this.NumberViewsShown + 1;
         }
         if (this.NumberViewsShown === this.Views.length) {

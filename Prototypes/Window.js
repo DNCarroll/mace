@@ -57,7 +57,7 @@ Window.prototype.SplitPathName = function () {
     var pathName = window.location.pathname;
     pathName = pathName.substring(1);
     var lastCharacter = pathName.charAt(pathName.length - 1);
-    if (lastCharacter == "/") {
+    if (lastCharacter === "/") {
         pathName = pathName.substring(0, pathName.length - 1);
     }
     var split = pathName.split("/");

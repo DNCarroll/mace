@@ -159,7 +159,7 @@ var Binder = (function () {
         }
         var nonbindingAttributes = ["binder", "datasource", "displaymember", "valuemember"];
         boundAttributes.forEach(function (b) {
-            if (nonbindingAttributes.First(function (v) { return v === b.Attribute; }) == null) {
+            if (!nonbindingAttributes.First(function (v) { return v === b.Attribute; })) {
                 var attribute = _this.getAttribute(b.Attribute);
                 _this.setObjectPropertyListener(b.Property, attribute, element, dataObject);
                 var elementAttribute = b.Attribute === "checked" && element["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
@@ -190,7 +190,7 @@ var Binder = (function () {
         var _this = this;
         var objectPropertyChangedForElement = function (attribute, value) {
             if (Is.Property(attribute, element)) {
-                if (element.tagName == "INPUT" && element["type"] === "radio") {
+                if (element.tagName === "INPUT" && element["type"] === "radio") {
                     var radios = element.parentElement.Get(function (e2) { return e2["name"] === element["name"] && e2["type"] === "radio"; });
                     radios.forEach(function (r) { return r["checked"] = false; });
                     var first = radios.First(function (r) { return r["value"] === value.toString(); });

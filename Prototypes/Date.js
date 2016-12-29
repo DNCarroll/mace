@@ -27,21 +27,11 @@ Date.prototype.DayOfWeek = function () {
             return "Saturday";
     }
 };
-Date.prototype.Clone = function () {
-    return this.AddDays(0);
-};
 Date.prototype.format = function (mask, utc) {
     return Formatters.DateTime.Format(this, mask, utc);
 };
-Date.prototype.ShortDate = function () {
-    return this.format("mm/dd/yyyy");
-};
-Date.prototype.SmallDate = function () {
-    var now = new Date(this.getFullYear(), this.getMonth(), this.getDate(), 0, 0, 0, 0);
-    return now;
-};
 Date.prototype.Equals = function (date) {
-    var ret = this.getMonth() == date.getMonth() && this.getFullYear() == date.getFullYear() && this.getDate() == date.getDate();
+    var ret = this.getMonth() === date.getMonth() && this.getFullYear() === date.getFullYear() && this.getDate() === date.getDate();
     return ret;
 };
 Date.prototype.AddDays = function (days) {

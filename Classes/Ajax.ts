@@ -29,9 +29,7 @@ class Ajax implements IEventDispatcher<Ajax>{
             this.XMLHttpRequest.send(newParameters);
         } catch (e) {
             this.HideProgress();
-            if (window.Exception) {
-                window.Exception(e);
-            }
+            window.Exception(e);
         }
     }
     private onReaderStateChange(e) {
@@ -41,19 +39,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         }
     }
     private showProgress() {
-        if (this.ManipulateProgressElement) {
-            ProgressManager.Show();
-            if (this.DisableElement) {
-                if (Is.Array(this.DisableElement)) {
-                    for (var i = 0; i < this.DisableElement.length; i++) {
-                        this.DisableElement[i].setAttribute("disabled", "disabled");
-                    }
-                }
-                else {
-                    this.DisableElement.setAttribute("disabled", "disabled");
-                }
-            }
-        }
+        this.showHideProgress(true);
     }
     private getUrl(url: string): string {
         if (url.indexOf("http") == -1 && !Is.NullOrEmpty(Ajax.Host)) {
@@ -65,16 +51,19 @@ class Ajax implements IEventDispatcher<Ajax>{
         return this.XMLHttpRequest && this.XMLHttpRequest.readyState == 4;
     }
     HideProgress() {
+        this.showHideProgress(false);
+    }
+    private showHideProgress(show: boolean) {
         if (this.ManipulateProgressElement) {
-            ProgressManager.Hide();
+            show ? ProgressManager.Show() : ProgressManager.Hide();
             if (this.DisableElement) {
                 if (Is.Array(this.DisableElement)) {
                     for (var i = 0; i < this.DisableElement.length; i++) {
-                        this.DisableElement[i].removeAttribute("disabled");
+                        show ? this.DisableElement[i].setAttribute("disabled", "disabled") : this.DisableElement[i].removeAttribute("disabled");
                     }
                 }
                 else {
-                    this.DisableElement.removeAttribute("disabled");
+                    show ? this.DisableElement.setAttribute("disabled", "disabled") : this.DisableElement.removeAttribute("disabled");
                 }
             }
         }
@@ -115,9 +104,7 @@ class Ajax implements IEventDispatcher<Ajax>{
             }
             catch (e) {
                 ret = null;
-                if (window.Exception) {
-                    window.Exception(e);
-                }
+                window.Exception(e);
             }
         }
         return ret;
@@ -131,9 +118,7 @@ class Ajax implements IEventDispatcher<Ajax>{
                     try {
                         keyMap = keyMap ? keyMap : this.getKeyMap(obj);
                     } catch (e) {
-                        if (window.Exception) {
-                            window.Exception(e);
-                        }
+                        window.Exception(e);
                     }
                     this.setValues(obj, keyMap);
                 }
@@ -159,10 +144,10 @@ class Ajax implements IEventDispatcher<Ajax>{
                 if (val.indexOf("/Date(") == 0 || val.indexOf("Date(") == 0) {
                     keyMap.push({ Key: prop, Type: "Date" });
                 }
-                else if (val.match(RegularExpression.UTCDate)) {
+                else if (val.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/i)) {
                     keyMap.push({ Key: prop, Type: "UTCDate" });
                 }
-                else if (val.match(RegularExpression.ZDate)) {
+                else if (val.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g)) {
                     keyMap.push({ Key: prop, Type: "ZDate" });
                 }
             }

@@ -45,7 +45,7 @@ var Initializer;
                     }
                 }
                 catch (e) {
-                    window.Exception ? window.Exception(e) : alert(e);
+                    window.Exception(e);
                 }
             }
         }
@@ -54,7 +54,7 @@ var Initializer;
         if (!Is.NullOrEmpty(rawFunction)) {
             var pattern = "^function\\s(\\w+)\\(\\)";
             var match = rawFunction.match(pattern);
-            if (match && ignoreThese.First(function (i) { return i === match[1]; }) === null) {
+            if (match && !ignoreThese.First(function (i) { return i === match[1]; })) {
                 return match[1];
             }
         }

@@ -79,7 +79,7 @@ abstract class View implements IView {
                         }
                     }
                     catch (e) {
-                        window.Exception ? window.Exception(e) : alert(e);
+                        window.Exception(e);
                     }
                 });
                 elements.forEach(e => {
@@ -88,7 +88,7 @@ abstract class View implements IView {
                             e.Binder.Execute(this.ViewInstance);
                         }
                         catch (ex) {
-                            window.Exception ? window.Exception(e) : alert(ex);
+                            window.Exception(e);
                         }
                     }
                 });
@@ -156,7 +156,7 @@ class DataLoaders implements IPreViewLoad{
     }
     Completed() {
         this.completedCount++;
-        if (this.completedCount == this._dataLoaders.length) {
+        if (this.completedCount === this._dataLoaders.length) {
             this._callback();
         }
     }

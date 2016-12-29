@@ -45,7 +45,7 @@
         try {
             return typeof (inObject[property]) !== 'undefined';
         } catch (e) {
-            window.Exception ? window.Exception(e) : alert(e);
+            window.Exception(e);
         }
         return false;
     }

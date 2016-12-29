@@ -81,7 +81,7 @@ var View = (function () {
                         }
                     }
                     catch (e) {
-                        window.Exception ? window.Exception(e) : alert(e);
+                        window.Exception(e);
                     }
                 });
                 elements.forEach(function (e) {
@@ -90,7 +90,7 @@ var View = (function () {
                             e.Binder.Execute(_this.ViewInstance);
                         }
                         catch (ex) {
-                            window.Exception ? window.Exception(e) : alert(ex);
+                            window.Exception(e);
                         }
                     }
                 });
@@ -159,7 +159,7 @@ var DataLoaders = (function () {
     };
     DataLoaders.prototype.Completed = function () {
         this.completedCount++;
-        if (this.completedCount == this._dataLoaders.length) {
+        if (this.completedCount === this._dataLoaders.length) {
             this._callback();
         }
     };
