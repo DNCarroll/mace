@@ -1,76 +1,3 @@
-Array.prototype.GroupBy = function () {
-    var groupBy = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        groupBy[_i - 0] = arguments[_i];
-    }
-    var ret = new Array();
-    for (var i = 0; i < this.length; i++) {
-        var that = this[i];
-        var found = ret.First(function (obj) {
-            var f = true;
-            for (var j = 0; j < groupBy.length; j++) {
-                if (obj[groupBy[j]] != that[groupBy[j]]) {
-                    f = false;
-                    break;
-                }
-            }
-            return f;
-        });
-        if (!found) {
-            var newObj = {
-                Grouping: new Array()
-            };
-            for (var field in that) {
-                newObj[field] = that[field];
-            }
-            newObj.Grouping.push(that);
-            ret.push(newObj);
-        }
-        else {
-            found["Grouping"].push(that);
-        }
-    }
-    return ret;
-};
-Array.prototype.Insert = function (obj, position) {
-    if (position === undefined) {
-        position = 0;
-    }
-    if (position > this.length) {
-        position = this.length;
-    }
-    this.splice(position, 0, obj);
-};
-Array.prototype.Sum = function (field) {
-    var ret = 0;
-    for (var i = 0; i < this.length; i++) {
-        var obj = this[i];
-        if (obj[field]) {
-            ret += obj[field];
-        }
-    }
-    return ret;
-};
-Array.prototype.ToArray = function (property) {
-    var ret = new Array();
-    for (var i = 0; i < this.length; i++) {
-        var item = this[i];
-        if (item[property]) {
-            ret.push(item[property]);
-        }
-    }
-    return ret;
-};
-Array.prototype.Take = function (count) {
-    var ret = new Array();
-    for (var i = 0; i < count; i++) {
-        if (this.length <= i) {
-            break;
-        }
-        ret.push(this[i]);
-    }
-    return ret;
-};
 Array.prototype.Add = function (objectOrObjects) {
     if (!Is.Array(objectOrObjects)) {
         objectOrObjects = [objectOrObjects];
@@ -78,32 +5,6 @@ Array.prototype.Add = function (objectOrObjects) {
     for (var i = 0; i < objectOrObjects.length; i++) {
         this.push(objectOrObjects[i]);
     }
-};
-Array.prototype.IndexOf = function (funcOrObj) {
-    var i = -1;
-    var isFunction = Is.Function(funcOrObj);
-    if (isFunction) {
-        for (var i = 0; i < this.length; i++) {
-            if (funcOrObj(this[i])) {
-                return i;
-            }
-        }
-    }
-    else {
-        for (var i = 0; i < this.length; i++) {
-            var match = true;
-            for (var prop in funcOrObj) {
-                if (funcOrObj[prop] != this[i][prop]) {
-                    match = false;
-                    break;
-                }
-            }
-            if (match) {
-                return i;
-            }
-        }
-    }
-    return i;
 };
 Array.prototype.First = function (func) {
     if (func) {

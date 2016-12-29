@@ -20,4 +20,12 @@ String.prototype.CreateElementFromHtml = function () {
         return child;
     }
 };
+String.prototype.IsStyle = function () {
+    for (var prop in document.body.style) {
+        if (prop.toLowerCase() === this.toLowerCase()) {
+            return true;
+        }
+    }
+    return false;
+};
 //# sourceMappingURL=String.js.map

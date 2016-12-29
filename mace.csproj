@@ -33,12 +33,10 @@
     <Content Include="Interfaces\CustomEvent.js" />
     <Content Include="Interfaces\IView.js" />
     <Content Include="Interfaces\IViewContainer.js" />
-    <Content Include="Modules\Formatters.js" />
     <Content Include="Modules\HistoryManager.js" />
     <Content Include="Modules\Initializer.js" />
     <Content Include="Modules\Is.js" />
     <Content Include="Modules\ProgressManager.js" />
-    <Content Include="Modules\RegularExpression.js" />
     <Content Include="Prototypes\Array.js" />
     <Content Include="Prototypes\Date.js" />
     <Content Include="Prototypes\HTMLElement.js" />
@@ -71,12 +69,10 @@
     <TypeScriptCompile Include="Interfaces\CustomEvent.ts" />
     <TypeScriptCompile Include="Interfaces\IView.ts" />
     <TypeScriptCompile Include="Interfaces\IViewContainer.ts" />
-    <TypeScriptCompile Include="Modules\Formatters.ts" />
     <TypeScriptCompile Include="Modules\HistoryManager.ts" />
     <TypeScriptCompile Include="Modules\Initializer.ts" />
     <TypeScriptCompile Include="Modules\Is.ts" />
     <TypeScriptCompile Include="Modules\ProgressManager.ts" />
-    <TypeScriptCompile Include="Modules\RegularExpression.ts" />
     <TypeScriptCompile Include="Prototypes\Array.ts" />
     <TypeScriptCompile Include="Prototypes\Date.ts" />
     <TypeScriptCompile Include="Prototypes\HTMLElement.ts" />

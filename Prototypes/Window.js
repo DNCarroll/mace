@@ -17,9 +17,9 @@ Window.prototype.Exception = function () {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function (type, parameters) {
+Window.prototype.Show = function (type, webApiParameters) {
     var viewContainer = new type();
-    var viewInstance = new ViewInstance(parameters, viewContainer);
+    var viewInstance = new ViewInstance(webApiParameters, viewContainer);
     viewContainer.Show(viewInstance);
     HistoryManager.Add(viewInstance);
 };

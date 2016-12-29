@@ -13,20 +13,19 @@ class Ajax implements IEventDispatcher<Ajax>{
         return this.XMLHttpRequest.responseText;
     }
     XMLHttpRequest: XMLHttpRequest;
-    Submit(method: string,
-        url: string,        
-        parameters: any = null) {
+    Submit(method: string, url: string, parameters: any = null) {
         this.showProgress();
         url = this.getUrl(url);
         this.XMLHttpRequest = new XMLHttpRequest();
         var ajax = this;
-        this.XMLHttpRequest.addEventListener("readystatechange", ajax.onReaderStateChange.bind(ajax), false);        
-        this.XMLHttpRequest.open(method, url, true);
-        this.XMLHttpRequest.setRequestHeader("content-type", !Is.FireFox() ? this.ContentType : "application/json;q=0.9");
+        var xhttpr = this.XMLHttpRequest;
+        xhttpr.addEventListener("readystatechange", ajax.onReaderStateChange.bind(ajax), false);
+        xhttpr.open(method, url, true);
+        xhttpr.setRequestHeader("content-type", navigator && /Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent) ?  "application/json;q=0.9" : this.ContentType);
         this.setCustomHeader();
         try {
             var newParameters = this.getParameters(parameters);
-            this.XMLHttpRequest.send(newParameters);
+            xhttpr.send(newParameters);
         } catch (e) {
             this.HideProgress();
             window.Exception(e);
@@ -92,9 +91,10 @@ class Ajax implements IEventDispatcher<Ajax>{
 
     GetRequestData(): any {
         var ret = null;
-        if (this.isRequestReady() && (this.XMLHttpRequest.status == 200 || this.XMLHttpRequest.status == 204) &&
-            !Is.NullOrEmpty(this.XMLHttpRequest.responseText)) {
-            ret = this.XMLHttpRequest.responseText;
+        var x = this.XMLHttpRequest;
+        if (this.isRequestReady() && (x.status == 200 || x.status == 204) &&
+            !Is.NullOrEmpty(x.responseText)) {
+            ret = x.responseText;
             try {
                 ret = JSON.parse(ret);
                 if (ret.d) {
@@ -127,7 +127,7 @@ class Ajax implements IEventDispatcher<Ajax>{
                 }
             }
         }
-        else if (Is.Object(object)) {
+        else if (object && typeof object === 'object') {
             var keyMap = this.getKeyMap(object);
             this.setValues(object, keyMap);
             for (var prop in object) {
@@ -162,7 +162,7 @@ class Ajax implements IEventDispatcher<Ajax>{
             switch (type) {
                 case "Date":
                     if (val) {
-                        val = parseInt(val.substring(6).replace(")/", ""));                        
+                        val = parseInt(val.substring(6).replace(")/", ""));
                         if (val > -62135575200000) {
                             val = new Date(val);
                             obj[key] = val;
@@ -181,7 +181,7 @@ class Ajax implements IEventDispatcher<Ajax>{
                     if (this.UseAsDateUTC) {
                         tempDate = new Date(tempDate.getUTCFullYear(), tempDate.getUTCMonth(), tempDate.getUTCDate());
                     }
-                    else if (Is.Chrome()) {
+                    else if (window["chrome"]) {
                         var offset = new Date().getTimezoneOffset();
                         tempDate = tempDate.Add(0, 0, 0, 0, offset);
                     }

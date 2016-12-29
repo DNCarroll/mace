@@ -13,7 +13,6 @@
       "Modules/Initializer.js",
       "Modules/Is.js",
       "Modules/ProgressManager.js",
-      "Modules/RegularExpression.js",
       "Prototypes/Array.js",
       "Prototypes/Date.js",
       "Prototypes/HTMLElement.js",

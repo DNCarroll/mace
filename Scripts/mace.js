@@ -20,13 +20,14 @@ var Ajax = (function () {
         url = this.getUrl(url);
         this.XMLHttpRequest = new XMLHttpRequest();
         var ajax = this;
-        this.XMLHttpRequest.addEventListener("readystatechange", ajax.onReaderStateChange.bind(ajax), false);
-        this.XMLHttpRequest.open(method, url, true);
-        this.XMLHttpRequest.setRequestHeader("content-type", !Is.FireFox() ? this.ContentType : "application/json;q=0.9");
+        var xhttpr = this.XMLHttpRequest;
+        xhttpr.addEventListener("readystatechange", ajax.onReaderStateChange.bind(ajax), false);
+        xhttpr.open(method, url, true);
+        xhttpr.setRequestHeader("content-type", navigator && /Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent) ? "application/json;q=0.9" : this.ContentType);
         this.setCustomHeader();
         try {
             var newParameters = this.getParameters(parameters);
-            this.XMLHttpRequest.send(newParameters);
+            xhttpr.send(newParameters);
         }
         catch (e) {
             this.HideProgress();
@@ -92,9 +93,10 @@ var Ajax = (function () {
     };
     Ajax.prototype.GetRequestData = function () {
         var ret = null;
-        if (this.isRequestReady() && (this.XMLHttpRequest.status == 200 || this.XMLHttpRequest.status == 204) &&
-            !Is.NullOrEmpty(this.XMLHttpRequest.responseText)) {
-            ret = this.XMLHttpRequest.responseText;
+        var x = this.XMLHttpRequest;
+        if (this.isRequestReady() && (x.status == 200 || x.status == 204) &&
+            !Is.NullOrEmpty(x.responseText)) {
+            ret = x.responseText;
             try {
                 ret = JSON.parse(ret);
                 if (ret.d) {
@@ -128,7 +130,7 @@ var Ajax = (function () {
                 }
             }
         }
-        else if (Is.Object(object)) {
+        else if (object && typeof object === 'object') {
             var keyMap = this.getKeyMap(object);
             this.setValues(object, keyMap);
             for (var prop in object) {
@@ -182,7 +184,7 @@ var Ajax = (function () {
                     if (this.UseAsDateUTC) {
                         tempDate = new Date(tempDate.getUTCFullYear(), tempDate.getUTCMonth(), tempDate.getUTCDate());
                     }
-                    else if (Is.Chrome()) {
+                    else if (window["chrome"]) {
                         var offset = new Date().getTimezoneOffset();
                         tempDate = tempDate.Add(0, 0, 0, 0, offset);
                     }
@@ -408,7 +410,7 @@ var Binder = (function () {
     Binder.prototype.setObjectPropertyListener = function (property, attribute, element, dataObject) {
         var _this = this;
         var objectPropertyChangedForElement = function (attribute, value) {
-            if (Is.Property(attribute, element)) {
+            if (Has.Properties(element, attribute)) {
                 if (element.tagName === "INPUT" && element["type"] === "radio") {
                     var radios = element.parentElement.Get(function (e2) { return e2["name"] === element["name"] && e2["type"] === "radio"; });
                     radios.forEach(function (r) { return r["checked"] = false; });
@@ -914,13 +916,7 @@ var Initializer;
             if (!Is.NullOrEmpty(name)) {
                 try {
                     var newObj = (new Function("return new " + name + "();"))();
-                    if (Is.Property("IsDefault", newObj) &&
-                        Is.Property("Views", newObj) &&
-                        Is.Property("Show", newObj) &&
-                        Is.Property("Url", newObj) &&
-                        Is.Property("UrlPattern", newObj) &&
-                        Is.Property("UrlTitle", newObj) &&
-                        Is.Property("IsUrlPatternMatch", newObj)) {
+                    if (Has.Properties(newObj, "IsDefault", "Views", "Show", "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
                         ViewContainers.Add(newObj);
                     }
                 }
@@ -950,10 +946,8 @@ var Initializer;
         }
     }
     function ignoreTheseNames() {
-        return ["Ajax", "ViewContainer", "View", "ViewInstance",
-            "HistoryManager", "Is", "Initializer", "ViewContainers",
-            "ActionEvent", "DataBinding", "ActionType", "AutoSuggest", "Binding",
-            "KeyPress", "Thing", "What"];
+        return ["Ajax", "ViewContainer", "View", "ViewInstance", "Listener", "PropertyListener", "ObjectState",
+            "HistoryManager", "Is", "Initializer", "Binder", "DataObject", "EventType", "CustomEventArg"];
     }
 })(Initializer || (Initializer = {}));
 Initializer.WindowLoad();
@@ -964,94 +958,41 @@ var Is;
         return Object.prototype.toString.call(value) === '[object Array]';
     }
     Is.Array = Array;
-    function Chrome() {
-        var w = window;
-        return w.chrome;
-    }
-    Is.Chrome = Chrome;
-    function EmptyObject(obj) {
-        for (var prop in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, prop)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    Is.EmptyObject = EmptyObject;
-    function FireFox() {
-        if (navigator) {
-            return /Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent);
-        }
-        return false;
-    }
-    Is.FireFox = FireFox;
-    function Function(obj) {
-        var getType = {};
-        return obj && getType.toString.call(obj) === '[object Function]';
-    }
-    Is.Function = Function;
     function NullOrEmpty(value) {
         return value == null || (value.length && value.length == 0);
     }
     Is.NullOrEmpty = NullOrEmpty;
-    function Numeric(input) {
-        var RE = /^-{0,1}\d*\.{0,1}\d+$/;
-        return (RE.test(input));
-    }
-    Is.Numeric = Numeric;
-    function Object(value) {
-        return value && typeof value === 'object';
-    }
-    Is.Object = Object;
-    function Property(property, inObject) {
-        try {
-            return typeof (inObject[property]) !== 'undefined';
-        }
-        catch (e) {
-            window.Exception(e);
-        }
-        return false;
-    }
-    Is.Property = Property;
     function String(value) {
         return typeof value === 'string';
     }
     Is.String = String;
-    function Style(value) {
-        for (var prop in document.body.style) {
-            if (prop.toLowerCase() === value.toLowerCase()) {
-                return true;
-            }
+})(Is || (Is = {}));
+var Has;
+(function (Has) {
+    function Properties(inObject) {
+        var properties = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            properties[_i - 1] = arguments[_i];
         }
-        return false;
-    }
-    Is.Style = Style;
-    function ValidDate(value) {
+        var ret = true;
         try {
-            if (Object.prototype.toString.call(value) === "[object Date]") {
-                return isNaN(value.getTime()) ? false : true;
-            }
-            else if (String(value)) {
-                var objDate = new Date(value);
-                var parts = value.split("/");
-                var year = parseInt(parts[2]);
-                var month = parseInt(parts[0].indexOf("0") == 0 ? parts[0].substring(1) : parts[0]);
-                var day = parseInt(parts[1].indexOf("0") == 0 ? parts[1].substring(1) : parts[1]);
-                return objDate.getFullYear() != year || objDate.getMonth() != month - 1 || objDate.getDate() != day ? false : true;
+            for (var i = 0; i < properties.length; i++) {
+                var value = inObject[properties[i]];
+                if (inObject[properties[i]] === undefined) {
+                    ret = false;
+                    break;
+                }
             }
         }
         catch (e) {
-            window.Exception(e);
+            if (window.Exception) {
+                window.Exception(e);
+            }
         }
-        return false;
+        return ret;
     }
-    Is.ValidDate = ValidDate;
-    function ValidEmail(address) {
-        var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-        return !reg.test(address) ? false : true;
-    }
-    Is.ValidEmail = ValidEmail;
-})(Is || (Is = {}));
+    Has.Properties = Properties;
+})(Has || (Has = {}));
 //# sourceMappingURL=Is.js.map
 var ProgressManager;
 (function (ProgressManager) {
@@ -1070,80 +1011,6 @@ var ProgressManager;
     ProgressManager.Hide = Hide;
 })(ProgressManager || (ProgressManager = {}));
 //# sourceMappingURL=ProgressManager.js.map
-//# sourceMappingURL=RegularExpression.js.map
-Array.prototype.GroupBy = function () {
-    var groupBy = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        groupBy[_i - 0] = arguments[_i];
-    }
-    var ret = new Array();
-    for (var i = 0; i < this.length; i++) {
-        var that = this[i];
-        var found = ret.First(function (obj) {
-            var f = true;
-            for (var j = 0; j < groupBy.length; j++) {
-                if (obj[groupBy[j]] != that[groupBy[j]]) {
-                    f = false;
-                    break;
-                }
-            }
-            return f;
-        });
-        if (!found) {
-            var newObj = {
-                Grouping: new Array()
-            };
-            for (var field in that) {
-                newObj[field] = that[field];
-            }
-            newObj.Grouping.push(that);
-            ret.push(newObj);
-        }
-        else {
-            found["Grouping"].push(that);
-        }
-    }
-    return ret;
-};
-Array.prototype.Insert = function (obj, position) {
-    if (position === undefined) {
-        position = 0;
-    }
-    if (position > this.length) {
-        position = this.length;
-    }
-    this.splice(position, 0, obj);
-};
-Array.prototype.Sum = function (field) {
-    var ret = 0;
-    for (var i = 0; i < this.length; i++) {
-        var obj = this[i];
-        if (obj[field]) {
-            ret += obj[field];
-        }
-    }
-    return ret;
-};
-Array.prototype.ToArray = function (property) {
-    var ret = new Array();
-    for (var i = 0; i < this.length; i++) {
-        var item = this[i];
-        if (item[property]) {
-            ret.push(item[property]);
-        }
-    }
-    return ret;
-};
-Array.prototype.Take = function (count) {
-    var ret = new Array();
-    for (var i = 0; i < count; i++) {
-        if (this.length <= i) {
-            break;
-        }
-        ret.push(this[i]);
-    }
-    return ret;
-};
 Array.prototype.Add = function (objectOrObjects) {
     if (!Is.Array(objectOrObjects)) {
         objectOrObjects = [objectOrObjects];
@@ -1151,32 +1018,6 @@ Array.prototype.Add = function (objectOrObjects) {
     for (var i = 0; i < objectOrObjects.length; i++) {
         this.push(objectOrObjects[i]);
     }
-};
-Array.prototype.IndexOf = function (funcOrObj) {
-    var i = -1;
-    var isFunction = Is.Function(funcOrObj);
-    if (isFunction) {
-        for (var i = 0; i < this.length; i++) {
-            if (funcOrObj(this[i])) {
-                return i;
-            }
-        }
-    }
-    else {
-        for (var i = 0; i < this.length; i++) {
-            var match = true;
-            for (var prop in funcOrObj) {
-                if (funcOrObj[prop] != this[i][prop]) {
-                    match = false;
-                    break;
-                }
-            }
-            if (match) {
-                return i;
-            }
-        }
-    }
-    return i;
 };
 Array.prototype.First = function (func) {
     if (func) {
@@ -1341,22 +1182,6 @@ HTMLElement.prototype.Clear = function (predicate, notRecursive) {
 HTMLElement.prototype.Remove = function () {
     this.parentNode.removeChild(this);
 };
-HTMLElement.prototype.SetClass = function (className) {
-    this.className = null;
-    this.className = className;
-};
-HTMLElement.prototype.OffSet = function () {
-    var _x = 0;
-    var _y = 0;
-    var el = this;
-    while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-        _x += el.offsetLeft - el.scrollLeft;
-        _y += el.offsetTop - el.scrollTop;
-        //may not work
-        el = el.offsetParent;
-    }
-    return { top: _y, left: _x };
-};
 HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
@@ -1366,11 +1191,10 @@ HTMLElement.prototype.Set = function (objectProperties) {
         for (var prop in objectProperties) {
             var tempPropName = prop;
             if (tempPropName != "cls" && tempPropName != "className") {
-                var isStyleProp = Is.Style(tempPropName);
-                if (isStyleProp) {
+                if (tempPropName.IsStyle()) {
                     that.style[tempPropName] = objectProperties[prop];
                 }
-                else if (prop == "style") {
+                else if (prop === "style") {
                     if (objectProperties.style.cssText) {
                         that.style.cssText = objectProperties.style.cssText;
                     }
@@ -1380,7 +1204,8 @@ HTMLElement.prototype.Set = function (objectProperties) {
                 }
             }
             else {
-                that.SetClass(objectProperties[prop]);
+                that.className = null;
+                that.className = objectProperties[prop];
             }
         }
     }
@@ -1430,7 +1255,7 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty,
     }
     else if (arrayOrObject) {
         for (var prop in arrayOrObject) {
-            if (!Is.Function(arrayOrObject[prop])) {
+            if (!(arrayOrObject[prop] && {}.toString.call(arrayOrObject[prop]) === '[object Function]')) {
                 addOption(arrayOrObject[prop], arrayOrObject[prop]);
             }
         }
@@ -1460,6 +1285,14 @@ String.prototype.CreateElementFromHtml = function () {
         return child;
     }
 };
+String.prototype.IsStyle = function () {
+    for (var prop in document.body.style) {
+        if (prop.toLowerCase() === this.toLowerCase()) {
+            return true;
+        }
+    }
+    return false;
+};
 //# sourceMappingURL=String.js.map
 Window.prototype.Exception = function () {
     var parameters = [];
@@ -1480,9 +1313,9 @@ Window.prototype.Exception = function () {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function (type, parameters) {
+Window.prototype.Show = function (type, webApiParameters) {
     var viewContainer = new type();
-    var viewInstance = new ViewInstance(parameters, viewContainer);
+    var viewInstance = new ViewInstance(webApiParameters, viewContainer);
     viewContainer.Show(viewInstance);
     HistoryManager.Add(viewInstance);
 };

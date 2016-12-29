@@ -3,9 +3,7 @@ interface HTMLElement extends Element {
     First(predicate: (element: HTMLElement) => boolean): HTMLElement;
     Parent(predicate: (element: HTMLElement) => boolean): HTMLElement;    
     Clear(predicate?: (element: HTMLElement) => boolean, notRecursive?: boolean);    
-    Remove();
-    SetClass(className: string);    
-    OffSet(): { top: number; left: number; };    
+    Remove();  
     AddListener(eventName, method);
     Set(objectProperties): HTMLElement;
     HasDataSet: () => boolean;
@@ -99,22 +97,6 @@ HTMLElement.prototype.Clear = function (predicate?: (element: HTMLElement) => bo
 HTMLElement.prototype.Remove = function () {
     this.parentNode.removeChild(this);
 };
-HTMLElement.prototype.SetClass = function (className: string) {
-    this.className = null;
-    this.className = className;
-};
-HTMLElement.prototype.OffSet = function (): { top: number; left: number; } {
-    var _x = 0;
-    var _y = 0;
-    var el = <HTMLElement>this;
-    while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-        _x += el.offsetLeft - el.scrollLeft;
-        _y += el.offsetTop - el.scrollTop;
-        //may not work
-        el = <HTMLElement>el.offsetParent;
-    }
-    return { top: _y, left: _x };
-};
 HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
@@ -124,11 +106,10 @@ HTMLElement.prototype.Set = function (objectProperties) {
         for (var prop in objectProperties) {
             var tempPropName = prop;
             if (tempPropName != "cls" && tempPropName != "className") {
-                var isStyleProp = Is.Style(tempPropName);
-                if (isStyleProp) {
+                if (tempPropName.IsStyle()) {
                     that.style[tempPropName] = objectProperties[prop];
                 }
-                else if (prop == "style") {
+                else if (prop === "style") {
                     if (objectProperties.style.cssText) {
                         that.style.cssText = objectProperties.style.cssText;
                     }
@@ -138,7 +119,8 @@ HTMLElement.prototype.Set = function (objectProperties) {
                 }
             }
             else {
-                that.SetClass(objectProperties[prop]);
+                that.className = null;
+                that.className = objectProperties[prop];
             }
         }
     }

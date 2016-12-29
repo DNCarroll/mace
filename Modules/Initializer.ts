@@ -30,14 +30,18 @@
             var name = getNameToTest(getStringOf(window[obj]), ignoreThese);
             if (!Is.NullOrEmpty(name)) {
                 try {
-                    var newObj = (new Function("return new " + name + "();"))();                    
-                    if (Is.Property("IsDefault", newObj) &&
-                        Is.Property("Views", newObj) &&
-                        Is.Property("Show", newObj) &&
-                        Is.Property("Url", newObj) &&
-                        Is.Property("UrlPattern", newObj) &&
-                        Is.Property("UrlTitle", newObj) &&
-                        Is.Property("IsUrlPatternMatch", newObj)) {
+                    var newObj = (new Function("return new " + name + "();"))();
+                    if (Has.Properties(newObj, "IsDefault", "Views", "Show", "Url",
+                        "UrlPattern", "UrlTitle", "IsUrlPatternMatch")
+                        //&& 
+                        //Is.Property("IsDefault", newObj) &&
+                        //Is.Property("Views", newObj) &&
+                        //Is.Property("Show", newObj) &&
+                        //Is.Property("Url", newObj) &&
+                        //Is.Property("UrlPattern", newObj) &&
+                        //Is.Property("UrlTitle", newObj) &&
+                        //    Is.Property("IsUrlPatternMatch", newObj)
+                    ) {
                         ViewContainers.Add(<IViewContainer>newObj);
                     }
                 }
@@ -67,10 +71,8 @@
         }
     }
     function ignoreTheseNames(): Array<string> {
-        return ["Ajax", "ViewContainer", "View", "ViewInstance",
-            "HistoryManager", "Is", "Initializer", "ViewContainers",
-            "ActionEvent", "DataBinding", "ActionType", "AutoSuggest", "Binding",
-            "KeyPress", "Thing", "What"];
+        return ["Ajax", "ViewContainer", "View", "ViewInstance", "Listener", "PropertyListener", "ObjectState",
+            "HistoryManager", "Is", "Initializer", "Binder", "DataObject", "EventType", "CustomEventArg"];
     }
 }
 Initializer.WindowLoad();

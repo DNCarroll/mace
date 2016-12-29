@@ -22,7 +22,7 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty,
     }
     else if (arrayOrObject) {
         for (var prop in arrayOrObject) {
-            if (!Is.Function(arrayOrObject[prop])) {
+            if (!(arrayOrObject[prop] && {}.toString.call(arrayOrObject[prop]) === '[object Function]')) {
                 addOption(arrayOrObject[prop], arrayOrObject[prop]);
             }
         }

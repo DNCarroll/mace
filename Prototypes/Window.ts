@@ -20,9 +20,9 @@ Window.prototype.Exception = function (...parameters: any[]) {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, parameters?: Array<any>) {    
+Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; },webApiParameters?: Array<any>) {    
     var viewContainer = new type();    
-    var viewInstance = new ViewInstance(parameters, viewContainer);    
+    var viewInstance = new ViewInstance(webApiParameters, viewContainer);    
     viewContainer.Show(viewInstance);
     HistoryManager.Add(viewInstance);
 };
