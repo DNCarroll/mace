@@ -17,19 +17,19 @@ Window.prototype.Exception = function () {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function (type, webApiParameters) {
-    var vc = new type();
-    var vi = new ViewInstance(webApiParameters, vc);
-    vc.Show(vi);
-    HistoryManager.Add(vi);
+Window.prototype.Show = function (type, parameters) {
+    var viewContainer = new type();
+    var viewInstance = new ViewInstance(parameters, viewContainer);
+    viewContainer.Show(viewInstance);
+    HistoryManager.Add(viewInstance);
 };
 Window.prototype.ShowByUrl = function (url) {
-    var vi = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
-    vi = vi == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vi;
-    if (vi) {
-        var p = url.split("/");
-        var viewInstance = new ViewInstance(p, vi);
-        vi.Show(viewInstance);
+    var viewContainer = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
+    viewContainer = viewContainer == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : viewContainer;
+    if (viewContainer) {
+        var parameters = url.split("/");
+        var viewInstance = new ViewInstance(parameters, viewContainer);
+        viewContainer.Show(viewInstance);
         HistoryManager.Add(viewInstance);
     }
 };

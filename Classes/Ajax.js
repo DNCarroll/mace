@@ -20,14 +20,13 @@ var Ajax = (function () {
         url = this.getUrl(url);
         this.XMLHttpRequest = new XMLHttpRequest();
         var ajax = this;
-        var xhttpr = this.XMLHttpRequest;
-        xhttpr.addEventListener("readystatechange", ajax.onReaderStateChange.bind(ajax), false);
-        xhttpr.open(method, url, true);
-        xhttpr.setRequestHeader("content-type", navigator && /Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent) ? "application/json;q=0.9" : this.ContentType);
+        this.XMLHttpRequest.addEventListener("readystatechange", ajax.onReaderStateChange.bind(ajax), false);
+        this.XMLHttpRequest.open(method, url, true);
+        this.XMLHttpRequest.setRequestHeader("content-type", this.ContentType);
         this.setCustomHeader();
         try {
             var newParameters = this.getParameters(parameters);
-            xhttpr.send(newParameters);
+            this.XMLHttpRequest.send(newParameters);
         }
         catch (e) {
             this.HideProgress();
@@ -93,10 +92,9 @@ var Ajax = (function () {
     };
     Ajax.prototype.GetRequestData = function () {
         var ret = null;
-        var x = this.XMLHttpRequest;
-        if (this.isRequestReady() && (x.status == 200 || x.status == 204) &&
-            !Is.NullOrEmpty(x.responseText)) {
-            ret = x.responseText;
+        if (this.isRequestReady() && (this.XMLHttpRequest.status == 200 || this.XMLHttpRequest.status == 204) &&
+            !Is.NullOrEmpty(this.XMLHttpRequest.responseText)) {
+            ret = this.XMLHttpRequest.responseText;
             try {
                 ret = JSON.parse(ret);
                 if (ret.d) {
@@ -142,7 +140,7 @@ var Ajax = (function () {
         var keyMap = new Array();
         for (var prop in obj) {
             var val = obj[prop];
-            if (val && Is.String(val)) {
+            if (val && typeof val === 'string') {
                 val = val.Trim();
                 if (val.indexOf("/Date(") == 0 || val.indexOf("Date(") == 0) {
                     keyMap.push({ Key: prop, Type: "Date" });

@@ -20,14 +20,13 @@ var Ajax = (function () {
         url = this.getUrl(url);
         this.XMLHttpRequest = new XMLHttpRequest();
         var ajax = this;
-        var xhttpr = this.XMLHttpRequest;
-        xhttpr.addEventListener("readystatechange", ajax.onReaderStateChange.bind(ajax), false);
-        xhttpr.open(method, url, true);
-        xhttpr.setRequestHeader("content-type", navigator && /Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent) ? "application/json;q=0.9" : this.ContentType);
+        this.XMLHttpRequest.addEventListener("readystatechange", ajax.onReaderStateChange.bind(ajax), false);
+        this.XMLHttpRequest.open(method, url, true);
+        this.XMLHttpRequest.setRequestHeader("content-type", this.ContentType);
         this.setCustomHeader();
         try {
             var newParameters = this.getParameters(parameters);
-            xhttpr.send(newParameters);
+            this.XMLHttpRequest.send(newParameters);
         }
         catch (e) {
             this.HideProgress();
@@ -93,10 +92,9 @@ var Ajax = (function () {
     };
     Ajax.prototype.GetRequestData = function () {
         var ret = null;
-        var x = this.XMLHttpRequest;
-        if (this.isRequestReady() && (x.status == 200 || x.status == 204) &&
-            !Is.NullOrEmpty(x.responseText)) {
-            ret = x.responseText;
+        if (this.isRequestReady() && (this.XMLHttpRequest.status == 200 || this.XMLHttpRequest.status == 204) &&
+            !Is.NullOrEmpty(this.XMLHttpRequest.responseText)) {
+            ret = this.XMLHttpRequest.responseText;
             try {
                 ret = JSON.parse(ret);
                 if (ret.d) {
@@ -142,7 +140,7 @@ var Ajax = (function () {
         var keyMap = new Array();
         for (var prop in obj) {
             var val = obj[prop];
-            if (val && Is.String(val)) {
+            if (val && typeof val === 'string') {
                 val = val.Trim();
                 if (val.indexOf("/Date(") == 0 || val.indexOf("Date(") == 0) {
                     keyMap.push({ Key: prop, Type: "Date" });
@@ -290,28 +288,28 @@ var Binder = (function () {
         this.prepDataRowTemplates();
         var that = this;
         this.DataRowTemplates.forEach(function (t) {
-            var newEle = t.CreateElementFromHtml();
-            var boundEle = newEle.Get(function (e) { return e.HasDataSet(); });
-            boundEle.Add(newEle);
-            that.DataRowFooter ? that.Element.insertBefore(newEle, that.DataRowFooter) : that.Element.appendChild(newEle);
+            var newElement = t.CreateElementFromHtml();
+            var boundElements = newElement.Get(function (e) { return e.HasDataSet(); });
+            boundElements.Add(newElement);
+            that.DataRowFooter ? that.Element.insertBefore(newElement, that.DataRowFooter) : that.Element.appendChild(newElement);
             that.DataObjects.Add(objectToAdd);
-            that.BindToDataObject(objectToAdd, boundEle);
+            that.BindToDataObject(objectToAdd, boundElements);
         });
     };
     Binder.prototype.prepDataRowTemplates = function () {
         var _this = this;
         if (this.DataRowTemplates.length == 0) {
-            var eles = this.Element.children;
+            var elements = this.Element.children;
             var rows = new Array();
             var lastIndex = 0;
-            for (var i = 0; i < eles.length; i++) {
-                if (eles[i].getAttribute("data-template") != null) {
-                    rows.Add(eles[i]);
+            for (var i = 0; i < elements.length; i++) {
+                if (elements[i].getAttribute("data-template") != null) {
+                    rows.Add(elements[i]);
                     lastIndex = i;
                 }
             }
-            if (eles[eles.length - 1] != rows[rows.length - 1]) {
-                this.DataRowFooter = eles[eles.length - 1];
+            if (elements[elements.length - 1] != rows[rows.length - 1]) {
+                this.DataRowFooter = elements[elements.length - 1];
             }
             rows.forEach(function (r) {
                 _this.DataRowTemplates.Add(r.outerHTML);
@@ -321,81 +319,81 @@ var Binder = (function () {
     };
     Binder.prototype.onObjectStateChanged = function (obj) {
         if (this.AutomaticallyUpdatesToWebApi && this.WebApi) {
-            var jx = new Ajax();
-            jx.AddListener(EventType.Completed, this.OnUpdateComplete.bind(this));
-            jx.Put(this.WebApi, obj.ServerObject);
+            var ajax = new Ajax();
+            ajax.AddListener(EventType.Completed, this.OnUpdateComplete.bind(this));
+            ajax.Put(this.WebApi, obj.ServerObject);
             obj.ObjectState = ObjectState.Clean;
         }
     };
     Binder.prototype.OnUpdateComplete = function (arg) {
         var _this = this;
-        var income = arg.Sender.GetRequestData();
-        var obj = this.DataObject ? this.DataObject : this.DataObjects.First(function (d) { return _this.IsPrimaryKeymatch(d, income); });
-        obj ? this.SetServerObjectValue(obj, income) : null;
+        var incoming = arg.Sender.GetRequestData();
+        var obj = this.DataObject ? this.DataObject : this.DataObjects.First(function (d) { return _this.IsPrimaryKeymatch(d, incoming); });
+        obj ? this.SetServerObjectValue(obj, incoming) : null;
     };
-    Binder.prototype.SetServerObjectValue = function (data, income) {
-        for (var p in income) {
+    Binder.prototype.SetServerObjectValue = function (data, incoming) {
+        for (var p in incoming) {
             if (!this.PrimaryKeys.First(function (k) { return k === p; })) {
-                data.SetServerProperty(p, income[p]);
+                data.SetServerProperty(p, incoming[p]);
             }
         }
     };
-    Binder.prototype.IsPrimaryKeymatch = function (data, income) {
+    Binder.prototype.IsPrimaryKeymatch = function (data, incoming) {
         for (var i = 0; i < this.PrimaryKeys.length; i++) {
-            if (data.ServerObject[this.PrimaryKeys[i]] != income[this.PrimaryKeys[i]]) {
+            if (data.ServerObject[this.PrimaryKeys[i]] != incoming[this.PrimaryKeys[i]]) {
                 return false;
             }
         }
         return true;
     };
-    Binder.prototype.BindToDataObject = function (obj, elesToBind) {
+    Binder.prototype.BindToDataObject = function (dataObject, elementsToBind) {
         var _this = this;
-        if (elesToBind === void 0) { elesToBind = null; }
-        if (!elesToBind) {
-            elesToBind = this.Element.Get(function (e) { return e.HasDataSet(); });
-            elesToBind.Add(this.Element);
+        if (elementsToBind === void 0) { elementsToBind = null; }
+        if (!elementsToBind) {
+            elementsToBind = this.Element.Get(function (e) { return e.HasDataSet(); });
+            elementsToBind.Add(this.Element);
         }
         if (this.IsFormBinding) {
-            this.DataObject = obj;
+            this.DataObject = dataObject;
         }
-        obj.AddObjectStateListener(this.onObjectStateChanged.bind(this));
-        elesToBind.forEach(function (e) {
+        dataObject.AddObjectStateListener(this.onObjectStateChanged.bind(this));
+        elementsToBind.forEach(function (e) {
             var element = e;
-            _this.setListeners(element, obj);
+            _this.setListeners(element, dataObject);
         });
-        obj.AllPropertiesChanged();
+        dataObject.AllPropertiesChanged();
     };
-    Binder.prototype.setListeners = function (ele, obj) {
+    Binder.prototype.setListeners = function (element, dataObject) {
         var _this = this;
-        var attrs = ele.GetDataSetAttributes();
-        if (ele.tagName === "SELECT") {
-            var dsource = attrs.First(function (f) { return f.Attribute == "datasource"; });
-            var dMemb = attrs.First(function (f) { return f.Attribute == "displaymember"; });
-            var vMemb = attrs.First(function (f) { return f.Attribute == "valuemember"; });
-            if (dsource) {
-                var fun = new Function("return " + dsource.Property);
+        var boundAttributes = element.GetDataSetAttributes();
+        if (element.tagName === "SELECT") {
+            var datasource = boundAttributes.First(function (f) { return f.Attribute == "datasource"; });
+            var displayMember = boundAttributes.First(function (f) { return f.Attribute == "displaymember"; });
+            var valueMember = boundAttributes.First(function (f) { return f.Attribute == "valuemember"; });
+            if (datasource) {
+                var fun = new Function("return " + datasource.Property);
                 var data = fun();
-                ele.AddOptions(data, vMemb ? vMemb.Property : null, dMemb ? dMemb.Property : null);
+                element.AddOptions(data, valueMember ? valueMember.Property : null, displayMember ? displayMember.Property : null);
             }
         }
-        var nonBindAttr = ["binder", "datasource", "displaymember", "valuemember"];
-        attrs.forEach(function (b) {
-            if (!nonBindAttr.First(function (v) { return v === b.Attribute; })) {
-                var attr = _this.getAttribute(b.Attribute);
-                _this.setObjectPropertyListener(b.Property, attr, ele, obj);
-                var eleAttr = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
-                if (eleAttr) {
+        var nonbindingAttributes = ["binder", "datasource", "displaymember", "valuemember"];
+        boundAttributes.forEach(function (b) {
+            if (!nonbindingAttributes.First(function (v) { return v === b.Attribute; })) {
+                var attribute = _this.getAttribute(b.Attribute);
+                _this.setObjectPropertyListener(b.Property, attribute, element, dataObject);
+                var elementAttribute = b.Attribute === "checked" && element["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
+                if (elementAttribute) {
                     var fun = function (evt) {
-                        obj.OnElementChanged.bind(obj)(ele[eleAttr], b.Property);
+                        dataObject.OnElementChanged.bind(dataObject)(element[elementAttribute], b.Property);
                     };
-                    ele.addEventListener("change", fun);
+                    element.addEventListener("change", fun);
                 }
             }
         });
     };
-    Binder.prototype.getAttribute = function (attr) {
-        attr = attr.toLowerCase();
-        switch (attr) {
+    Binder.prototype.getAttribute = function (attribute) {
+        attribute = attribute.toLowerCase();
+        switch (attribute) {
             case "class":
             case "classname":
                 return "className";
@@ -404,33 +402,33 @@ var Binder = (function () {
             case "readonly":
                 return "readOnly";
             default:
-                return attr;
+                return attribute;
         }
     };
-    Binder.prototype.setObjectPropertyListener = function (property, attr, ele, obj) {
+    Binder.prototype.setObjectPropertyListener = function (property, attribute, element, dataObject) {
         var _this = this;
         var objectPropertyChangedForElement = function (attribute, value) {
-            if (Has.Properties(ele, attribute)) {
-                if (ele.tagName === "INPUT" && ele["type"] === "radio") {
-                    var radios = ele.parentElement.Get(function (e2) { return e2["name"] === ele["name"] && e2["type"] === "radio"; });
+            if (Is.Property(attribute, element)) {
+                if (element.tagName === "INPUT" && element["type"] === "radio") {
+                    var radios = element.parentElement.Get(function (e2) { return e2["name"] === element["name"] && e2["type"] === "radio"; });
                     radios.forEach(function (r) { return r["checked"] = false; });
                     var first = radios.First(function (r) { return r["value"] === value.toString(); });
                     first["checked"] = true;
                 }
                 else if (attribute === "className") {
-                    ele.className = null;
-                    ele.className = value;
+                    element.className = null;
+                    element.className = value;
                 }
                 else {
-                    ele[attribute] = value;
+                    element[attribute] = value;
                 }
             }
             else {
                 var style = _this.getStyle(attribute);
-                style ? ele["style"][style] = value : ele[attribute] = value;
+                style ? element["style"][style] = value : element[attribute] = value;
             }
         };
-        obj.AddPropertyListener(property, attr, objectPropertyChangedForElement);
+        dataObject.AddPropertyListener(property, attribute, objectPropertyChangedForElement);
     };
     Binder.prototype.getStyle = function (value) {
         for (var prop in document.body.style) {
@@ -450,23 +448,23 @@ var Binder = (function () {
         enumerable: true,
         configurable: true
     });
-    Binder.prototype.AddListener = function (eType, eHandler) {
-        var found = this.eventHandlers.First(function (h) { return h.EventType === eType && h.EventHandler === eHandler; });
+    Binder.prototype.AddListener = function (eventType, eventHandler) {
+        var found = this.eventHandlers.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
         if (!found) {
-            this.eventHandlers.Add(new Listener(eType, eHandler));
+            this.eventHandlers.Add(new Listener(eventType, eventHandler));
         }
     };
-    Binder.prototype.RemoveListener = function (eType, eHandler) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eType && eHandler === eHandler; });
+    Binder.prototype.RemoveListener = function (eventType, eventHandler) {
+        this.eventHandlers.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
     };
-    Binder.prototype.RemoveListeners = function (eType) {
-        if (eType === void 0) { eType = EventType.Any; }
-        this.eventHandlers.Remove(function (l) { return eType === EventType.Any || l.EventType === eType; });
+    Binder.prototype.RemoveListeners = function (eventType) {
+        if (eventType === void 0) { eventType = EventType.Any; }
+        this.eventHandlers.Remove(function (l) { return eventType === EventType.Any || l.EventType === eventType; });
     };
-    Binder.prototype.Dispatch = function (eType) {
+    Binder.prototype.Dispatch = function (eventType) {
         var _this = this;
-        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eType; });
-        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eType)); });
+        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
+        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
     return Binder;
 }());
@@ -497,24 +495,24 @@ var DataObject = (function () {
         enumerable: true,
         configurable: true
     });
-    DataObject.prototype.AddPropertyListener = function (prop, attr, handler) {
-        this.eventListeners.Add(new PropertyListener(prop, attr, handler));
+    DataObject.prototype.AddPropertyListener = function (propertyName, attribute, handler) {
+        this.eventListeners.Add(new PropertyListener(propertyName, attribute, handler));
     };
     DataObject.prototype.RemovePropertyListeners = function () {
         this.eventListeners.Remove(function (o) { return true; });
     };
-    DataObject.prototype.OnPropertyChanged = function (prop) {
+    DataObject.prototype.OnPropertyChanged = function (propertyName) {
         var _this = this;
-        var listeners = this.eventListeners.Where(function (l) { return l.PropertyName === prop; });
-        listeners.forEach(function (l) { return l.Handler(l.Attribute, _this[prop]); });
+        var listeners = this.eventListeners.Where(function (l) { return l.PropertyName === propertyName; });
+        listeners.forEach(function (l) { return l.Handler(l.Attribute, _this[propertyName]); });
     };
     DataObject.prototype.AllPropertiesChanged = function () {
         var _this = this;
         this.eventListeners.forEach(function (l) { return l.Handler(l.Attribute, _this[l.PropertyName]); });
     };
-    DataObject.prototype.InstigatePropertyChangedListeners = function (prop, canCauseDirty) {
+    DataObject.prototype.InstigatePropertyChangedListeners = function (propertyName, canCauseDirty) {
         if (canCauseDirty === void 0) { canCauseDirty = true; }
-        this.OnPropertyChanged(prop);
+        this.OnPropertyChanged(propertyName);
         if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
@@ -529,8 +527,8 @@ var DataObject = (function () {
         var _this = this;
         this.objectListener.forEach(function (o) { return o(_this); });
     };
-    DataObject.prototype.OnElementChanged = function (value, prop) {
-        this[prop] = value;
+    DataObject.prototype.OnElementChanged = function (value, propertyName) {
+        this[propertyName] = value;
     };
     Object.defineProperty(DataObject.prototype, "ServerObject", {
         get: function () {
@@ -542,11 +540,11 @@ var DataObject = (function () {
         enumerable: true,
         configurable: true
     });
-    DataObject.prototype.SetServerProperty = function (prop, value) {
-        var change = value != this.ServerObject[prop];
-        this.ServerObject[prop] = value;
+    DataObject.prototype.SetServerProperty = function (propertyName, value) {
+        var change = value != this.ServerObject[propertyName];
+        this.ServerObject[propertyName] = value;
         if (change) {
-            this.InstigatePropertyChangedListeners(prop, true);
+            this.InstigatePropertyChangedListeners(propertyName, true);
         }
     };
     return DataObject;
@@ -589,8 +587,8 @@ var View = (function () {
             ajax.Get(this.ViewUrl());
         }
     };
-    View.prototype.Show = function (inst) {
-        this.ViewInstance = inst;
+    View.prototype.Show = function (viewInstance) {
+        this.ViewInstance = viewInstance;
         this.Preload ? this.Preload.Execute(this.postPreloaded.bind(this)) : this.postPreloaded();
     };
     View.prototype.postPreloaded = function () {
@@ -677,22 +675,22 @@ var View = (function () {
         }
         this.Dispatch(EventType.Completed);
     };
-    View.prototype.AddListener = function (eType, eHandler) {
-        var found = this.eventHandlers.First(function (h) { return h.EventType === eType && h.EventHandler === eHandler; });
+    View.prototype.AddListener = function (eventType, eventHandler) {
+        var found = this.eventHandlers.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
         if (!found) {
-            this.eventHandlers.Add(new Listener(eType, eHandler));
+            this.eventHandlers.Add(new Listener(eventType, eventHandler));
         }
     };
-    View.prototype.RemoveListener = function (eType, eHandler) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eType && eHandler === eHandler; });
+    View.prototype.RemoveListener = function (eventType, eventHandler) {
+        this.eventHandlers.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
     };
-    View.prototype.RemoveListeners = function (eType) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eType; });
+    View.prototype.RemoveListeners = function (eventType) {
+        this.eventHandlers.Remove(function (l) { return l.EventType === eventType; });
     };
-    View.prototype.Dispatch = function (eType) {
+    View.prototype.Dispatch = function (eventType) {
         var _this = this;
-        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eType; });
-        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eType)); });
+        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
+        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
     return View;
 }());
@@ -858,10 +856,10 @@ var HistoryContainer;
             else {
             }
         };
-        History.prototype.ManageRouteInfo = function (inst) {
-            var title = inst.ViewContainer.UrlTitle(inst);
-            var documentTitle = inst.ViewContainer.DocumentTitle(inst);
-            var url = inst.ViewContainer.Url(inst);
+        History.prototype.ManageRouteInfo = function (viewInstance) {
+            var title = viewInstance.ViewContainer.UrlTitle(viewInstance);
+            var documentTitle = viewInstance.ViewContainer.DocumentTitle(viewInstance);
+            var url = viewInstance.ViewContainer.Url(viewInstance);
             if (url && !Is.NullOrEmpty(title) && history && history.pushState) {
                 url = this.FormatUrl(!Is.NullOrEmpty(url) ? url.indexOf("/") != 0 ? "/" + url : url : "/");
                 history.pushState(null, title, url);
@@ -910,13 +908,19 @@ var Initializer;
         window.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function addViewContainers() {
-        var ignoreThese = ignoreThese();
+        var ignoreThese = ignoreTheseNames();
         for (var obj in window) {
             var name = getNameToTest(getStringOf(window[obj]), ignoreThese);
             if (!Is.NullOrEmpty(name)) {
                 try {
                     var newObj = (new Function("return new " + name + "();"))();
-                    if (Has.Properties(newObj, "IsDefault", "Views", "Show", "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
+                    if (Is.Property("IsDefault", newObj) &&
+                        Is.Property("Views", newObj) &&
+                        Is.Property("Show", newObj) &&
+                        Is.Property("Url", newObj) &&
+                        Is.Property("UrlPattern", newObj) &&
+                        Is.Property("UrlTitle", newObj) &&
+                        Is.Property("IsUrlPatternMatch", newObj)) {
                         ViewContainers.Add(newObj);
                     }
                 }
@@ -926,10 +930,10 @@ var Initializer;
             }
         }
     }
-    function getNameToTest(rawFun, ignoreThese) {
-        if (!Is.NullOrEmpty(rawFun)) {
+    function getNameToTest(rawFunction, ignoreThese) {
+        if (!Is.NullOrEmpty(rawFunction)) {
             var pattern = "^function\\s(\\w+)\\(\\)";
-            var match = rawFun.match(pattern);
+            var match = rawFunction.match(pattern);
             if (match && !ignoreThese.First(function (i) { return i === match[1]; })) {
                 return match[1];
             }
@@ -945,9 +949,11 @@ var Initializer;
             ProgressManager.ProgressElement = pg;
         }
     }
-    function ignoreThese() {
-        return ["Ajax", "ViewContainer", "View", "ViewInstance", "Listener", "PropertyListener", "ObjectState",
-            "HistoryManager", "Is", "Initializer", "Binder", "DataObject", "EventType", "CustomEventArg"];
+    function ignoreTheseNames() {
+        return ["Ajax", "ViewContainer", "View", "ViewInstance",
+            "HistoryManager", "Is", "Initializer", "ViewContainers",
+            "ActionEvent", "DataBinding", "ActionType", "AutoSuggest", "Binding",
+            "KeyPress", "Thing", "What"];
     }
 })(Initializer || (Initializer = {}));
 Initializer.WindowLoad();
@@ -959,40 +965,29 @@ var Is;
     }
     Is.Array = Array;
     function NullOrEmpty(value) {
-        return value == null || (value.length && value.length === 0);
+        return value == null || (value.length && value.length == 0);
     }
     Is.NullOrEmpty = NullOrEmpty;
-    function String(value) {
-        return typeof value === 'string';
-    }
-    Is.String = String;
-})(Is || (Is = {}));
-var Has;
-(function (Has) {
-    function Properties(inObject) {
-        var properties = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            properties[_i - 1] = arguments[_i];
-        }
-        var ret = true;
+    function Property(property, inObject) {
         try {
-            for (var i = 0; i < properties.length; i++) {
-                var value = inObject[properties[i]];
-                if (inObject[properties[i]] === undefined) {
-                    ret = false;
-                    break;
-                }
-            }
+            return typeof (inObject[property]) !== 'undefined';
         }
         catch (e) {
-            if (window.Exception) {
-                window.Exception(e);
+            window.Exception(e);
+        }
+        return false;
+    }
+    Is.Property = Property;
+    function Style(value) {
+        for (var prop in document.body.style) {
+            if (prop.toLowerCase() === value.toLowerCase()) {
+                return true;
             }
         }
-        return ret;
+        return false;
     }
-    Has.Properties = Properties;
-})(Has || (Has = {}));
+    Is.Style = Style;
+})(Is || (Is = {}));
 //# sourceMappingURL=Is.js.map
 var ProgressManager;
 (function (ProgressManager) {
@@ -1011,6 +1006,79 @@ var ProgressManager;
     ProgressManager.Hide = Hide;
 })(ProgressManager || (ProgressManager = {}));
 //# sourceMappingURL=ProgressManager.js.map
+Array.prototype.GroupBy = function () {
+    var groupBy = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        groupBy[_i - 0] = arguments[_i];
+    }
+    var ret = new Array();
+    for (var i = 0; i < this.length; i++) {
+        var that = this[i];
+        var found = ret.First(function (obj) {
+            var f = true;
+            for (var j = 0; j < groupBy.length; j++) {
+                if (obj[groupBy[j]] != that[groupBy[j]]) {
+                    f = false;
+                    break;
+                }
+            }
+            return f;
+        });
+        if (!found) {
+            var newObj = {
+                Grouping: new Array()
+            };
+            for (var field in that) {
+                newObj[field] = that[field];
+            }
+            newObj.Grouping.push(that);
+            ret.push(newObj);
+        }
+        else {
+            found["Grouping"].push(that);
+        }
+    }
+    return ret;
+};
+Array.prototype.Insert = function (obj, position) {
+    if (position === undefined) {
+        position = 0;
+    }
+    if (position > this.length) {
+        position = this.length;
+    }
+    this.splice(position, 0, obj);
+};
+Array.prototype.Sum = function (field) {
+    var ret = 0;
+    for (var i = 0; i < this.length; i++) {
+        var obj = this[i];
+        if (obj[field]) {
+            ret += obj[field];
+        }
+    }
+    return ret;
+};
+Array.prototype.ToArray = function (property) {
+    var ret = new Array();
+    for (var i = 0; i < this.length; i++) {
+        var item = this[i];
+        if (item[property]) {
+            ret.push(item[property]);
+        }
+    }
+    return ret;
+};
+Array.prototype.Take = function (count) {
+    var ret = new Array();
+    for (var i = 0; i < count; i++) {
+        if (this.length <= i) {
+            break;
+        }
+        ret.push(this[i]);
+    }
+    return ret;
+};
 Array.prototype.Add = function (objectOrObjects) {
     if (!Is.Array(objectOrObjects)) {
         objectOrObjects = [objectOrObjects];
@@ -1022,30 +1090,43 @@ Array.prototype.Add = function (objectOrObjects) {
 Array.prototype.First = function (func) {
     if (func) {
         for (var i = 0; i < this.length; i++) {
-            if (func(this[i])) {
+            var currentObject = this[i];
+            var match = func(currentObject);
+            if (match) {
                 return this[i];
             }
         }
     }
-    return this.length > 0 ? this[0] : null;
+    else if (this.length > 0) {
+        return this[0];
+    }
+    return null;
 };
 Array.prototype.Last = function (func) {
     if (func) {
-        var pos = this.length - 1;
-        while (pos > 0) {
-            if (func(this[pos])) {
-                return this[pos];
+        if (this.length > 0) {
+            var pos = this.length - 1;
+            while (pos > 0) {
+                var currentObject = this[pos];
+                var match = func(currentObject);
+                if (match) {
+                    return this[pos];
+                }
+                pos--;
             }
-            pos--;
         }
     }
-    return this.length > 0 ? this[this.length - 1] : null;
+    else if (this.length > 0) {
+        return this[this.length - 1];
+    }
+    return null;
 };
 Array.prototype.Remove = function (func) {
     if (func && this.length > 0) {
         var pos = this.length - 1;
         while (pos > 0) {
-            if (func(this[pos])) {
+            var match = func(this[pos]);
+            if (match) {
                 this.splice(pos, 1);
             }
             pos--;
@@ -1056,8 +1137,10 @@ Array.prototype.Remove = function (func) {
 Array.prototype.Where = function (func) {
     var matches = new Array();
     for (var i = 0; i < this.length; i++) {
-        if (func(this[i])) {
-            matches.push(this[i]);
+        var currentObject = this[i];
+        var match = func(currentObject);
+        if (match) {
+            matches.push(currentObject);
         }
     }
     return matches;
@@ -1070,7 +1153,14 @@ Date.prototype.Add = function (years, months, days, hours, minutes, seconds) {
     hours = hours ? hours : 0;
     minutes = minutes ? minutes : 0;
     seconds = seconds ? seconds : 0;
-    return new Date(this.getFullYear() + years, this.getMonth() + months, this.getDate() + days, this.getHours() + hours, this.getMinutes() + minutes, this.getSeconds() + seconds, this.getMilliseconds());
+    var y = this.getFullYear() + years;
+    var m = this.getMonth() + months;
+    var d = this.getDate() + days;
+    var h = this.getHours() + hours;
+    var mm = this.getMinutes() + minutes;
+    var s = this.getSeconds() + seconds;
+    var ms = this.getMilliseconds();
+    return new Date(y, m, d, h, mm, s, ms);
 };
 //# sourceMappingURL=Date.js.map
 HTMLElement.prototype.Get = function (predicate, notRecursive, nodes) {
@@ -1160,6 +1250,22 @@ HTMLElement.prototype.Clear = function (predicate, notRecursive) {
 HTMLElement.prototype.Remove = function () {
     this.parentNode.removeChild(this);
 };
+HTMLElement.prototype.SetClass = function (className) {
+    this.className = null;
+    this.className = className;
+};
+HTMLElement.prototype.OffSet = function () {
+    var _x = 0;
+    var _y = 0;
+    var el = this;
+    while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
+        _x += el.offsetLeft - el.scrollLeft;
+        _y += el.offsetTop - el.scrollTop;
+        //may not work
+        el = el.offsetParent;
+    }
+    return { top: _y, left: _x };
+};
 HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
@@ -1167,22 +1273,23 @@ HTMLElement.prototype.Set = function (objectProperties) {
     var that = this;
     if (objectProperties) {
         for (var prop in objectProperties) {
-            if (prop !== "cls" && prop !== "className") {
-                if (prop.IsStyle()) {
-                    that.style[prop] = objectProperties[prop];
+            var tempPropName = prop;
+            if (tempPropName != "cls" && tempPropName != "className") {
+                var isStyleProp = Is.Style(tempPropName);
+                if (isStyleProp) {
+                    that.style[tempPropName] = objectProperties[prop];
                 }
-                else if (prop === "style") {
+                else if (prop == "style") {
                     if (objectProperties.style.cssText) {
                         that.style.cssText = objectProperties.style.cssText;
                     }
                 }
                 else {
-                    that[prop] = objectProperties[prop];
+                    that[tempPropName] = objectProperties[prop];
                 }
             }
             else {
-                that.className = null;
-                that.className = objectProperties[prop];
+                that.SetClass(objectProperties[prop]);
             }
         }
     }
@@ -1218,14 +1325,14 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty,
         }
     };
     if (Is.Array(arrayOrObject)) {
-        var temp = arrayOrObject;
+        var tempArray = arrayOrObject;
         if (displayProperty && valueProperty) {
-            temp.forEach(function (t) {
+            tempArray.forEach(function (t) {
                 addOption(t[displayProperty], t[valueProperty]);
             });
         }
-        else if (temp.length > 1 && Is.String(temp[0])) {
-            temp.forEach(function (t) {
+        else if (tempArray.length > 1 && typeof tempArray[0] === 'string') {
+            tempArray.forEach(function (t) {
                 addOption(t, t);
             });
         }
@@ -1244,15 +1351,15 @@ String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
 String.prototype.Element = function () {
-    var o = document.getElementById(this.toString());
-    return o ? o : null;
+    var obj = document.getElementById(this.toString());
+    return obj ? obj : null;
 };
-String.prototype.CreateElement = function (eleAttrs) {
-    var o = document.createElement(this);
-    if (eleAttrs) {
-        o.Set(eleAttrs);
+String.prototype.CreateElement = function (objectProperties) {
+    var obj = document.createElement(this);
+    if (objectProperties) {
+        obj.Set(objectProperties);
     }
-    return o;
+    return obj;
 };
 String.prototype.CreateElementFromHtml = function () {
     var ret = new Array();
@@ -1261,14 +1368,6 @@ String.prototype.CreateElementFromHtml = function () {
         var child = div.children[div.children.length - 1];
         return child;
     }
-};
-String.prototype.IsStyle = function () {
-    for (var prop in document.body.style) {
-        if (prop.toLowerCase() === this.toLowerCase()) {
-            return true;
-        }
-    }
-    return false;
 };
 //# sourceMappingURL=String.js.map
 Window.prototype.Exception = function () {
@@ -1290,19 +1389,19 @@ Window.prototype.Exception = function () {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function (type, webApiParameters) {
-    var vc = new type();
-    var vi = new ViewInstance(webApiParameters, vc);
-    vc.Show(vi);
-    HistoryManager.Add(vi);
+Window.prototype.Show = function (type, parameters) {
+    var viewContainer = new type();
+    var viewInstance = new ViewInstance(parameters, viewContainer);
+    viewContainer.Show(viewInstance);
+    HistoryManager.Add(viewInstance);
 };
 Window.prototype.ShowByUrl = function (url) {
-    var vi = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
-    vi = vi == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vi;
-    if (vi) {
-        var p = url.split("/");
-        var viewInstance = new ViewInstance(p, vi);
-        vi.Show(viewInstance);
+    var viewContainer = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
+    viewContainer = viewContainer == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : viewContainer;
+    if (viewContainer) {
+        var parameters = url.split("/");
+        var viewInstance = new ViewInstance(parameters, viewContainer);
+        viewContainer.Show(viewInstance);
         HistoryManager.Add(viewInstance);
     }
 };

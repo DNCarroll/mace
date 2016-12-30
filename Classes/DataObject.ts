@@ -19,21 +19,21 @@ abstract class DataObject implements IObjectState {
             this.OnObjectStateChanged();
         }
     }
-    AddPropertyListener(prop: string, attr: string, handler: (attribute: string, value: any) => void) {
-        this.eventListeners.Add(new PropertyListener(prop, attr, handler));
+    AddPropertyListener(propertyName: string, attribute: string, handler: (attribute: string, value: any) => void) {
+        this.eventListeners.Add(new PropertyListener(propertyName, attribute, handler));
     }
     RemovePropertyListeners() {
         this.eventListeners.Remove(o => true);
     }
-    OnPropertyChanged(prop: string) {
-        var listeners = this.eventListeners.Where(l => l.PropertyName === prop);
-        listeners.forEach(l => l.Handler(l.Attribute, this[prop]));
+    OnPropertyChanged(propertyName: string) {
+        var listeners = this.eventListeners.Where(l => l.PropertyName === propertyName);
+        listeners.forEach(l => l.Handler(l.Attribute, this[propertyName]));
     }
     AllPropertiesChanged() {
         this.eventListeners.forEach(l => l.Handler(l.Attribute, this[l.PropertyName]));
     }
-    InstigatePropertyChangedListeners(prop: string, canCauseDirty: boolean = true) {
-        this.OnPropertyChanged(prop);
+    InstigatePropertyChangedListeners(propertyName: string, canCauseDirty: boolean = true) {
+        this.OnPropertyChanged(propertyName);
         if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
@@ -47,8 +47,8 @@ abstract class DataObject implements IObjectState {
     OnObjectStateChanged() {
         this.objectListener.forEach(o => o(this));
     }
-    OnElementChanged(value: any, prop: string) {
-        this[prop] = value;
+    OnElementChanged(value: any, propertyName: string) {
+        this[propertyName] = value;
     }
     private serverObject: any;
     get ServerObject() {
@@ -57,11 +57,11 @@ abstract class DataObject implements IObjectState {
     set ServerObject(value: any) {
         this.serverObject = value;
     }
-    SetServerProperty(prop: string, value: any) {
-        var change = value != this.ServerObject[prop];
-        this.ServerObject[prop] = value;
+    SetServerProperty(propertyName: string, value: any) {
+        var change = value != this.ServerObject[propertyName];
+        this.ServerObject[propertyName] = value;
         if (change) {
-            this.InstigatePropertyChangedListeners(prop, true);
+            this.InstigatePropertyChangedListeners(propertyName, true);
         }
     }
 }

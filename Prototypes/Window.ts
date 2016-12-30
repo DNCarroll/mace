@@ -20,19 +20,19 @@ Window.prototype.Exception = function (...parameters: any[]) {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; },webApiParameters?: Array<any>) {    
-    var vc = new type();    
-    var vi = new ViewInstance(webApiParameters, vc);    
-    vc.Show(vi);
-    HistoryManager.Add(vi);
+Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, parameters?: Array<any>) {    
+    var viewContainer = new type();    
+    var viewInstance = new ViewInstance(parameters, viewContainer);    
+    viewContainer.Show(viewInstance);
+    HistoryManager.Add(viewInstance);
 };
 Window.prototype.ShowByUrl = function (url: string) {           
-    var vi: IViewContainer = ViewContainers.First(d => d.IsUrlPatternMatch(url));
-    vi = vi == null ? ViewContainers.First(d => d.IsDefault) : vi;
-    if (vi) {
-        var p = url.split("/");
-        var viewInstance = new ViewInstance(p, vi);
-        vi.Show(viewInstance);
+    var viewContainer: IViewContainer = ViewContainers.First(d => d.IsUrlPatternMatch(url));
+    viewContainer = viewContainer == null ? ViewContainers.First(d => d.IsDefault) : viewContainer;
+    if (viewContainer) {
+        var parameters = url.split("/");
+        var viewInstance = new ViewInstance(parameters, viewContainer);
+        viewContainer.Show(viewInstance);
         HistoryManager.Add(viewInstance);
     }
 }

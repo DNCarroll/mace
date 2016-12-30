@@ -3,21 +3,20 @@ interface String {
     Element(): HTMLElement;  
     CreateElement(objectProperties?): HTMLElement;    
     CreateElementFromHtml(): HTMLElement;
-    IsStyle(): boolean;
 }
 String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
 String.prototype.Element = function (): HTMLElement {
-    var o = document.getElementById(this.toString());
-    return o ? <HTMLElement>o : null;
+    var obj = document.getElementById(this.toString());
+    return obj ? <HTMLElement>obj : null;
 };
-String.prototype.CreateElement = function (eleAttrs?): HTMLElement {
-    var o = document.createElement(this);
-    if (eleAttrs) {
-        o.Set(eleAttrs);
+String.prototype.CreateElement = function (objectProperties?): HTMLElement {
+    var obj = document.createElement(this);
+    if (objectProperties) {
+        obj.Set(objectProperties);
     }
-    return o;
+    return obj;
 };
 String.prototype.CreateElementFromHtml = function (): HTMLElement {
     var ret = new Array<HTMLElement>();
@@ -27,11 +26,3 @@ String.prototype.CreateElementFromHtml = function (): HTMLElement {
         return <HTMLElement>child;
     }
 };
-String.prototype.IsStyle = function() {
-    for (var prop in document.body.style) {
-        if (prop.toLowerCase() === this.toLowerCase()) {
-            return true;
-        }
-    }
-    return false;
-}

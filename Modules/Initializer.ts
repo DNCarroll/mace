@@ -25,15 +25,19 @@
         window.addEventListener("popstate", HistoryManager.BackEvent);        
     }
     function addViewContainers() {
-        var ignoreThese = ignoreThese();
+        var ignoreThese = ignoreTheseNames();
         for (var obj in window) {
             var name = getNameToTest(getStringOf(window[obj]), ignoreThese);
             if (!Is.NullOrEmpty(name)) {
                 try {
-                    var newObj = (new Function("return new " + name + "();"))();
-                    if (Has.Properties(newObj, "IsDefault", "Views", "Show", "Url",
-                        "UrlPattern", "UrlTitle", "IsUrlPatternMatch")
-                    ) {
+                    var newObj = (new Function("return new " + name + "();"))();                    
+                    if (Is.Property("IsDefault", newObj) &&
+                        Is.Property("Views", newObj) &&
+                        Is.Property("Show", newObj) &&
+                        Is.Property("Url", newObj) &&
+                        Is.Property("UrlPattern", newObj) &&
+                        Is.Property("UrlTitle", newObj) &&
+                        Is.Property("IsUrlPatternMatch", newObj)) {
                         ViewContainers.Add(<IViewContainer>newObj);
                     }
                 }
@@ -43,10 +47,10 @@
             }
         }
     }
-    function getNameToTest(rawFun: string, ignoreThese:Array<string>) {
-        if (!Is.NullOrEmpty(rawFun)) {            
+    function getNameToTest(rawFunction: string, ignoreThese:Array<string>) {
+        if (!Is.NullOrEmpty(rawFunction)) {            
             var pattern = "^function\\s(\\w+)\\(\\)";
-            var match = rawFun.match(pattern);
+            var match = rawFunction.match(pattern);
             if (match && !ignoreThese.First(i => i === match[1])) {
                 return match[1];
             }
@@ -62,9 +66,11 @@
             ProgressManager.ProgressElement = pg;
         }
     }
-    function ignoreThese(): Array<string> {
-        return ["Ajax", "ViewContainer", "View", "ViewInstance", "Listener", "PropertyListener", "ObjectState",
-            "HistoryManager", "Is", "Initializer", "Binder", "DataObject", "EventType", "CustomEventArg"];
+    function ignoreTheseNames(): Array<string> {
+        return ["Ajax", "ViewContainer", "View", "ViewInstance",
+            "HistoryManager", "Is", "Initializer", "ViewContainers",
+            "ActionEvent", "DataBinding", "ActionType", "AutoSuggest", "Binding",
+            "KeyPress", "Thing", "What"];
     }
 }
 Initializer.WindowLoad();

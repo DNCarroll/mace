@@ -35,8 +35,8 @@ var View = (function () {
             ajax.Get(this.ViewUrl());
         }
     };
-    View.prototype.Show = function (inst) {
-        this.ViewInstance = inst;
+    View.prototype.Show = function (viewInstance) {
+        this.ViewInstance = viewInstance;
         this.Preload ? this.Preload.Execute(this.postPreloaded.bind(this)) : this.postPreloaded();
     };
     View.prototype.postPreloaded = function () {
@@ -123,22 +123,22 @@ var View = (function () {
         }
         this.Dispatch(EventType.Completed);
     };
-    View.prototype.AddListener = function (eType, eHandler) {
-        var found = this.eventHandlers.First(function (h) { return h.EventType === eType && h.EventHandler === eHandler; });
+    View.prototype.AddListener = function (eventType, eventHandler) {
+        var found = this.eventHandlers.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
         if (!found) {
-            this.eventHandlers.Add(new Listener(eType, eHandler));
+            this.eventHandlers.Add(new Listener(eventType, eventHandler));
         }
     };
-    View.prototype.RemoveListener = function (eType, eHandler) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eType && eHandler === eHandler; });
+    View.prototype.RemoveListener = function (eventType, eventHandler) {
+        this.eventHandlers.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
     };
-    View.prototype.RemoveListeners = function (eType) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eType; });
+    View.prototype.RemoveListeners = function (eventType) {
+        this.eventHandlers.Remove(function (l) { return l.EventType === eventType; });
     };
-    View.prototype.Dispatch = function (eType) {
+    View.prototype.Dispatch = function (eventType) {
         var _this = this;
-        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eType; });
-        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eType)); });
+        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
+        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
     return View;
 }());

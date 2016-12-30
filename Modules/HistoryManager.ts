@@ -28,10 +28,10 @@
                 //do nothing?
             }
         }
-        ManageRouteInfo(inst: ViewInstance) {
-            var title = inst.ViewContainer.UrlTitle(inst);
-            var documentTitle = inst.ViewContainer.DocumentTitle(inst);
-            var url = inst.ViewContainer.Url(inst);
+        ManageRouteInfo(viewInstance: ViewInstance) {
+            var title = viewInstance.ViewContainer.UrlTitle(viewInstance);
+            var documentTitle = viewInstance.ViewContainer.DocumentTitle(viewInstance);
+            var url = viewInstance.ViewContainer.Url(viewInstance);
             if (url && !Is.NullOrEmpty(title) && history && history.pushState) {
                 url = this.FormatUrl(!Is.NullOrEmpty(url) ? url.indexOf("/") != 0 ? "/" + url : url : "/");
                 history.pushState(null, title, url);

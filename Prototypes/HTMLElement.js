@@ -85,6 +85,22 @@ HTMLElement.prototype.Clear = function (predicate, notRecursive) {
 HTMLElement.prototype.Remove = function () {
     this.parentNode.removeChild(this);
 };
+HTMLElement.prototype.SetClass = function (className) {
+    this.className = null;
+    this.className = className;
+};
+HTMLElement.prototype.OffSet = function () {
+    var _x = 0;
+    var _y = 0;
+    var el = this;
+    while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
+        _x += el.offsetLeft - el.scrollLeft;
+        _y += el.offsetTop - el.scrollTop;
+        //may not work
+        el = el.offsetParent;
+    }
+    return { top: _y, left: _x };
+};
 HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
@@ -92,22 +108,23 @@ HTMLElement.prototype.Set = function (objectProperties) {
     var that = this;
     if (objectProperties) {
         for (var prop in objectProperties) {
-            if (prop !== "cls" && prop !== "className") {
-                if (prop.IsStyle()) {
-                    that.style[prop] = objectProperties[prop];
+            var tempPropName = prop;
+            if (tempPropName != "cls" && tempPropName != "className") {
+                var isStyleProp = Is.Style(tempPropName);
+                if (isStyleProp) {
+                    that.style[tempPropName] = objectProperties[prop];
                 }
-                else if (prop === "style") {
+                else if (prop == "style") {
                     if (objectProperties.style.cssText) {
                         that.style.cssText = objectProperties.style.cssText;
                     }
                 }
                 else {
-                    that[prop] = objectProperties[prop];
+                    that[tempPropName] = objectProperties[prop];
                 }
             }
             else {
-                that.className = null;
-                that.className = objectProperties[prop];
+                that.SetClass(objectProperties[prop]);
             }
         }
     }
