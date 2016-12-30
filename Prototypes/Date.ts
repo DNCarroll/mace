@@ -9,12 +9,6 @@ Date.prototype.Add = function (years?: number, months?: number, days?: number, h
     hours = hours ? hours : 0;
     minutes = minutes ? minutes : 0;
     seconds = seconds ? seconds : 0;
-    var y = this.getFullYear() + years;
-    var m = this.getMonth() + months;
-    var d = this.getDate() + days;
-    var h = this.getHours() + hours;
-    var mm = this.getMinutes() + minutes;
-    var s = this.getSeconds() + seconds;
-    var ms = this.getMilliseconds();
-    return new Date(y, m, d, h, mm, s, ms);
+    return new Date(this.getFullYear() + years, this.getMonth() + months, this.getDate() + days,
+        this.getHours() + hours, this.getMinutes() + minutes, this.getSeconds() + seconds, this.getMilliseconds());
 };

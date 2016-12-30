@@ -30,10 +30,10 @@ var HistoryContainer;
             else {
             }
         };
-        History.prototype.ManageRouteInfo = function (viewInstance) {
-            var title = viewInstance.ViewContainer.UrlTitle(viewInstance);
-            var documentTitle = viewInstance.ViewContainer.DocumentTitle(viewInstance);
-            var url = viewInstance.ViewContainer.Url(viewInstance);
+        History.prototype.ManageRouteInfo = function (inst) {
+            var title = inst.ViewContainer.UrlTitle(inst);
+            var documentTitle = inst.ViewContainer.DocumentTitle(inst);
+            var url = inst.ViewContainer.Url(inst);
             if (url && !Is.NullOrEmpty(title) && history && history.pushState) {
                 url = this.FormatUrl(!Is.NullOrEmpty(url) ? url.indexOf("/") != 0 ? "/" + url : url : "/");
                 history.pushState(null, title, url);

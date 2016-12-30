@@ -104,10 +104,9 @@ HTMLElement.prototype.Set = function (objectProperties) {
     var that = <HTMLElement>this;
     if (objectProperties) {
         for (var prop in objectProperties) {
-            var tempPropName = prop;
-            if (tempPropName != "cls" && tempPropName != "className") {
-                if (tempPropName.IsStyle()) {
-                    that.style[tempPropName] = objectProperties[prop];
+            if (prop !== "cls" && prop !== "className") {
+                if (prop.IsStyle()) {
+                    that.style[prop] = objectProperties[prop];
                 }
                 else if (prop === "style") {
                     if (objectProperties.style.cssText) {
@@ -115,7 +114,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
                     }
                 }
                 else {
-                    that[tempPropName] = objectProperties[prop];
+                    that[prop] = objectProperties[prop];
                 }
             }
             else {

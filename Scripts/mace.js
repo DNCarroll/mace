@@ -450,23 +450,23 @@ var Binder = (function () {
         enumerable: true,
         configurable: true
     });
-    Binder.prototype.AddListener = function (eventType, eventHandler) {
-        var found = this.eventHandlers.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
+    Binder.prototype.AddListener = function (eType, eHandler) {
+        var found = this.eventHandlers.First(function (h) { return h.EventType === eType && h.EventHandler === eHandler; });
         if (!found) {
-            this.eventHandlers.Add(new Listener(eventType, eventHandler));
+            this.eventHandlers.Add(new Listener(eType, eHandler));
         }
     };
-    Binder.prototype.RemoveListener = function (eventType, eventHandler) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
+    Binder.prototype.RemoveListener = function (eType, eHandler) {
+        this.eventHandlers.Remove(function (l) { return l.EventType === eType && eHandler === eHandler; });
     };
-    Binder.prototype.RemoveListeners = function (eventType) {
-        if (eventType === void 0) { eventType = EventType.Any; }
-        this.eventHandlers.Remove(function (l) { return eventType === EventType.Any || l.EventType === eventType; });
+    Binder.prototype.RemoveListeners = function (eType) {
+        if (eType === void 0) { eType = EventType.Any; }
+        this.eventHandlers.Remove(function (l) { return eType === EventType.Any || l.EventType === eType; });
     };
-    Binder.prototype.Dispatch = function (eventType) {
+    Binder.prototype.Dispatch = function (eType) {
         var _this = this;
-        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
-        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
+        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eType; });
+        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eType)); });
     };
     return Binder;
 }());
@@ -497,24 +497,24 @@ var DataObject = (function () {
         enumerable: true,
         configurable: true
     });
-    DataObject.prototype.AddPropertyListener = function (propertyName, attribute, handler) {
-        this.eventListeners.Add(new PropertyListener(propertyName, attribute, handler));
+    DataObject.prototype.AddPropertyListener = function (prop, attr, handler) {
+        this.eventListeners.Add(new PropertyListener(prop, attr, handler));
     };
     DataObject.prototype.RemovePropertyListeners = function () {
         this.eventListeners.Remove(function (o) { return true; });
     };
-    DataObject.prototype.OnPropertyChanged = function (propertyName) {
+    DataObject.prototype.OnPropertyChanged = function (prop) {
         var _this = this;
-        var listeners = this.eventListeners.Where(function (l) { return l.PropertyName === propertyName; });
-        listeners.forEach(function (l) { return l.Handler(l.Attribute, _this[propertyName]); });
+        var listeners = this.eventListeners.Where(function (l) { return l.PropertyName === prop; });
+        listeners.forEach(function (l) { return l.Handler(l.Attribute, _this[prop]); });
     };
     DataObject.prototype.AllPropertiesChanged = function () {
         var _this = this;
         this.eventListeners.forEach(function (l) { return l.Handler(l.Attribute, _this[l.PropertyName]); });
     };
-    DataObject.prototype.InstigatePropertyChangedListeners = function (propertyName, canCauseDirty) {
+    DataObject.prototype.InstigatePropertyChangedListeners = function (prop, canCauseDirty) {
         if (canCauseDirty === void 0) { canCauseDirty = true; }
-        this.OnPropertyChanged(propertyName);
+        this.OnPropertyChanged(prop);
         if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
@@ -529,8 +529,8 @@ var DataObject = (function () {
         var _this = this;
         this.objectListener.forEach(function (o) { return o(_this); });
     };
-    DataObject.prototype.OnElementChanged = function (value, propertyName) {
-        this[propertyName] = value;
+    DataObject.prototype.OnElementChanged = function (value, prop) {
+        this[prop] = value;
     };
     Object.defineProperty(DataObject.prototype, "ServerObject", {
         get: function () {
@@ -542,11 +542,11 @@ var DataObject = (function () {
         enumerable: true,
         configurable: true
     });
-    DataObject.prototype.SetServerProperty = function (propertyName, value) {
-        var change = value != this.ServerObject[propertyName];
-        this.ServerObject[propertyName] = value;
+    DataObject.prototype.SetServerProperty = function (prop, value) {
+        var change = value != this.ServerObject[prop];
+        this.ServerObject[prop] = value;
         if (change) {
-            this.InstigatePropertyChangedListeners(propertyName, true);
+            this.InstigatePropertyChangedListeners(prop, true);
         }
     };
     return DataObject;
@@ -589,8 +589,8 @@ var View = (function () {
             ajax.Get(this.ViewUrl());
         }
     };
-    View.prototype.Show = function (viewInstance) {
-        this.ViewInstance = viewInstance;
+    View.prototype.Show = function (inst) {
+        this.ViewInstance = inst;
         this.Preload ? this.Preload.Execute(this.postPreloaded.bind(this)) : this.postPreloaded();
     };
     View.prototype.postPreloaded = function () {
@@ -677,22 +677,22 @@ var View = (function () {
         }
         this.Dispatch(EventType.Completed);
     };
-    View.prototype.AddListener = function (eventType, eventHandler) {
-        var found = this.eventHandlers.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
+    View.prototype.AddListener = function (eType, eHandler) {
+        var found = this.eventHandlers.First(function (h) { return h.EventType === eType && h.EventHandler === eHandler; });
         if (!found) {
-            this.eventHandlers.Add(new Listener(eventType, eventHandler));
+            this.eventHandlers.Add(new Listener(eType, eHandler));
         }
     };
-    View.prototype.RemoveListener = function (eventType, eventHandler) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
+    View.prototype.RemoveListener = function (eType, eHandler) {
+        this.eventHandlers.Remove(function (l) { return l.EventType === eType && eHandler === eHandler; });
     };
-    View.prototype.RemoveListeners = function (eventType) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eventType; });
+    View.prototype.RemoveListeners = function (eType) {
+        this.eventHandlers.Remove(function (l) { return l.EventType === eType; });
     };
-    View.prototype.Dispatch = function (eventType) {
+    View.prototype.Dispatch = function (eType) {
         var _this = this;
-        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
-        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
+        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eType; });
+        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eType)); });
     };
     return View;
 }());
@@ -858,10 +858,10 @@ var HistoryContainer;
             else {
             }
         };
-        History.prototype.ManageRouteInfo = function (viewInstance) {
-            var title = viewInstance.ViewContainer.UrlTitle(viewInstance);
-            var documentTitle = viewInstance.ViewContainer.DocumentTitle(viewInstance);
-            var url = viewInstance.ViewContainer.Url(viewInstance);
+        History.prototype.ManageRouteInfo = function (inst) {
+            var title = inst.ViewContainer.UrlTitle(inst);
+            var documentTitle = inst.ViewContainer.DocumentTitle(inst);
+            var url = inst.ViewContainer.Url(inst);
             if (url && !Is.NullOrEmpty(title) && history && history.pushState) {
                 url = this.FormatUrl(!Is.NullOrEmpty(url) ? url.indexOf("/") != 0 ? "/" + url : url : "/");
                 history.pushState(null, title, url);
@@ -910,7 +910,7 @@ var Initializer;
         window.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function addViewContainers() {
-        var ignoreThese = ignoreTheseNames();
+        var ignoreThese = ignoreThese();
         for (var obj in window) {
             var name = getNameToTest(getStringOf(window[obj]), ignoreThese);
             if (!Is.NullOrEmpty(name)) {
@@ -926,10 +926,10 @@ var Initializer;
             }
         }
     }
-    function getNameToTest(rawFunction, ignoreThese) {
-        if (!Is.NullOrEmpty(rawFunction)) {
+    function getNameToTest(rawFun, ignoreThese) {
+        if (!Is.NullOrEmpty(rawFun)) {
             var pattern = "^function\\s(\\w+)\\(\\)";
-            var match = rawFunction.match(pattern);
+            var match = rawFun.match(pattern);
             if (match && !ignoreThese.First(function (i) { return i === match[1]; })) {
                 return match[1];
             }
@@ -945,7 +945,7 @@ var Initializer;
             ProgressManager.ProgressElement = pg;
         }
     }
-    function ignoreTheseNames() {
+    function ignoreThese() {
         return ["Ajax", "ViewContainer", "View", "ViewInstance", "Listener", "PropertyListener", "ObjectState",
             "HistoryManager", "Is", "Initializer", "Binder", "DataObject", "EventType", "CustomEventArg"];
     }
@@ -1022,43 +1022,30 @@ Array.prototype.Add = function (objectOrObjects) {
 Array.prototype.First = function (func) {
     if (func) {
         for (var i = 0; i < this.length; i++) {
-            var currentObject = this[i];
-            var match = func(currentObject);
-            if (match) {
+            if (func(this[i])) {
                 return this[i];
             }
         }
     }
-    else if (this.length > 0) {
-        return this[0];
-    }
-    return null;
+    return this.length > 0 ? this[0] : null;
 };
 Array.prototype.Last = function (func) {
     if (func) {
-        if (this.length > 0) {
-            var pos = this.length - 1;
-            while (pos > 0) {
-                var currentObject = this[pos];
-                var match = func(currentObject);
-                if (match) {
-                    return this[pos];
-                }
-                pos--;
+        var pos = this.length - 1;
+        while (pos > 0) {
+            if (func(this[pos])) {
+                return this[pos];
             }
+            pos--;
         }
     }
-    else if (this.length > 0) {
-        return this[this.length - 1];
-    }
-    return null;
+    return this.length > 0 ? this[this.length - 1] : null;
 };
 Array.prototype.Remove = function (func) {
     if (func && this.length > 0) {
         var pos = this.length - 1;
         while (pos > 0) {
-            var match = func(this[pos]);
-            if (match) {
+            if (func(this[pos])) {
                 this.splice(pos, 1);
             }
             pos--;
@@ -1069,10 +1056,8 @@ Array.prototype.Remove = function (func) {
 Array.prototype.Where = function (func) {
     var matches = new Array();
     for (var i = 0; i < this.length; i++) {
-        var currentObject = this[i];
-        var match = func(currentObject);
-        if (match) {
-            matches.push(currentObject);
+        if (func(this[i])) {
+            matches.push(this[i]);
         }
     }
     return matches;
@@ -1085,14 +1070,7 @@ Date.prototype.Add = function (years, months, days, hours, minutes, seconds) {
     hours = hours ? hours : 0;
     minutes = minutes ? minutes : 0;
     seconds = seconds ? seconds : 0;
-    var y = this.getFullYear() + years;
-    var m = this.getMonth() + months;
-    var d = this.getDate() + days;
-    var h = this.getHours() + hours;
-    var mm = this.getMinutes() + minutes;
-    var s = this.getSeconds() + seconds;
-    var ms = this.getMilliseconds();
-    return new Date(y, m, d, h, mm, s, ms);
+    return new Date(this.getFullYear() + years, this.getMonth() + months, this.getDate() + days, this.getHours() + hours, this.getMinutes() + minutes, this.getSeconds() + seconds, this.getMilliseconds());
 };
 //# sourceMappingURL=Date.js.map
 HTMLElement.prototype.Get = function (predicate, notRecursive, nodes) {
@@ -1189,10 +1167,9 @@ HTMLElement.prototype.Set = function (objectProperties) {
     var that = this;
     if (objectProperties) {
         for (var prop in objectProperties) {
-            var tempPropName = prop;
-            if (tempPropName != "cls" && tempPropName != "className") {
-                if (tempPropName.IsStyle()) {
-                    that.style[tempPropName] = objectProperties[prop];
+            if (prop !== "cls" && prop !== "className") {
+                if (prop.IsStyle()) {
+                    that.style[prop] = objectProperties[prop];
                 }
                 else if (prop === "style") {
                     if (objectProperties.style.cssText) {
@@ -1200,7 +1177,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
                     }
                 }
                 else {
-                    that[tempPropName] = objectProperties[prop];
+                    that[prop] = objectProperties[prop];
                 }
             }
             else {
@@ -1241,14 +1218,14 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty,
         }
     };
     if (Is.Array(arrayOrObject)) {
-        var tempArray = arrayOrObject;
+        var temp = arrayOrObject;
         if (displayProperty && valueProperty) {
-            tempArray.forEach(function (t) {
+            temp.forEach(function (t) {
                 addOption(t[displayProperty], t[valueProperty]);
             });
         }
-        else if (tempArray.length > 1 && Is.String(tempArray[0])) {
-            tempArray.forEach(function (t) {
+        else if (temp.length > 1 && Is.String(temp[0])) {
+            temp.forEach(function (t) {
                 addOption(t, t);
             });
         }
@@ -1267,15 +1244,15 @@ String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
 String.prototype.Element = function () {
-    var obj = document.getElementById(this.toString());
-    return obj ? obj : null;
+    var o = document.getElementById(this.toString());
+    return o ? o : null;
 };
-String.prototype.CreateElement = function (objectProperties) {
-    var obj = document.createElement(this);
-    if (objectProperties) {
-        obj.Set(objectProperties);
+String.prototype.CreateElement = function (eleAttrs) {
+    var o = document.createElement(this);
+    if (eleAttrs) {
+        o.Set(eleAttrs);
     }
-    return obj;
+    return o;
 };
 String.prototype.CreateElementFromHtml = function () {
     var ret = new Array();
@@ -1314,18 +1291,18 @@ Window.prototype.Exception = function () {
     }
 };
 Window.prototype.Show = function (type, webApiParameters) {
-    var viewContainer = new type();
-    var viewInstance = new ViewInstance(webApiParameters, viewContainer);
-    viewContainer.Show(viewInstance);
-    HistoryManager.Add(viewInstance);
+    var vc = new type();
+    var vi = new ViewInstance(webApiParameters, vc);
+    vc.Show(vi);
+    HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url) {
-    var viewContainer = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
-    viewContainer = viewContainer == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : viewContainer;
-    if (viewContainer) {
-        var parameters = url.split("/");
-        var viewInstance = new ViewInstance(parameters, viewContainer);
-        viewContainer.Show(viewInstance);
+    var vi = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
+    vi = vi == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vi;
+    if (vi) {
+        var p = url.split("/");
+        var viewInstance = new ViewInstance(p, vi);
+        vi.Show(viewInstance);
         HistoryManager.Add(viewInstance);
     }
 };

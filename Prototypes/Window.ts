@@ -21,18 +21,18 @@ Window.prototype.Exception = function (...parameters: any[]) {
     }
 };
 Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; },webApiParameters?: Array<any>) {    
-    var viewContainer = new type();    
-    var viewInstance = new ViewInstance(webApiParameters, viewContainer);    
-    viewContainer.Show(viewInstance);
-    HistoryManager.Add(viewInstance);
+    var vc = new type();    
+    var vi = new ViewInstance(webApiParameters, vc);    
+    vc.Show(vi);
+    HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url: string) {           
-    var viewContainer: IViewContainer = ViewContainers.First(d => d.IsUrlPatternMatch(url));
-    viewContainer = viewContainer == null ? ViewContainers.First(d => d.IsDefault) : viewContainer;
-    if (viewContainer) {
-        var parameters = url.split("/");
-        var viewInstance = new ViewInstance(parameters, viewContainer);
-        viewContainer.Show(viewInstance);
+    var vi: IViewContainer = ViewContainers.First(d => d.IsUrlPatternMatch(url));
+    vi = vi == null ? ViewContainers.First(d => d.IsDefault) : vi;
+    if (vi) {
+        var p = url.split("/");
+        var viewInstance = new ViewInstance(p, vi);
+        vi.Show(viewInstance);
         HistoryManager.Add(viewInstance);
     }
 }

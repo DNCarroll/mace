@@ -11,14 +11,14 @@ HTMLSelectElement.prototype.AddOptions= function(arrayOrObject, valueProperty ? 
         }
     };
     if (Is.Array(arrayOrObject)) {
-        var tempArray = <Array<any>>arrayOrObject;
+        var temp = <Array<any>>arrayOrObject;
         if (displayProperty && valueProperty) {
-            tempArray.forEach(t => {  
+            temp.forEach(t => {  
                 addOption(t[displayProperty], t[valueProperty]);              
             });                        
         }
-        else if (tempArray.length > 1 && Is.String(tempArray[0])) {
-            tempArray.forEach(t => {
+        else if (temp.length > 1 && Is.String(temp[0])) {
+            temp.forEach(t => {
                 addOption(t, t);
             });
         }

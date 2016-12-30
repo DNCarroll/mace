@@ -24,24 +24,24 @@ var DataObject = (function () {
         enumerable: true,
         configurable: true
     });
-    DataObject.prototype.AddPropertyListener = function (propertyName, attribute, handler) {
-        this.eventListeners.Add(new PropertyListener(propertyName, attribute, handler));
+    DataObject.prototype.AddPropertyListener = function (prop, attr, handler) {
+        this.eventListeners.Add(new PropertyListener(prop, attr, handler));
     };
     DataObject.prototype.RemovePropertyListeners = function () {
         this.eventListeners.Remove(function (o) { return true; });
     };
-    DataObject.prototype.OnPropertyChanged = function (propertyName) {
+    DataObject.prototype.OnPropertyChanged = function (prop) {
         var _this = this;
-        var listeners = this.eventListeners.Where(function (l) { return l.PropertyName === propertyName; });
-        listeners.forEach(function (l) { return l.Handler(l.Attribute, _this[propertyName]); });
+        var listeners = this.eventListeners.Where(function (l) { return l.PropertyName === prop; });
+        listeners.forEach(function (l) { return l.Handler(l.Attribute, _this[prop]); });
     };
     DataObject.prototype.AllPropertiesChanged = function () {
         var _this = this;
         this.eventListeners.forEach(function (l) { return l.Handler(l.Attribute, _this[l.PropertyName]); });
     };
-    DataObject.prototype.InstigatePropertyChangedListeners = function (propertyName, canCauseDirty) {
+    DataObject.prototype.InstigatePropertyChangedListeners = function (prop, canCauseDirty) {
         if (canCauseDirty === void 0) { canCauseDirty = true; }
-        this.OnPropertyChanged(propertyName);
+        this.OnPropertyChanged(prop);
         if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
@@ -56,8 +56,8 @@ var DataObject = (function () {
         var _this = this;
         this.objectListener.forEach(function (o) { return o(_this); });
     };
-    DataObject.prototype.OnElementChanged = function (value, propertyName) {
-        this[propertyName] = value;
+    DataObject.prototype.OnElementChanged = function (value, prop) {
+        this[prop] = value;
     };
     Object.defineProperty(DataObject.prototype, "ServerObject", {
         get: function () {
@@ -69,11 +69,11 @@ var DataObject = (function () {
         enumerable: true,
         configurable: true
     });
-    DataObject.prototype.SetServerProperty = function (propertyName, value) {
-        var change = value != this.ServerObject[propertyName];
-        this.ServerObject[propertyName] = value;
+    DataObject.prototype.SetServerProperty = function (prop, value) {
+        var change = value != this.ServerObject[prop];
+        this.ServerObject[prop] = value;
         if (change) {
-            this.InstigatePropertyChangedListeners(propertyName, true);
+            this.InstigatePropertyChangedListeners(prop, true);
         }
     };
     return DataObject;

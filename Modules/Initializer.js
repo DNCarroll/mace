@@ -28,7 +28,7 @@ var Initializer;
         window.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function addViewContainers() {
-        var ignoreThese = ignoreTheseNames();
+        var ignoreThese = ignoreThese();
         for (var obj in window) {
             var name = getNameToTest(getStringOf(window[obj]), ignoreThese);
             if (!Is.NullOrEmpty(name)) {
@@ -44,10 +44,10 @@ var Initializer;
             }
         }
     }
-    function getNameToTest(rawFunction, ignoreThese) {
-        if (!Is.NullOrEmpty(rawFunction)) {
+    function getNameToTest(rawFun, ignoreThese) {
+        if (!Is.NullOrEmpty(rawFun)) {
             var pattern = "^function\\s(\\w+)\\(\\)";
-            var match = rawFunction.match(pattern);
+            var match = rawFun.match(pattern);
             if (match && !ignoreThese.First(function (i) { return i === match[1]; })) {
                 return match[1];
             }
@@ -63,7 +63,7 @@ var Initializer;
             ProgressManager.ProgressElement = pg;
         }
     }
-    function ignoreTheseNames() {
+    function ignoreThese() {
         return ["Ajax", "ViewContainer", "View", "ViewInstance", "Listener", "PropertyListener", "ObjectState",
             "HistoryManager", "Is", "Initializer", "Binder", "DataObject", "EventType", "CustomEventArg"];
     }

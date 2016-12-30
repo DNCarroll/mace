@@ -228,23 +228,23 @@ var Binder = (function () {
         enumerable: true,
         configurable: true
     });
-    Binder.prototype.AddListener = function (eventType, eventHandler) {
-        var found = this.eventHandlers.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
+    Binder.prototype.AddListener = function (eType, eHandler) {
+        var found = this.eventHandlers.First(function (h) { return h.EventType === eType && h.EventHandler === eHandler; });
         if (!found) {
-            this.eventHandlers.Add(new Listener(eventType, eventHandler));
+            this.eventHandlers.Add(new Listener(eType, eHandler));
         }
     };
-    Binder.prototype.RemoveListener = function (eventType, eventHandler) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
+    Binder.prototype.RemoveListener = function (eType, eHandler) {
+        this.eventHandlers.Remove(function (l) { return l.EventType === eType && eHandler === eHandler; });
     };
-    Binder.prototype.RemoveListeners = function (eventType) {
-        if (eventType === void 0) { eventType = EventType.Any; }
-        this.eventHandlers.Remove(function (l) { return eventType === EventType.Any || l.EventType === eventType; });
+    Binder.prototype.RemoveListeners = function (eType) {
+        if (eType === void 0) { eType = EventType.Any; }
+        this.eventHandlers.Remove(function (l) { return eType === EventType.Any || l.EventType === eType; });
     };
-    Binder.prototype.Dispatch = function (eventType) {
+    Binder.prototype.Dispatch = function (eType) {
         var _this = this;
-        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
-        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
+        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eType; });
+        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eType)); });
     };
     return Binder;
 }());

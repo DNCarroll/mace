@@ -8,14 +8,14 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty,
         }
     };
     if (Is.Array(arrayOrObject)) {
-        var tempArray = arrayOrObject;
+        var temp = arrayOrObject;
         if (displayProperty && valueProperty) {
-            tempArray.forEach(function (t) {
+            temp.forEach(function (t) {
                 addOption(t[displayProperty], t[valueProperty]);
             });
         }
-        else if (tempArray.length > 1 && Is.String(tempArray[0])) {
-            tempArray.forEach(function (t) {
+        else if (temp.length > 1 && Is.String(temp[0])) {
+            temp.forEach(function (t) {
                 addOption(t, t);
             });
         }

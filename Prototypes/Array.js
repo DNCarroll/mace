@@ -9,43 +9,30 @@ Array.prototype.Add = function (objectOrObjects) {
 Array.prototype.First = function (func) {
     if (func) {
         for (var i = 0; i < this.length; i++) {
-            var currentObject = this[i];
-            var match = func(currentObject);
-            if (match) {
+            if (func(this[i])) {
                 return this[i];
             }
         }
     }
-    else if (this.length > 0) {
-        return this[0];
-    }
-    return null;
+    return this.length > 0 ? this[0] : null;
 };
 Array.prototype.Last = function (func) {
     if (func) {
-        if (this.length > 0) {
-            var pos = this.length - 1;
-            while (pos > 0) {
-                var currentObject = this[pos];
-                var match = func(currentObject);
-                if (match) {
-                    return this[pos];
-                }
-                pos--;
+        var pos = this.length - 1;
+        while (pos > 0) {
+            if (func(this[pos])) {
+                return this[pos];
             }
+            pos--;
         }
     }
-    else if (this.length > 0) {
-        return this[this.length - 1];
-    }
-    return null;
+    return this.length > 0 ? this[this.length - 1] : null;
 };
 Array.prototype.Remove = function (func) {
     if (func && this.length > 0) {
         var pos = this.length - 1;
         while (pos > 0) {
-            var match = func(this[pos]);
-            if (match) {
+            if (func(this[pos])) {
                 this.splice(pos, 1);
             }
             pos--;
@@ -56,10 +43,8 @@ Array.prototype.Remove = function (func) {
 Array.prototype.Where = function (func) {
     var matches = new Array();
     for (var i = 0; i < this.length; i++) {
-        var currentObject = this[i];
-        var match = func(currentObject);
-        if (match) {
-            matches.push(currentObject);
+        if (func(this[i])) {
+            matches.push(this[i]);
         }
     }
     return matches;

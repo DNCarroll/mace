@@ -224,20 +224,20 @@ abstract class Binder implements IBinder {
         this.selectedObject = value;
     }    
 
-    AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IBinder>) => void) {
-        var found = this.eventHandlers.First(h => h.EventType === eventType && h.EventHandler === eventHandler);
+    AddListener(eType: EventType, eHandler: (eventArg: ICustomEventArg<IBinder>) => void) {
+        var found = this.eventHandlers.First(h => h.EventType === eType && h.EventHandler === eHandler);
         if (!found) {
-            this.eventHandlers.Add(new Listener(eventType, eventHandler));
+            this.eventHandlers.Add(new Listener(eType, eHandler));
         }
     }
-    RemoveListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IBinder>) => void) {
-        this.eventHandlers.Remove(l => l.EventType === eventType && eventHandler === eventHandler);
+    RemoveListener(eType: EventType, eHandler: (eventArg: ICustomEventArg<IBinder>) => void) {
+        this.eventHandlers.Remove(l => l.EventType === eType && eHandler === eHandler);
     }
-    RemoveListeners(eventType: EventType = EventType.Any) {        
-        this.eventHandlers.Remove(l => eventType === EventType.Any || l.EventType === eventType);
+    RemoveListeners(eType: EventType = EventType.Any) {        
+        this.eventHandlers.Remove(l => eType === EventType.Any || l.EventType === eType);
     }
-    Dispatch(eventType: EventType) {
-        var listeners = this.eventHandlers.Where(e => e.EventType === eventType);
-        listeners.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, eventType)));
+    Dispatch(eType: EventType) {
+        var listeners = this.eventHandlers.Where(e => e.EventType === eType);
+        listeners.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, eType)));
     }
 }

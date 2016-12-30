@@ -2,15 +2,15 @@ String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
 String.prototype.Element = function () {
-    var obj = document.getElementById(this.toString());
-    return obj ? obj : null;
+    var o = document.getElementById(this.toString());
+    return o ? o : null;
 };
-String.prototype.CreateElement = function (objectProperties) {
-    var obj = document.createElement(this);
-    if (objectProperties) {
-        obj.Set(objectProperties);
+String.prototype.CreateElement = function (eleAttrs) {
+    var o = document.createElement(this);
+    if (eleAttrs) {
+        o.Set(eleAttrs);
     }
-    return obj;
+    return o;
 };
 String.prototype.CreateElementFromHtml = function () {
     var ret = new Array();

@@ -25,7 +25,7 @@
         window.addEventListener("popstate", HistoryManager.BackEvent);        
     }
     function addViewContainers() {
-        var ignoreThese = ignoreTheseNames();
+        var ignoreThese = ignoreThese();
         for (var obj in window) {
             var name = getNameToTest(getStringOf(window[obj]), ignoreThese);
             if (!Is.NullOrEmpty(name)) {
@@ -33,14 +33,6 @@
                     var newObj = (new Function("return new " + name + "();"))();
                     if (Has.Properties(newObj, "IsDefault", "Views", "Show", "Url",
                         "UrlPattern", "UrlTitle", "IsUrlPatternMatch")
-                        //&& 
-                        //Is.Property("IsDefault", newObj) &&
-                        //Is.Property("Views", newObj) &&
-                        //Is.Property("Show", newObj) &&
-                        //Is.Property("Url", newObj) &&
-                        //Is.Property("UrlPattern", newObj) &&
-                        //Is.Property("UrlTitle", newObj) &&
-                        //    Is.Property("IsUrlPatternMatch", newObj)
                     ) {
                         ViewContainers.Add(<IViewContainer>newObj);
                     }
@@ -51,10 +43,10 @@
             }
         }
     }
-    function getNameToTest(rawFunction: string, ignoreThese:Array<string>) {
-        if (!Is.NullOrEmpty(rawFunction)) {            
+    function getNameToTest(rawFun: string, ignoreThese:Array<string>) {
+        if (!Is.NullOrEmpty(rawFun)) {            
             var pattern = "^function\\s(\\w+)\\(\\)";
-            var match = rawFunction.match(pattern);
+            var match = rawFun.match(pattern);
             if (match && !ignoreThese.First(i => i === match[1])) {
                 return match[1];
             }
@@ -70,7 +62,7 @@
             ProgressManager.ProgressElement = pg;
         }
     }
-    function ignoreTheseNames(): Array<string> {
+    function ignoreThese(): Array<string> {
         return ["Ajax", "ViewContainer", "View", "ViewInstance", "Listener", "PropertyListener", "ObjectState",
             "HistoryManager", "Is", "Initializer", "Binder", "DataObject", "EventType", "CustomEventArg"];
     }
