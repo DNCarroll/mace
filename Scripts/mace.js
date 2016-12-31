@@ -313,7 +313,7 @@ var Binder = (function () {
             }
             rows.forEach(function (r) {
                 _this.DataRowTemplates.Add(r.outerHTML);
-                r.Remove();
+                r.parentElement.removeChild(r);
             });
         }
     };
@@ -1070,165 +1070,102 @@ Date.prototype.Add = function (years, months, days, hours, minutes, seconds) {
     hours = hours ? hours : 0;
     minutes = minutes ? minutes : 0;
     seconds = seconds ? seconds : 0;
-    var y = this.getFullYear() + years;
-    var m = this.getMonth() + months;
-    var d = this.getDate() + days;
-    var h = this.getHours() + hours;
-    var mm = this.getMinutes() + minutes;
-    var s = this.getSeconds() + seconds;
-    var ms = this.getMilliseconds();
-    return new Date(y, m, d, h, mm, s, ms);
+    return new Date(this.getFullYear() + years, this.getMonth() + months, this.getDate() + days, this.getHours() + hours, this.getMinutes() + minutes, this.getSeconds() + seconds, this.getMilliseconds());
 };
 //# sourceMappingURL=Date.js.map
-HTMLElement.prototype.Get = function (predicate, notRecursive, nodes) {
-    if (nodes == null) {
-        nodes = new Array();
-    }
-    var that = this;
-    var children = that.children;
-    for (var i = 0; i < children.length; i++) {
-        if (children[i].nodeType == 1
-            && children[i].tagName.toLowerCase() != "svg") {
-            var child = children[i];
-            var fmatch = predicate(child);
-            if (fmatch) {
-                nodes.push(child);
+HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
+    nodes == null ? nodes = new Array() : null;
+    var chs = this.children;
+    for (var i = 0; i < chs.length; i++) {
+        if (chs[i].nodeType == 1
+            && chs[i].tagName.toLowerCase() != "svg") {
+            var c = chs[i];
+            if (func(c)) {
+                nodes.push(c);
             }
-            if (!notRecursive && child.Get) {
-                child.Get(predicate, notRecursive, nodes);
+            if (!notRecursive && c.Get) {
+                c.Get(func, notRecursive, nodes);
             }
         }
     }
     return nodes;
 };
 HTMLElement.prototype.First = function (predicate) {
-    var that = this;
-    var children = that.children;
-    for (var i = 0; i < children.length; i++) {
-        if (children[i].nodeType == 1
-            && children[i].tagName.toLowerCase() != "svg") {
-            var child = children[i];
-            if (predicate(child)) {
-                return child;
+    var chs = this.children;
+    for (var i = 0; i < chs.length; i++) {
+        if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
+            var c = chs[i];
+            if (predicate(c)) {
+                return c;
             }
         }
     }
-    var found = null;
-    for (var i = 0; i < children.length; i++) {
-        if (children[i].nodeType == 1 && children[i].tagName.toLowerCase() != "svg") {
-            var c = children[i];
+    for (var i = 0; i < chs.length; i++) {
+        if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
+            var c = chs[i];
             if (c.First) {
-                found = c.First(predicate);
-                if (found) {
-                    return found;
+                var f = c.First(predicate);
+                if (f) {
+                    return f;
                 }
             }
         }
     }
     return null;
 };
-HTMLElement.prototype.Parent = function (predicate) {
-    var el = this;
-    while (el && el.parentNode) {
-        el = el.parentNode;
-        if (predicate(el)) {
-            return el;
-        }
+HTMLElement.prototype.Clear = function () {
+    var t = this;
+    var chs = t.childNodes;
+    while (chs.length > 0) {
+        t.removeChild(chs[0]);
     }
-    return null;
-};
-HTMLElement.prototype.Clear = function (predicate, notRecursive) {
-    var that = this;
-    var children = that.childNodes;
-    if (!predicate) {
-        while (children.length > 0) {
-            that.removeChild(children[0]);
-        }
-    }
-    else {
-        var pos = children.length - 1;
-        while (pos > 0) {
-            if (children[pos].nodeType === 1) {
-                var child = children[pos];
-                if (predicate(child)) {
-                    that.removeChild(child);
-                }
-                else if (!notRecursive && child.Clear) {
-                    child.Clear(predicate, notRecursive);
-                }
-            }
-            else {
-                that.removeChild(children[pos]);
-            }
-            pos--;
-        }
-    }
-};
-HTMLElement.prototype.Remove = function () {
-    this.parentNode.removeChild(this);
-};
-HTMLElement.prototype.SetClass = function (className) {
-    this.className = null;
-    this.className = className;
-};
-HTMLElement.prototype.OffSet = function () {
-    var _x = 0;
-    var _y = 0;
-    var el = this;
-    while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-        _x += el.offsetLeft - el.scrollLeft;
-        _y += el.offsetTop - el.scrollTop;
-        //may not work
-        el = el.offsetParent;
-    }
-    return { top: _y, left: _x };
 };
 HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
 HTMLElement.prototype.Set = function (objectProperties) {
-    var that = this;
+    var t = this;
     if (objectProperties) {
-        for (var prop in objectProperties) {
-            var tempPropName = prop;
-            if (tempPropName != "cls" && tempPropName != "className") {
-                if (tempPropName.IsStyle()) {
-                    that.style[tempPropName] = objectProperties[prop];
+        for (var p in objectProperties) {
+            if (p != "cls" && p != "className") {
+                if (p.IsStyle()) {
+                    t.style[p] = objectProperties[p];
                 }
-                else if (prop == "style") {
+                else if (p === "style") {
                     if (objectProperties.style.cssText) {
-                        that.style.cssText = objectProperties.style.cssText;
+                        t.style.cssText = objectProperties.style.cssText;
                     }
                 }
                 else {
-                    that[tempPropName] = objectProperties[prop];
+                    t[p] = objectProperties[p];
                 }
             }
             else {
-                that.SetClass(objectProperties[prop]);
+                t.className = null;
+                t.className = objectProperties[p];
             }
         }
     }
-    return that;
+    return t;
 };
 HTMLElement.prototype.HasDataSet = function () {
-    if (this["dataset"]) {
-        var dataset = this["dataset"];
-        for (var prop in dataset) {
+    var d = this["dataset"];
+    if (d) {
+        for (var p in d) {
             return true;
         }
     }
     return false;
 };
 HTMLElement.prototype.GetDataSetAttributes = function () {
-    var ret = new Array();
-    if (this["dataset"]) {
-        var dataset = this["dataset"];
-        for (var prop in dataset) {
-            ret.Add({ Attribute: prop, Property: dataset[prop] });
+    var r = new Array();
+    var d = this["dataset"];
+    if (d) {
+        for (var p in d) {
+            r.Add({ Attribute: p, Property: d[p] });
         }
     }
-    return ret;
+    return r;
 };
 //# sourceMappingURL=HTMLElement.js.map
 HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty, displayProperty, selectedValue) {

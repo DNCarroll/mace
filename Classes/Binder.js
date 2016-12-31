@@ -93,7 +93,7 @@ var Binder = (function () {
             }
             rows.forEach(function (r) {
                 _this.DataRowTemplates.Add(r.outerHTML);
-                r.Remove();
+                r.parentElement.removeChild(r);
             });
         }
     };

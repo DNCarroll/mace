@@ -94,7 +94,7 @@ abstract class Binder implements IBinder {
             }
             rows.forEach(r => {
                 this.DataRowTemplates.Add(r.outerHTML);
-                r.Remove();
+                r.parentElement.removeChild(r);
             });
         }
     }
