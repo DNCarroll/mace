@@ -1254,19 +1254,19 @@ Window.prototype.Exception = function () {
     }
 };
 Window.prototype.Show = function (type, parameters) {
-    var viewContainer = new type();
-    var viewInstance = new ViewInstance(parameters, viewContainer);
-    viewContainer.Show(viewInstance);
-    HistoryManager.Add(viewInstance);
+    var vc = new type();
+    var vi = new ViewInstance(parameters, vc);
+    vc.Show(vi);
+    HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url) {
-    var viewContainer = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
-    viewContainer = viewContainer == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : viewContainer;
-    if (viewContainer) {
-        var parameters = url.split("/");
-        var viewInstance = new ViewInstance(parameters, viewContainer);
-        viewContainer.Show(viewInstance);
-        HistoryManager.Add(viewInstance);
+    var vc = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
+    vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
+    if (vc) {
+        var p = url.split("/");
+        var vi = new ViewInstance(p, vc);
+        vc.Show(vi);
+        HistoryManager.Add(vi);
     }
 };
 //# sourceMappingURL=Window.js.map
