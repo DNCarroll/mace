@@ -5,8 +5,9 @@ var HistoryContainer;
             this.ViewInstances = new Array();
         }
         History.prototype.CurrentRoute = function () {
-            if (this.ViewInstances != null && this.ViewInstances.length > 0) {
-                return this.ViewInstances[this.ViewInstances.length - 1];
+            var vi = this.ViewInstances;
+            if (vi != null && vi.length > 0) {
+                return vi[vi.length - 1];
             }
             return null;
         };
@@ -18,28 +19,26 @@ var HistoryContainer;
             this.ManageRouteInfo(viewInstance);
         };
         History.prototype.Back = function () {
-            if (this.ViewInstances.length > 1) {
-                this.ViewInstances.splice(this.ViewInstances.length - 1, 1);
+            var vi = this.ViewInstances;
+            if (vi.length > 1) {
+                vi.splice(vi.length - 1, 1);
             }
-            if (this.ViewInstances.length > 0) {
-                var viewInfo = this.ViewInstances[this.ViewInstances.length - 1];
-                var found = viewInfo.ViewContainer;
-                found.Show(viewInfo);
-                this.ManageRouteInfo(viewInfo);
+            if (vi.length > 0) {
+                var i = vi[vi.length - 1], f = i.ViewContainer;
+                f.Show(i);
+                this.ManageRouteInfo(i);
             }
             else {
             }
         };
         History.prototype.ManageRouteInfo = function (viewInstance) {
-            var title = viewInstance.ViewContainer.UrlTitle(viewInstance);
-            var documentTitle = viewInstance.ViewContainer.DocumentTitle(viewInstance);
-            var url = viewInstance.ViewContainer.Url(viewInstance);
-            if (url && !Is.NullOrEmpty(title) && history && history.pushState) {
-                url = this.FormatUrl(!Is.NullOrEmpty(url) ? url.indexOf("/") != 0 ? "/" + url : url : "/");
-                history.pushState(null, title, url);
+            var t = viewInstance.ViewContainer.UrlTitle(viewInstance), dt = viewInstance.ViewContainer.DocumentTitle(viewInstance), u = viewInstance.ViewContainer.Url(viewInstance);
+            if (u && !Is.NullOrEmpty(t) && history && history.pushState) {
+                u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
+                history.pushState(null, t, u);
             }
-            if (documentTitle) {
-                document.title = documentTitle;
+            if (dt) {
+                document.title = dt;
             }
         };
         History.prototype.FormatUrl = function (url) {

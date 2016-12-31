@@ -1,20 +1,21 @@
 var Initializer;
 (function (Initializer) {
     function WindowLoad(e) {
+        var w = window;
         if (document.readyState === "complete") {
             windowLoaded();
         }
         else {
-            if (window.onload) {
-                var curronload = window.onload;
+            if (w.onload) {
+                var curronload = w.onload;
                 var newonload = function () {
                     curronload(e);
                     windowLoaded();
                 };
-                window.onload = newonload;
+                w.onload = newonload;
             }
             else {
-                window.onload = function () {
+                w.onload = function () {
                     windowLoaded();
                 };
             }
@@ -22,15 +23,16 @@ var Initializer;
     }
     Initializer.WindowLoad = WindowLoad;
     function windowLoaded() {
+        var w = window;
         addViewContainers();
         setProgressElement();
-        window.ShowByUrl(window.location.pathname.substring(1));
-        window.addEventListener("popstate", HistoryManager.BackEvent);
+        w.ShowByUrl(w.location.pathname.substring(1));
+        w.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function addViewContainers() {
-        var ignoreThese = ignoreTheseNames();
+        var it = ignoreTheseNames();
         for (var obj in window) {
-            var name = getNameToTest(getStringOf(window[obj]), ignoreThese);
+            var name = getNameToTest(getStringOf(window[obj]), it);
             if (!Is.NullOrEmpty(name)) {
                 try {
                     var newObj = (new Function("return new " + name + "();"))();
@@ -46,10 +48,9 @@ var Initializer;
     }
     function getNameToTest(rawFunction, ignoreThese) {
         if (!Is.NullOrEmpty(rawFunction)) {
-            var pattern = "^function\\s(\\w+)\\(\\)";
-            var match = rawFunction.match(pattern);
-            if (match && !ignoreThese.First(function (i) { return i === match[1]; })) {
-                return match[1];
+            var p = "^function\\s(\\w+)\\(\\)", m = rawFunction.match(p);
+            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
+                return m[1];
             }
         }
         return null;
@@ -64,10 +65,9 @@ var Initializer;
         }
     }
     function ignoreTheseNames() {
-        return ["Ajax", "ViewContainer", "View", "ViewInstance",
-            "HistoryManager", "Is", "Initializer", "ViewContainers",
-            "ActionEvent", "DataBinding", "ActionType", "AutoSuggest", "Binding",
-            "KeyPress", "Thing", "What"];
+        return ["Ajax", "Binder", "DataObject", "View", "ViewContainer", "ViewContainers",
+            "ViewInstance", "EventType", "CustomEventArg", "Listener", "PropertyListener",
+            "ObjectState", "HistoryManager", "Initializer", "Is", "ProgressManager"];
     }
 })(Initializer || (Initializer = {}));
 Initializer.WindowLoad();

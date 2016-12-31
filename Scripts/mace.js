@@ -825,8 +825,9 @@ var HistoryContainer;
             this.ViewInstances = new Array();
         }
         History.prototype.CurrentRoute = function () {
-            if (this.ViewInstances != null && this.ViewInstances.length > 0) {
-                return this.ViewInstances[this.ViewInstances.length - 1];
+            var vi = this.ViewInstances;
+            if (vi != null && vi.length > 0) {
+                return vi[vi.length - 1];
             }
             return null;
         };
@@ -838,28 +839,26 @@ var HistoryContainer;
             this.ManageRouteInfo(viewInstance);
         };
         History.prototype.Back = function () {
-            if (this.ViewInstances.length > 1) {
-                this.ViewInstances.splice(this.ViewInstances.length - 1, 1);
+            var vi = this.ViewInstances;
+            if (vi.length > 1) {
+                vi.splice(vi.length - 1, 1);
             }
-            if (this.ViewInstances.length > 0) {
-                var viewInfo = this.ViewInstances[this.ViewInstances.length - 1];
-                var found = viewInfo.ViewContainer;
-                found.Show(viewInfo);
-                this.ManageRouteInfo(viewInfo);
+            if (vi.length > 0) {
+                var i = vi[vi.length - 1], f = i.ViewContainer;
+                f.Show(i);
+                this.ManageRouteInfo(i);
             }
             else {
             }
         };
         History.prototype.ManageRouteInfo = function (viewInstance) {
-            var title = viewInstance.ViewContainer.UrlTitle(viewInstance);
-            var documentTitle = viewInstance.ViewContainer.DocumentTitle(viewInstance);
-            var url = viewInstance.ViewContainer.Url(viewInstance);
-            if (url && !Is.NullOrEmpty(title) && history && history.pushState) {
-                url = this.FormatUrl(!Is.NullOrEmpty(url) ? url.indexOf("/") != 0 ? "/" + url : url : "/");
-                history.pushState(null, title, url);
+            var t = viewInstance.ViewContainer.UrlTitle(viewInstance), dt = viewInstance.ViewContainer.DocumentTitle(viewInstance), u = viewInstance.ViewContainer.Url(viewInstance);
+            if (u && !Is.NullOrEmpty(t) && history && history.pushState) {
+                u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
+                history.pushState(null, t, u);
             }
-            if (documentTitle) {
-                document.title = documentTitle;
+            if (dt) {
+                document.title = dt;
             }
         };
         History.prototype.FormatUrl = function (url) {
@@ -875,20 +874,21 @@ var HistoryManager = new HistoryContainer.History();
 var Initializer;
 (function (Initializer) {
     function WindowLoad(e) {
+        var w = window;
         if (document.readyState === "complete") {
             windowLoaded();
         }
         else {
-            if (window.onload) {
-                var curronload = window.onload;
+            if (w.onload) {
+                var curronload = w.onload;
                 var newonload = function () {
                     curronload(e);
                     windowLoaded();
                 };
-                window.onload = newonload;
+                w.onload = newonload;
             }
             else {
-                window.onload = function () {
+                w.onload = function () {
                     windowLoaded();
                 };
             }
@@ -896,15 +896,16 @@ var Initializer;
     }
     Initializer.WindowLoad = WindowLoad;
     function windowLoaded() {
+        var w = window;
         addViewContainers();
         setProgressElement();
-        window.ShowByUrl(window.location.pathname.substring(1));
-        window.addEventListener("popstate", HistoryManager.BackEvent);
+        w.ShowByUrl(w.location.pathname.substring(1));
+        w.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function addViewContainers() {
-        var ignoreThese = ignoreTheseNames();
+        var it = ignoreTheseNames();
         for (var obj in window) {
-            var name = getNameToTest(getStringOf(window[obj]), ignoreThese);
+            var name = getNameToTest(getStringOf(window[obj]), it);
             if (!Is.NullOrEmpty(name)) {
                 try {
                     var newObj = (new Function("return new " + name + "();"))();
@@ -920,10 +921,9 @@ var Initializer;
     }
     function getNameToTest(rawFunction, ignoreThese) {
         if (!Is.NullOrEmpty(rawFunction)) {
-            var pattern = "^function\\s(\\w+)\\(\\)";
-            var match = rawFunction.match(pattern);
-            if (match && !ignoreThese.First(function (i) { return i === match[1]; })) {
-                return match[1];
+            var p = "^function\\s(\\w+)\\(\\)", m = rawFunction.match(p);
+            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
+                return m[1];
             }
         }
         return null;
@@ -938,10 +938,9 @@ var Initializer;
         }
     }
     function ignoreTheseNames() {
-        return ["Ajax", "ViewContainer", "View", "ViewInstance",
-            "HistoryManager", "Is", "Initializer", "ViewContainers",
-            "ActionEvent", "DataBinding", "ActionType", "AutoSuggest", "Binding",
-            "KeyPress", "Thing", "What"];
+        return ["Ajax", "Binder", "DataObject", "View", "ViewContainer", "ViewContainers",
+            "ViewInstance", "EventType", "CustomEventArg", "Listener", "PropertyListener",
+            "ObjectState", "HistoryManager", "Initializer", "Is", "ProgressManager"];
     }
 })(Initializer || (Initializer = {}));
 Initializer.WindowLoad();
