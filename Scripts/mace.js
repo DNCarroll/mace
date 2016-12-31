@@ -16,20 +16,20 @@ var Ajax = (function () {
     });
     Ajax.prototype.Submit = function (method, url, parameters) {
         if (parameters === void 0) { parameters = null; }
-        this.showProgress();
-        url = this.getUrl(url);
-        this.XMLHttpRequest = new XMLHttpRequest();
-        var ajax = this;
-        this.XMLHttpRequest.addEventListener("readystatechange", ajax.onReaderStateChange.bind(ajax), false);
-        this.XMLHttpRequest.open(method, url, true);
-        this.XMLHttpRequest.setRequestHeader("content-type", this.ContentType);
-        this.setCustomHeader();
+        var t = this;
+        t.showProgress();
+        url = t.getUrl(url);
+        t.XMLHttpRequest = new XMLHttpRequest();
+        var x = t.XMLHttpRequest;
+        x.addEventListener("readystatechange", t.onReaderStateChange.bind(t), false);
+        x.open(method, url, true);
+        x.setRequestHeader("content-type", t.ContentType);
+        t.setCustomHeader();
         try {
-            var newParameters = this.getParameters(parameters);
-            this.XMLHttpRequest.send(newParameters);
+            x.send(t.getParameters(parameters));
         }
         catch (e) {
-            this.HideProgress();
+            t.HideProgress();
             window.Exception(e);
         }
     };
@@ -57,136 +57,138 @@ var Ajax = (function () {
     Ajax.prototype.showHideProgress = function (show) {
         if (this.ManipulateProgressElement) {
             show ? ProgressManager.Show() : ProgressManager.Hide();
-            if (this.DisableElement) {
-                if (Is.Array(this.DisableElement)) {
-                    for (var i = 0; i < this.DisableElement.length; i++) {
-                        show ? this.DisableElement[i].setAttribute("disabled", "disabled") : this.DisableElement[i].removeAttribute("disabled");
+            var de = this.DisableElement, d = "disabled";
+            if (de) {
+                if (Is.Array(de)) {
+                    for (var i = 0; i < de.length; i++) {
+                        show ? de[i].setAttribute(d, d) : de[i].removeAttribute(d);
                     }
                 }
                 else {
-                    show ? this.DisableElement.setAttribute("disabled", "disabled") : this.DisableElement.removeAttribute("disabled");
+                    show ? de.setAttribute(d, d) : de.removeAttribute(d);
                 }
             }
         }
     };
     Ajax.prototype.setCustomHeader = function () {
-        if (this.Header) {
-            var header = this.Header();
-            if (header) {
-                for (var prop in header) {
-                    this.XMLHttpRequest.setRequestHeader(prop, header[prop]);
+        var t = this;
+        if (t.Header) {
+            var h = t.Header();
+            if (h) {
+                for (var prop in h) {
+                    t.XMLHttpRequest.setRequestHeader(prop, h[prop]);
                 }
             }
         }
     };
     Ajax.prototype.getParameters = function (parameters) {
-        var ret = "";
+        var r = "";
         if (parameters && this.ContentType == "application/json; charset=utf-8") {
-            ret = JSON.stringify(parameters);
-            ret = ret.replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "");
-            ret = ret.replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "");
-            ret = ret.replace(/<script/ig, "");
-            ret = ret.replace(/script>/ig, "");
+            r = JSON.stringify(parameters);
+            r = r.replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "");
+            r = r.replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "");
+            r = r.replace(/<script/ig, "");
+            r = r.replace(/script>/ig, "");
         }
-        return ret;
+        return r;
     };
     Ajax.prototype.GetRequestData = function () {
-        var ret = null;
-        if (this.isRequestReady() && (this.XMLHttpRequest.status == 200 || this.XMLHttpRequest.status == 204) &&
-            !Is.NullOrEmpty(this.XMLHttpRequest.responseText)) {
-            ret = this.XMLHttpRequest.responseText;
+        var r = null, t = this;
+        if (t.isRequestReady() && (t.XMLHttpRequest.status == 200 || t.XMLHttpRequest.status == 204) &&
+            !Is.NullOrEmpty(t.XMLHttpRequest.responseText)) {
+            r = t.XMLHttpRequest.responseText;
             try {
-                ret = JSON.parse(ret);
-                if (ret.d) {
-                    ret = ret.d;
+                r = JSON.parse(r);
+                if (r.d) {
+                    r = r.d;
                 }
-                this.convertProperties(ret);
+                t.convertProperties(r);
             }
             catch (e) {
-                ret = null;
+                r = null;
                 window.Exception(e);
             }
         }
-        return ret;
+        return r;
     };
     Ajax.prototype.convertProperties = function (object) {
-        var keyMap;
+        var km, t = this;
         if (Is.Array(object)) {
             for (var i = 0; i < object.length; i++) {
-                var obj = object[i];
-                if (obj) {
+                var o = object[i];
+                if (o) {
                     try {
-                        keyMap = keyMap ? keyMap : this.getKeyMap(obj);
+                        km = km ? km : t.getKeyMap(o);
                     }
                     catch (e) {
                         window.Exception(e);
                     }
-                    this.setValues(obj, keyMap);
+                    t.setValues(o, km);
                 }
-                for (var prop in obj) {
-                    this.convertProperties(obj[prop]);
+                for (var p in o) {
+                    t.convertProperties(o[p]);
                 }
             }
         }
         else if (object && typeof object === 'object') {
-            var keyMap = this.getKeyMap(object);
-            this.setValues(object, keyMap);
-            for (var prop in object) {
-                this.convertProperties(object[prop]);
+            km = t.getKeyMap(object);
+            t.setValues(object, km);
+            for (var p in object) {
+                t.convertProperties(object[p]);
             }
         }
     };
     Ajax.prototype.getKeyMap = function (obj) {
-        var keyMap = new Array();
-        for (var prop in obj) {
-            var val = obj[prop];
-            if (val && typeof val === 'string') {
-                val = val.Trim();
-                if (val.indexOf("/Date(") == 0 || val.indexOf("Date(") == 0) {
-                    keyMap.push({ Key: prop, Type: "Date" });
+        var km = new Array();
+        for (var p in obj) {
+            var v = obj[p];
+            if (v && typeof v === 'string') {
+                v = v.Trim();
+                if (v.indexOf("/Date(") == 0 || v.indexOf("Date(") == 0) {
+                    km.push({ Key: p, Type: "Date" });
                 }
-                else if (val.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/i)) {
-                    keyMap.push({ Key: prop, Type: "UTCDate" });
+                else if (v.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/i)) {
+                    km.push({ Key: p, Type: "UTCDate" });
                 }
-                else if (val.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g)) {
-                    keyMap.push({ Key: prop, Type: "ZDate" });
+                else if (v.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g)) {
+                    km.push({ Key: p, Type: "ZDate" });
                 }
             }
         }
-        return keyMap;
+        return km;
     };
     Ajax.prototype.setValues = function (obj, keyMap) {
         for (var j = 0; j < keyMap.length; j++) {
-            var key = keyMap[j].Key;
-            var type = keyMap[j].Type;
-            var val = obj[key];
-            switch (type) {
+            var k = keyMap[j].Key;
+            var t = keyMap[j].Type;
+            var v = obj[k];
+            switch (t) {
                 case "Date":
-                    if (val) {
-                        val = parseInt(val.substring(6).replace(")/", ""));
-                        if (val > -62135575200000) {
-                            val = new Date(val);
-                            obj[key] = val;
+                    if (v) {
+                        v = parseInt(v.substring(6).replace(")/", ""));
+                        if (v > -62135575200000) {
+                            v = new Date(v);
+                            obj[k] = v;
                         }
                         else {
-                            delete obj[key];
+                            delete obj[k];
                         }
                     }
                     else {
-                        obj[key] = new Date();
+                        obj[k] = new Date();
                     }
                     break;
                 case "UTCDate":
                 case "ZDate":
-                    var tempDate = new Date(val);
+                    var t_1 = new Date(v);
                     if (this.UseAsDateUTC) {
-                        tempDate = new Date(tempDate.getUTCFullYear(), tempDate.getUTCMonth(), tempDate.getUTCDate());
+                        t_1 = new Date(t_1.getUTCFullYear(), t_1.getUTCMonth(), t_1.getUTCDate());
                     }
                     else if (window["chrome"]) {
-                        var offset = new Date().getTimezoneOffset();
-                        tempDate = tempDate.Add(0, 0, 0, 0, offset);
+                        var os = new Date().getTimezoneOffset();
+                        t_1 = t_1.Add(0, 0, 0, 0, os);
                     }
-                    obj[key] = tempDate;
+                    obj[k] = t_1;
                     break;
                 default:
                     break;
