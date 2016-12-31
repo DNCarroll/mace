@@ -9,27 +9,27 @@ String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
 String.prototype.Element = function (): HTMLElement {
-    var obj = document.getElementById(this.toString());
-    return obj ? <HTMLElement>obj : null;
+    var o = document.getElementById(this.toString());
+    return o ? <HTMLElement>o : null;
 };
 String.prototype.CreateElement = function (objectProperties?): HTMLElement {
-    var obj = document.createElement(this);
+    var o = document.createElement(this);
     if (objectProperties) {
-        obj.Set(objectProperties);
+        o.Set(objectProperties);
     }
-    return obj;
+    return o;
 };
 String.prototype.CreateElementFromHtml = function (): HTMLElement {
-    var ret = new Array<HTMLElement>();
-    var div = "div".CreateElement({ innerHTML: this });
-    while (div.children.length > 0) {
-        var child = div.children[div.children.length - 1];
-        return <HTMLElement>child;
+    var d = "div".CreateElement({ innerHTML: this });
+    var dcs = d.children;
+    while (dcs.length > 0) {
+        var c = dcs[dcs.length - 1];
+        return <HTMLElement>c;
     }
 };
 String.prototype.IsStyle = function () {
-    for (var prop in document.body.style) {
-        if (prop.toLowerCase() === this.toLowerCase()) {
+    for (var p in document.body.style) {
+        if (p.toLowerCase() === this.toLowerCase()) {
             return true;
         }
     }
