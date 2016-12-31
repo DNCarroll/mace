@@ -480,39 +480,39 @@ var DataObject = (function () {
             return this.objectState;
         },
         set: function (value) {
-            var causeChangedEvent = value != this.objectState;
-            this.objectState = value;
+            var t = this;
+            t.objectState = value;
             if (value === ObjectState.Dirty) {
-                this.OnObjectStateChanged();
+                t.OnObjectStateChanged();
             }
         },
         enumerable: true,
         configurable: true
     });
-    DataObject.prototype.AddPropertyListener = function (propertyName, attribute, handler) {
-        this.eventListeners.Add(new PropertyListener(propertyName, attribute, handler));
+    DataObject.prototype.AddPropertyListener = function (p, a, h) {
+        this.eventListeners.Add(new PropertyListener(p, a, h));
     };
     DataObject.prototype.RemovePropertyListeners = function () {
         this.eventListeners.Remove(function (o) { return true; });
     };
-    DataObject.prototype.OnPropertyChanged = function (propertyName) {
+    DataObject.prototype.OnPropertyChanged = function (p) {
         var _this = this;
-        var listeners = this.eventListeners.Where(function (l) { return l.PropertyName === propertyName; });
-        listeners.forEach(function (l) { return l.Handler(l.Attribute, _this[propertyName]); });
+        var l = this.eventListeners.Where(function (l) { return l.PropertyName === p; });
+        l.forEach(function (l) { return l.Handler(l.Attribute, _this[p]); });
     };
     DataObject.prototype.AllPropertiesChanged = function () {
         var _this = this;
         this.eventListeners.forEach(function (l) { return l.Handler(l.Attribute, _this[l.PropertyName]); });
     };
-    DataObject.prototype.InstigatePropertyChangedListeners = function (propertyName, canCauseDirty) {
+    DataObject.prototype.InstigatePropertyChangedListeners = function (p, canCauseDirty) {
         if (canCauseDirty === void 0) { canCauseDirty = true; }
-        this.OnPropertyChanged(propertyName);
+        this.OnPropertyChanged(p);
         if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     };
-    DataObject.prototype.AddObjectStateListener = function (handler) {
-        this.objectListener.Add(handler);
+    DataObject.prototype.AddObjectStateListener = function (h) {
+        this.objectListener.Add(h);
     };
     DataObject.prototype.RemoveObjectStateListener = function () {
         this.objectListener.Remove(function (o) { return true; });
@@ -521,8 +521,8 @@ var DataObject = (function () {
         var _this = this;
         this.objectListener.forEach(function (o) { return o(_this); });
     };
-    DataObject.prototype.OnElementChanged = function (value, propertyName) {
-        this[propertyName] = value;
+    DataObject.prototype.OnElementChanged = function (v, p) {
+        this[p] = v;
     };
     Object.defineProperty(DataObject.prototype, "ServerObject", {
         get: function () {
@@ -534,11 +534,11 @@ var DataObject = (function () {
         enumerable: true,
         configurable: true
     });
-    DataObject.prototype.SetServerProperty = function (propertyName, value) {
-        var change = value != this.ServerObject[propertyName];
-        this.ServerObject[propertyName] = value;
+    DataObject.prototype.SetServerProperty = function (p, v) {
+        var t = this, change = v != t.ServerObject[p];
+        t.ServerObject[p] = v;
         if (change) {
-            this.InstigatePropertyChangedListeners(propertyName, true);
+            this.InstigatePropertyChangedListeners(p, true);
         }
     };
     return DataObject;

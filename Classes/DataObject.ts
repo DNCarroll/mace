@@ -13,33 +13,33 @@ abstract class DataObject implements IObjectState {
         return this.objectState;
     }
     set ObjectState(value: ObjectState) {
-        var causeChangedEvent = value != this.objectState;
-        this.objectState = value;
+        var t = this;
+        t.objectState = value;
         if (value === ObjectState.Dirty) {
-            this.OnObjectStateChanged();
+            t.OnObjectStateChanged();
         }
     }
-    AddPropertyListener(propertyName: string, attribute: string, handler: (attribute: string, value: any) => void) {
-        this.eventListeners.Add(new PropertyListener(propertyName, attribute, handler));
+    AddPropertyListener(p: string, a: string, h: (attribute: string, value: any) => void) {
+        this.eventListeners.Add(new PropertyListener(p, a, h));
     }
     RemovePropertyListeners() {
         this.eventListeners.Remove(o => true);
     }
-    OnPropertyChanged(propertyName: string) {
-        var listeners = this.eventListeners.Where(l => l.PropertyName === propertyName);
-        listeners.forEach(l => l.Handler(l.Attribute, this[propertyName]));
+    OnPropertyChanged(p: string) {
+        var l = this.eventListeners.Where(l => l.PropertyName === p);
+        l.forEach(l => l.Handler(l.Attribute, this[p]));
     }
     AllPropertiesChanged() {
         this.eventListeners.forEach(l => l.Handler(l.Attribute, this[l.PropertyName]));
     }
-    InstigatePropertyChangedListeners(propertyName: string, canCauseDirty: boolean = true) {
-        this.OnPropertyChanged(propertyName);
+    InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean = true) {
+        this.OnPropertyChanged(p);
         if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     }
-    AddObjectStateListener(handler: (obj: IObjectState) => void) {
-        this.objectListener.Add(handler);
+    AddObjectStateListener(h: (obj: IObjectState) => void) {
+        this.objectListener.Add(h);
     }
     RemoveObjectStateListener() {
         this.objectListener.Remove(o => true);
@@ -47,8 +47,8 @@ abstract class DataObject implements IObjectState {
     OnObjectStateChanged() {
         this.objectListener.forEach(o => o(this));
     }
-    OnElementChanged(value: any, propertyName: string) {
-        this[propertyName] = value;
+    OnElementChanged(v: any, p: string) {
+        this[p] = v;
     }
     private serverObject: any;
     get ServerObject() {
@@ -57,11 +57,12 @@ abstract class DataObject implements IObjectState {
     set ServerObject(value: any) {
         this.serverObject = value;
     }
-    SetServerProperty(propertyName: string, value: any) {
-        var change = value != this.ServerObject[propertyName];
-        this.ServerObject[propertyName] = value;
+    SetServerProperty(p: string, v: any) {
+        var t = this,
+            change = v != t.ServerObject[p];
+        t.ServerObject[p] = v;
         if (change) {
-            this.InstigatePropertyChangedListeners(propertyName, true);
+            this.InstigatePropertyChangedListeners(p, true);
         }
     }
 }
