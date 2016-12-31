@@ -18,47 +18,49 @@ abstract class Binder implements IBinder {
     IsFormBinding: boolean = false;
     abstract NewObject(rawObj: any): IObjectState;  
     Dispose() {
-        this.PrimaryKeys = null;
-        this.WebApi = null;
-        this.AssociatedElementIDs = null;
-        if (this.DataObject) {
-            this.DataObject.RemoveObjectStateListener();
-            this.DataObject.RemovePropertyListeners();
-        }
-        this.DataObjects.forEach(d => {
+        var t = this, d = t.DataObject;
+        t.PrimaryKeys = null;
+        t.WebApi = null;
+        t.AssociatedElementIDs = null;
+        if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
+        }
+        t.DataObjects.forEach(o => {
+            o.RemoveObjectStateListener();
+            o.RemovePropertyListeners();
         });
-        this.RemoveListeners();
+        t.RemoveListeners();
     }
     Execute(viewInstance: ViewInstance = null) {
-        if (this.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(this.WebApi)) {
-            var parameters = this.WebApiGetParameters() ? this.WebApiGetParameters() : viewInstance.Parameters;
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, this.OnAjaxComplete.bind(this));
-            var url = this.WebApi;
-            if (parameters) {
-                url += (url.lastIndexOf("/") + 1 == url.length ? "" : "/");
-                url += Is.Array(parameters) ? parameters.join("/") : parameters;
+        var t = this;
+        if (t.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(t.WebApi)) {
+            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters,
+                a = new Ajax(), u = t.WebApi;
+            a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
+            if (p) {
+                u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
+                u += Is.Array(p) ? p.join("/") : p;
             }
-            ajax.Get(url);
+            a.Get(u);
         }
         else {
-            this.Dispatch(EventType.Completed);
+            t.Dispatch(EventType.Completed);
         }
     }    
     OnAjaxComplete(arg: CustomEventArg<Ajax>) {  
+        var t = this;
         if (arg.EventType === EventType.Completed) {
-            var data = arg.Sender.GetRequestData();
-            if (data) {
-                if (!Is.Array(data)) {
-                    this.IsFormBinding = true;        
-                    this.BindToDataObject(this.NewObject(data));
+            var d = arg.Sender.GetRequestData();
+            if (d) {
+                if (!Is.Array(d)) {
+                    t.IsFormBinding = true;        
+                    t.BindToDataObject(t.NewObject(d));
                 }
                 else {                
-                    (<Array<any>>data).forEach(d => this.Add(this.NewObject(d)));
+                    (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
                 }
-                this.Dispatch(EventType.Completed);
+                t.Dispatch(EventType.Completed);
             }
         }
     }
@@ -67,110 +69,115 @@ abstract class Binder implements IBinder {
         
     }   
     Add(objectToAdd: IObjectState) {
-        this.prepDataRowTemplates();  
-        var that = this;
-        this.DataRowTemplates.forEach(t => {
-            var newElement = t.CreateElementFromHtml();
-            var boundElements = newElement.Get(e => e.HasDataSet());
-            boundElements.Add(newElement);
-            that.DataRowFooter ? that.Element.insertBefore(newElement, that.DataRowFooter) : that.Element.appendChild(newElement);
-            that.DataObjects.Add(objectToAdd);
-            that.BindToDataObject(objectToAdd, boundElements);
+        var t = this;
+        t.prepDataRowTemplates();         
+        t.DataRowTemplates.forEach(d => {
+            let ne = d.CreateElementFromHtml(),
+                be = ne.Get(e => e.HasDataSet());
+            be.Add(ne);
+            t.DataRowFooter ? t.Element.insertBefore(ne, t.DataRowFooter) : t.Element.appendChild(ne);
+            t.DataObjects.Add(objectToAdd);
+            t.BindToDataObject(objectToAdd, be);
         });
     }    
     private prepDataRowTemplates() {
-        if (this.DataRowTemplates.length == 0) {            
-            var elements = this.Element.children;
-            var rows = new Array<HTMLElement>();
-            var lastIndex = 0;
-            for (var i = 0; i < elements.length; i++) {
-                if (elements[i].getAttribute("data-template") != null) {
-                    rows.Add(elements[i]);
-                    lastIndex = i;
+        var t = this;
+        if (t.DataRowTemplates.length == 0) {            
+            var e = t.Element.children,
+                r = new Array<HTMLElement>(),
+                li = 0;
+            for (var i = 0; i < e.length; i++) {
+                if (e[i].getAttribute("data-template") != null) {
+                    r.Add(e[i]);
+                    li = i;
                 }
             }          
-            if (elements[elements.length - 1] != rows[rows.length - 1]) {
-                this.DataRowFooter = <HTMLElement>elements[elements.length - 1];
+            if (e[e.length - 1] != r[r.length - 1]) {
+                t.DataRowFooter = <HTMLElement>e[e.length - 1];
             }
-            rows.forEach(r => {
-                this.DataRowTemplates.Add(r.outerHTML);
+            r.forEach(r => {
+                t.DataRowTemplates.Add(r.outerHTML);
                 r.parentElement.removeChild(r);
             });
         }
     }
-    private onObjectStateChanged(obj: IObjectState) {
-        if (this.AutomaticallyUpdatesToWebApi && this.WebApi) {
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, this.OnUpdateComplete.bind(this));
-            ajax.Put(this.WebApi, obj.ServerObject);
-            obj.ObjectState = ObjectState.Clean;
+    private onObjectStateChanged(o: IObjectState) {
+        var t = this;
+        if (t.AutomaticallyUpdatesToWebApi && t.WebApi) {
+            var a = new Ajax();
+            a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
+            a.Put(t.WebApi, o.ServerObject);
+            o.ObjectState = ObjectState.Clean;
         }
     }
-    OnUpdateComplete(arg: CustomEventArg<Ajax>) {
-        var incoming = <any>arg.Sender.GetRequestData();
-        var obj = this.DataObject ? this.DataObject : this.DataObjects.First(d => this.IsPrimaryKeymatch(d, incoming));
-        obj ? this.SetServerObjectValue(obj, incoming) : null;
+    OnUpdateComplete(a: CustomEventArg<Ajax>) {
+        var t = this,
+            i = <any>a.Sender.GetRequestData(),
+            o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.IsPrimaryKeymatch(d, i));
+        o ? t.SetServerObjectValue(o, i) : null;
     }
-    SetServerObjectValue(data: IObjectState, incoming: any) {
-        for (var p in incoming) {
+    SetServerObjectValue(d: IObjectState, i: any) {
+        for (var p in i) {
             if (!this.PrimaryKeys.First(k => k === p)) {
-                data.SetServerProperty(p, incoming[p]);
+                d.SetServerProperty(p, i[p]);
             }
         }
     }
-    IsPrimaryKeymatch(data: IObjectState, incoming: any): boolean {
-        for (var i = 0; i < this.PrimaryKeys.length; i++) {
-            if (data.ServerObject[this.PrimaryKeys[i]] != incoming[this.PrimaryKeys[i]]) {
+    IsPrimaryKeymatch(d: IObjectState, incoming: any): boolean {
+        var t = this;
+        for (var i = 0; i < t.PrimaryKeys.length; i++) {
+            if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
                 return false;
             }
         }
         return true;
     }
-    BindToDataObject(dataObject: IObjectState, elementsToBind: Array<HTMLElement> = null) {   
-        if (!elementsToBind) {
-            elementsToBind = this.Element.Get(e => e.HasDataSet());
-            elementsToBind.Add(this.Element);
+    BindToDataObject(o: IObjectState, eles: Array<HTMLElement> = null) { 
+        var t = this;  
+        if (!eles) {
+            eles = t.Element.Get(e => e.HasDataSet());
+            eles.Add(t.Element);
         }
-        if (this.IsFormBinding) {
-            this.DataObject = dataObject;            
+        if (t.IsFormBinding) {
+            t.DataObject = o;            
         }
-        dataObject.AddObjectStateListener(this.onObjectStateChanged.bind(this));
-        elementsToBind.forEach(e => {
+        o.AddObjectStateListener(t.onObjectStateChanged.bind(this));
+        eles.forEach(e => {
             let element = e;
-            this.setListeners(element, dataObject);
+            t.setListeners(element, o);
         });        
-        dataObject.AllPropertiesChanged();
+        o.AllPropertiesChanged();
     }
-    private setListeners(element: HTMLElement, dataObject: IObjectState) {
-        var boundAttributes = element.GetDataSetAttributes();
-        if (element.tagName === "SELECT") {            
-            var datasource = boundAttributes.First(f => f.Attribute == "datasource");
-            var displayMember = boundAttributes.First(f => f.Attribute == "displaymember");
-            var valueMember = boundAttributes.First(f => f.Attribute == "valuemember");
-            if (datasource) {
-                var fun = new Function("return " + datasource.Property);
-                var data = fun();
-                (<HTMLSelectElement>element).AddOptions(data, valueMember ? valueMember.Property : null, displayMember ? displayMember.Property : null);
+    private setListeners(ele: HTMLElement, d: IObjectState) {
+        var ba = ele.GetDataSetAttributes(), t = this;
+        if (ele.tagName === "SELECT") {            
+            var ds = ba.First(f => f.Attribute == "datasource"),
+                dm = ba.First(f => f.Attribute == "displaymember"),
+                vm = ba.First(f => f.Attribute == "valuemember");
+            if (ds) {
+                var fun = new Function("return " + ds.Property),
+                    data = fun();
+                (<HTMLSelectElement>ele).AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var nonbindingAttributes = ["binder", "datasource", "displaymember", "valuemember"];
-        boundAttributes.forEach(b => {
-            if (!nonbindingAttributes.First(v => v === b.Attribute)) {
-                var attribute = this.getAttribute(b.Attribute);
-                this.setObjectPropertyListener(b.Property, attribute, element, dataObject);
-                var elementAttribute = b.Attribute === "checked" && element["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
-                if (elementAttribute) {
-                    var fun = (evt) => {
-                        dataObject.OnElementChanged.bind(dataObject)(element[elementAttribute], b.Property)
+        var nba = ["binder", "datasource", "displaymember", "valuemember"];
+        ba.forEach(b => {
+            if (!nba.First(v => v === b.Attribute)) {
+                let a = t.getAttribute(b.Attribute);
+                t.setObjectPropertyListener(b.Property, a, ele, d);
+                let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
+                if (ea) {
+                    let fun = (evt) => {
+                        d.OnElementChanged.bind(d)(ele[ea], b.Property)
                     };
-                    element.addEventListener("change", fun);
+                    ele.addEventListener("change", fun);
                 }
             }
         });
     }    
-    getAttribute(attribute: string) {
-        attribute = attribute.toLowerCase();
-        switch (attribute) {
+    getAttribute(a: string) {
+        a = a.toLowerCase();
+        switch (a) {
             case "class":
             case "classname":
                 return "className";
@@ -179,38 +186,39 @@ abstract class Binder implements IBinder {
             case "readonly":
                 return "readOnly";
             default:                
-                return attribute;
+                return a;
         }
     }
-    private setObjectPropertyListener(property: string, attribute: string, element: HTMLElement, dataObject: IObjectState) {
-        var objectPropertyChangedForElement = (attribute: string, value: any) => {
-            if (Has.Properties(element, attribute)) {
-                if (element.tagName === "INPUT" && element["type"] === "radio") {
-                    var radios = element.parentElement.Get(e2 => e2["name"] === element["name"] && e2["type"] === "radio");
-                    radios.forEach(r => r["checked"] = false);
-                    var first = radios.First(r => r["value"] === value.toString());
-                    first["checked"] = true;
+    private setObjectPropertyListener(p: string, a: string, ele: HTMLElement, d: IObjectState) {
+        var t = this,
+            fun = (atr: string, v: any) => {
+            if (Has.Properties(ele, atr)) {
+                if (ele.tagName === "INPUT" && ele["type"] === "radio") {
+                    var r = ele.parentElement.Get(e2 => e2["name"] === ele["name"] && e2["type"] === "radio");
+                    r.forEach(r => r["checked"] = false);
+                    var f = r.First(r => r["value"] === v.toString());
+                    f ? f["checked"] = true : null;
                 }
-                else if (attribute === "className") {
-                    element.className = null;
-                    element.className = value;
+                else if (atr === "className") {
+                    ele.className = null;
+                    ele.className = v;
                 }
                 else {
-                    element[attribute] = value;
+                    ele[atr] = v;
                 }
             }
             else {
-                var style = this.getStyle(attribute);
-                style ? element["style"][style] = value : element[attribute] = value;
+                var s = t.getStyle(atr);
+                s ? ele["style"][s] = v : ele[atr] = v;
             }
         };
-        dataObject.AddPropertyListener(property, attribute, objectPropertyChangedForElement);
+        d.AddPropertyListener(p, a, fun);
     }
 
-    getStyle(value: string):string {
-        for (var prop in document.body.style) {
-            if (prop.toLowerCase() === value.toLowerCase()) {
-                return prop;
+    getStyle(v: string):string {
+        for (var p in document.body.style) {
+            if (p.toLowerCase() === v.toLowerCase()) {
+                return p;
             }
         }
         return null;
@@ -224,20 +232,20 @@ abstract class Binder implements IBinder {
         this.selectedObject = value;
     }    
 
-    AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IBinder>) => void) {
-        var found = this.eventHandlers.First(h => h.EventType === eventType && h.EventHandler === eventHandler);
-        if (!found) {
-            this.eventHandlers.Add(new Listener(eventType, eventHandler));
+    AddListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
+        var f = this.eventHandlers.First(h => h.EventType === et && h.EventHandler === eh);
+        if (!f) {
+            this.eventHandlers.Add(new Listener(et, eh));
         }
     }
-    RemoveListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IBinder>) => void) {
-        this.eventHandlers.Remove(l => l.EventType === eventType && eventHandler === eventHandler);
+    RemoveListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
+        this.eventHandlers.Remove(l => l.EventType === et && eh === eh);
     }
-    RemoveListeners(eventType: EventType = EventType.Any) {        
-        this.eventHandlers.Remove(l => eventType === EventType.Any || l.EventType === eventType);
+    RemoveListeners(et: EventType = EventType.Any) {        
+        this.eventHandlers.Remove(l => et === EventType.Any || l.EventType === et);
     }
-    Dispatch(eventType: EventType) {
-        var listeners = this.eventHandlers.Where(e => e.EventType === eventType);
-        listeners.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, eventType)));
+    Dispatch(et: EventType) {
+        var l = this.eventHandlers.Where(e => e.EventType === et);
+        l.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, et)));
     }
 }
