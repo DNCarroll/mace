@@ -110,8 +110,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
         for (var prop in objectProperties) {
             var tempPropName = prop;
             if (tempPropName != "cls" && tempPropName != "className") {
-                var isStyleProp = Is.Style(tempPropName);
-                if (isStyleProp) {
+                if (tempPropName.IsStyle()) {
                     that.style[tempPropName] = objectProperties[prop];
                 }
                 else if (prop == "style") {

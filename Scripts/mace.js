@@ -408,7 +408,7 @@ var Binder = (function () {
     Binder.prototype.setObjectPropertyListener = function (property, attribute, element, dataObject) {
         var _this = this;
         var objectPropertyChangedForElement = function (attribute, value) {
-            if (Is.Property(attribute, element)) {
+            if (Has.Properties(element, attribute)) {
                 if (element.tagName === "INPUT" && element["type"] === "radio") {
                     var radios = element.parentElement.Get(function (e2) { return e2["name"] === element["name"] && e2["type"] === "radio"; });
                     radios.forEach(function (r) { return r["checked"] = false; });
@@ -914,13 +914,7 @@ var Initializer;
             if (!Is.NullOrEmpty(name)) {
                 try {
                     var newObj = (new Function("return new " + name + "();"))();
-                    if (Is.Property("IsDefault", newObj) &&
-                        Is.Property("Views", newObj) &&
-                        Is.Property("Show", newObj) &&
-                        Is.Property("Url", newObj) &&
-                        Is.Property("UrlPattern", newObj) &&
-                        Is.Property("UrlTitle", newObj) &&
-                        Is.Property("IsUrlPatternMatch", newObj)) {
+                    if (Has.Properties(newObj, "IsDefault", "Views", "Show", "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
                         ViewContainers.Add(newObj);
                     }
                 }
@@ -965,29 +959,26 @@ var Is;
     }
     Is.Array = Array;
     function NullOrEmpty(value) {
-        return value == null || (value.length && value.length == 0);
+        return value == null || (value.length && value.length === 0);
     }
     Is.NullOrEmpty = NullOrEmpty;
-    function Property(property, inObject) {
-        try {
-            return typeof (inObject[property]) !== 'undefined';
+})(Is || (Is = {}));
+var Has;
+(function (Has) {
+    function Properties(inObject) {
+        var properties = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            properties[_i - 1] = arguments[_i];
         }
-        catch (e) {
-            window.Exception(e);
-        }
-        return false;
-    }
-    Is.Property = Property;
-    function Style(value) {
-        for (var prop in document.body.style) {
-            if (prop.toLowerCase() === value.toLowerCase()) {
-                return true;
+        for (var i = 0; i < properties.length; i++) {
+            if (inObject[properties[i]] === undefined) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
-    Is.Style = Style;
-})(Is || (Is = {}));
+    Has.Properties = Properties;
+})(Has || (Has = {}));
 //# sourceMappingURL=Is.js.map
 var ProgressManager;
 (function (ProgressManager) {
@@ -1275,8 +1266,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
         for (var prop in objectProperties) {
             var tempPropName = prop;
             if (tempPropName != "cls" && tempPropName != "className") {
-                var isStyleProp = Is.Style(tempPropName);
-                if (isStyleProp) {
+                if (tempPropName.IsStyle()) {
                     that.style[tempPropName] = objectProperties[prop];
                 }
                 else if (prop == "style") {
@@ -1368,6 +1358,14 @@ String.prototype.CreateElementFromHtml = function () {
         var child = div.children[div.children.length - 1];
         return child;
     }
+};
+String.prototype.IsStyle = function () {
+    for (var prop in document.body.style) {
+        if (prop.toLowerCase() === this.toLowerCase()) {
+            return true;
+        }
+    }
+    return false;
 };
 //# sourceMappingURL=String.js.map
 Window.prototype.Exception = function () {

@@ -184,7 +184,7 @@ abstract class Binder implements IBinder {
     }
     private setObjectPropertyListener(property: string, attribute: string, element: HTMLElement, dataObject: IObjectState) {
         var objectPropertyChangedForElement = (attribute: string, value: any) => {
-            if (Is.Property(attribute, element)) {
+            if (Has.Properties(element, attribute)) {
                 if (element.tagName === "INPUT" && element["type"] === "radio") {
                     var radios = element.parentElement.Get(e2 => e2["name"] === element["name"] && e2["type"] === "radio");
                     radios.forEach(r => r["checked"] = false);

@@ -3,6 +3,7 @@ interface String {
     Element(): HTMLElement;  
     CreateElement(objectProperties?): HTMLElement;    
     CreateElementFromHtml(): HTMLElement;
+    IsStyle(): boolean;
 }
 String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
@@ -25,4 +26,12 @@ String.prototype.CreateElementFromHtml = function (): HTMLElement {
         var child = div.children[div.children.length - 1];
         return <HTMLElement>child;
     }
+};
+String.prototype.IsStyle = function () {
+    for (var prop in document.body.style) {
+        if (prop.toLowerCase() === this.toLowerCase()) {
+            return true;
+        }
+    }
+    return false;
 };

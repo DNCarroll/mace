@@ -5,27 +5,24 @@ var Is;
     }
     Is.Array = Array;
     function NullOrEmpty(value) {
-        return value == null || (value.length && value.length == 0);
+        return value == null || (value.length && value.length === 0);
     }
     Is.NullOrEmpty = NullOrEmpty;
-    function Property(property, inObject) {
-        try {
-            return typeof (inObject[property]) !== 'undefined';
+})(Is || (Is = {}));
+var Has;
+(function (Has) {
+    function Properties(inObject) {
+        var properties = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            properties[_i - 1] = arguments[_i];
         }
-        catch (e) {
-            window.Exception(e);
-        }
-        return false;
-    }
-    Is.Property = Property;
-    function Style(value) {
-        for (var prop in document.body.style) {
-            if (prop.toLowerCase() === value.toLowerCase()) {
-                return true;
+        for (var i = 0; i < properties.length; i++) {
+            if (inObject[properties[i]] === undefined) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
-    Is.Style = Style;
-})(Is || (Is = {}));
+    Has.Properties = Properties;
+})(Has || (Has = {}));
 //# sourceMappingURL=Is.js.map

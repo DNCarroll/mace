@@ -188,7 +188,7 @@ var Binder = (function () {
     Binder.prototype.setObjectPropertyListener = function (property, attribute, element, dataObject) {
         var _this = this;
         var objectPropertyChangedForElement = function (attribute, value) {
-            if (Is.Property(attribute, element)) {
+            if (Has.Properties(element, attribute)) {
                 if (element.tagName === "INPUT" && element["type"] === "radio") {
                     var radios = element.parentElement.Get(function (e2) { return e2["name"] === element["name"] && e2["type"] === "radio"; });
                     radios.forEach(function (r) { return r["checked"] = false; });
