@@ -13,15 +13,15 @@ String.prototype.Element = function (): HTMLElement {
     return o ? <HTMLElement>o : null;
 };
 String.prototype.CreateElement = function (objectProperties?): HTMLElement {
-    var o = document.createElement(this);
-    if (objectProperties) {
-        o.Set(objectProperties);
+    var o = document.createElement(this), op = objectProperties;
+    if (op) {
+        o.Set(op);
     }
     return o;
 };
 String.prototype.CreateElementFromHtml = function (): HTMLElement {
-    var d = "div".CreateElement({ innerHTML: this });
-    var dcs = d.children;
+    var d = "div".CreateElement({ innerHTML: this }),
+        dcs = d.children;
     while (dcs.length > 0) {
         var c = dcs[dcs.length - 1];
         return <HTMLElement>c;

@@ -4,11 +4,11 @@ Window.prototype.Exception = function () {
         parameters[_i - 0] = arguments[_i];
     }
     if (parameters.length == 1) {
-        var obj = {};
+        var o = {};
         for (var i = 0; i < parameters.length; i++) {
-            obj["parameter" + i] = parameters[i];
+            o["parameter" + i] = parameters[i];
         }
-        alert(JSON.stringify(obj));
+        alert(JSON.stringify(o));
     }
     else if (parameters.length > 1) {
         alert(JSON.stringify(parameters[0]));
@@ -18,8 +18,7 @@ Window.prototype.Exception = function () {
     }
 };
 Window.prototype.Show = function (type, parameters) {
-    var vc = new type();
-    var vi = new ViewInstance(parameters, vc);
+    var vc = new type(), vi = new ViewInstance(parameters, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
@@ -27,8 +26,7 @@ Window.prototype.ShowByUrl = function (url) {
     var vc = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
     vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
     if (vc) {
-        var p = url.split("/");
-        var vi = new ViewInstance(p, vc);
+        var p = url.split("/"), vi = new ViewInstance(p, vc);
         vc.Show(vi);
         HistoryManager.Add(vi);
     }

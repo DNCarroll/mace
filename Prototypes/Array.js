@@ -11,47 +11,47 @@ Array.prototype.Add = function () {
     }
 };
 Array.prototype.First = function (func) {
-    var l = this.length;
+    var t = this, l = t.length;
     if (func) {
         for (var i = 0; i < l; i++) {
-            if (func(this[i])) {
-                return this[i];
+            if (func(t[i])) {
+                return t[i];
             }
         }
     }
     else if (l > 0) {
-        return this[0];
+        return t[0];
     }
     return null;
 };
 Array.prototype.Last = function (func) {
-    var l = this.length;
+    var t = this, l = t.length;
     if (func) {
         var p = l - 1;
         while (p > 0) {
-            if (func(this[p])) {
-                return this[p];
+            if (func(t[p])) {
+                return t[p];
             }
             p--;
         }
     }
     if (l > 0) {
-        return this[l - 1];
+        return t[l - 1];
     }
     return null;
 };
 Array.prototype.Remove = function (func) {
+    var t = this;
     if (func) {
-        var p = this.length - 1;
+        var p = t.length - 1;
         while (p > 0) {
-            var match = func(this[p]);
-            if (match) {
-                this.splice(p, 1);
+            if (func(t[p])) {
+                t.splice(p, 1);
             }
             p--;
         }
     }
-    return this;
+    return t;
 };
 Array.prototype.Where = function (func) {
     var m = new Array();

@@ -15,12 +15,12 @@ HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
     }
     return nodes;
 };
-HTMLElement.prototype.First = function (predicate) {
+HTMLElement.prototype.First = function (func) {
     var chs = this.children;
     for (var i = 0; i < chs.length; i++) {
         if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
             var c = chs[i];
-            if (predicate(c)) {
+            if (func(c)) {
                 return c;
             }
         }
@@ -29,7 +29,7 @@ HTMLElement.prototype.First = function (predicate) {
         if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
             var c = chs[i];
             if (c.First) {
-                var f = c.First(predicate);
+                var f = c.First(func);
                 if (f) {
                     return f;
                 }
@@ -49,25 +49,25 @@ HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
 HTMLElement.prototype.Set = function (objectProperties) {
-    var t = this;
-    if (objectProperties) {
-        for (var p in objectProperties) {
+    var t = this, op = objectProperties;
+    if (op) {
+        for (var p in op) {
             if (p != "cls" && p != "className") {
                 if (p.IsStyle()) {
-                    t.style[p] = objectProperties[p];
+                    t.style[p] = op[p];
                 }
                 else if (p === "style") {
-                    if (objectProperties.style.cssText) {
-                        t.style.cssText = objectProperties.style.cssText;
+                    if (op.style.cssText) {
+                        t.style.cssText = op.style.cssText;
                     }
                 }
                 else {
-                    t[p] = objectProperties[p];
+                    t[p] = op[p];
                 }
             }
             else {
                 t.className = null;
-                t.className = objectProperties[p];
+                t.className = op[p];
             }
         }
     }

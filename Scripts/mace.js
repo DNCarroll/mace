@@ -1004,47 +1004,47 @@ Array.prototype.Add = function () {
     }
 };
 Array.prototype.First = function (func) {
-    var l = this.length;
+    var t = this, l = t.length;
     if (func) {
         for (var i = 0; i < l; i++) {
-            if (func(this[i])) {
-                return this[i];
+            if (func(t[i])) {
+                return t[i];
             }
         }
     }
     else if (l > 0) {
-        return this[0];
+        return t[0];
     }
     return null;
 };
 Array.prototype.Last = function (func) {
-    var l = this.length;
+    var t = this, l = t.length;
     if (func) {
         var p = l - 1;
         while (p > 0) {
-            if (func(this[p])) {
-                return this[p];
+            if (func(t[p])) {
+                return t[p];
             }
             p--;
         }
     }
     if (l > 0) {
-        return this[l - 1];
+        return t[l - 1];
     }
     return null;
 };
 Array.prototype.Remove = function (func) {
+    var t = this;
     if (func) {
-        var p = this.length - 1;
+        var p = t.length - 1;
         while (p > 0) {
-            var match = func(this[p]);
-            if (match) {
-                this.splice(p, 1);
+            if (func(t[p])) {
+                t.splice(p, 1);
             }
             p--;
         }
     }
-    return this;
+    return t;
 };
 Array.prototype.Where = function (func) {
     var m = new Array();
@@ -1064,7 +1064,8 @@ Date.prototype.Add = function (years, months, days, hours, minutes, seconds) {
     hours = hours ? hours : 0;
     minutes = minutes ? minutes : 0;
     seconds = seconds ? seconds : 0;
-    return new Date(this.getFullYear() + years, this.getMonth() + months, this.getDate() + days, this.getHours() + hours, this.getMinutes() + minutes, this.getSeconds() + seconds, this.getMilliseconds());
+    var t = this;
+    return new Date(t.getFullYear() + years, t.getMonth() + months, t.getDate() + days, t.getHours() + hours, t.getMinutes() + minutes, t.getSeconds() + seconds, t.getMilliseconds());
 };
 //# sourceMappingURL=Date.js.map
 HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
@@ -1084,12 +1085,12 @@ HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
     }
     return nodes;
 };
-HTMLElement.prototype.First = function (predicate) {
+HTMLElement.prototype.First = function (func) {
     var chs = this.children;
     for (var i = 0; i < chs.length; i++) {
         if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
             var c = chs[i];
-            if (predicate(c)) {
+            if (func(c)) {
                 return c;
             }
         }
@@ -1098,7 +1099,7 @@ HTMLElement.prototype.First = function (predicate) {
         if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
             var c = chs[i];
             if (c.First) {
-                var f = c.First(predicate);
+                var f = c.First(func);
                 if (f) {
                     return f;
                 }
@@ -1118,25 +1119,25 @@ HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
 HTMLElement.prototype.Set = function (objectProperties) {
-    var t = this;
-    if (objectProperties) {
-        for (var p in objectProperties) {
+    var t = this, op = objectProperties;
+    if (op) {
+        for (var p in op) {
             if (p != "cls" && p != "className") {
                 if (p.IsStyle()) {
-                    t.style[p] = objectProperties[p];
+                    t.style[p] = op[p];
                 }
                 else if (p === "style") {
-                    if (objectProperties.style.cssText) {
-                        t.style.cssText = objectProperties.style.cssText;
+                    if (op.style.cssText) {
+                        t.style.cssText = op.style.cssText;
                     }
                 }
                 else {
-                    t[p] = objectProperties[p];
+                    t[p] = op[p];
                 }
             }
             else {
                 t.className = null;
-                t.className = objectProperties[p];
+                t.className = op[p];
             }
         }
     }
@@ -1163,19 +1164,15 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
 };
 //# sourceMappingURL=HTMLElement.js.map
 HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty, displayProperty, selectedValue) {
-    var s = this;
-    var aoo = arrayOrObject;
-    var ao = function (d, v) {
+    var s = this, sv = selectedValue, aoo = arrayOrObject, ao = function (d, v) {
         var o = new Option(d, v);
         s["options"][s.options.length] = o;
-        if (selectedValue && v === selectedValue) {
+        if (sv && v === sv) {
             o.selected = true;
         }
     };
     if (Is.Array(aoo)) {
-        var ta = aoo;
-        var dp = displayProperty;
-        var vp = valueProperty;
+        var ta = aoo, dp = displayProperty, vp = valueProperty;
         if (dp && vp) {
             ta.forEach(function (t) {
                 ao(t[dp], t[vp]);
@@ -1205,15 +1202,14 @@ String.prototype.Element = function () {
     return o ? o : null;
 };
 String.prototype.CreateElement = function (objectProperties) {
-    var o = document.createElement(this);
-    if (objectProperties) {
-        o.Set(objectProperties);
+    var o = document.createElement(this), op = objectProperties;
+    if (op) {
+        o.Set(op);
     }
     return o;
 };
 String.prototype.CreateElementFromHtml = function () {
-    var d = "div".CreateElement({ innerHTML: this });
-    var dcs = d.children;
+    var d = "div".CreateElement({ innerHTML: this }), dcs = d.children;
     while (dcs.length > 0) {
         var c = dcs[dcs.length - 1];
         return c;
@@ -1234,11 +1230,11 @@ Window.prototype.Exception = function () {
         parameters[_i - 0] = arguments[_i];
     }
     if (parameters.length == 1) {
-        var obj = {};
+        var o = {};
         for (var i = 0; i < parameters.length; i++) {
-            obj["parameter" + i] = parameters[i];
+            o["parameter" + i] = parameters[i];
         }
-        alert(JSON.stringify(obj));
+        alert(JSON.stringify(o));
     }
     else if (parameters.length > 1) {
         alert(JSON.stringify(parameters[0]));
@@ -1248,8 +1244,7 @@ Window.prototype.Exception = function () {
     }
 };
 Window.prototype.Show = function (type, parameters) {
-    var vc = new type();
-    var vi = new ViewInstance(parameters, vc);
+    var vc = new type(), vi = new ViewInstance(parameters, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
@@ -1257,8 +1252,7 @@ Window.prototype.ShowByUrl = function (url) {
     var vc = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
     vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
     if (vc) {
-        var p = url.split("/");
-        var vi = new ViewInstance(p, vc);
+        var p = url.split("/"), vi = new ViewInstance(p, vc);
         vc.Show(vi);
         HistoryManager.Add(vi);
     }
