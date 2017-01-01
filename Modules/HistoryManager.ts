@@ -31,12 +31,15 @@
             }
         }
         ManageRouteInfo(viewInstance: ViewInstance) {
-            var t = viewInstance.ViewContainer.UrlTitle(viewInstance),
-                dt = viewInstance.ViewContainer.DocumentTitle(viewInstance),
-                u = viewInstance.ViewContainer.Url(viewInstance);
-            if (u && !Is.NullOrEmpty(t) && history && history.pushState) {
+            var vi = viewInstance,
+                vc = vi.ViewContainer,
+                t = vc.UrlTitle(vi),
+                dt = vc.DocumentTitle(vi),
+                h = history,
+                u = vc.Url(vi);
+            if (u && !Is.NullOrEmpty(t) && h && h.pushState) {
                 u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
-                history.pushState(null, t, u);
+                h.pushState(null, t, u);
             }
             if (dt) {
                 document.title = dt;
