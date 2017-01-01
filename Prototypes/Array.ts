@@ -6,12 +6,13 @@
     Remove(func: (obj: T) => boolean): T[];
     Where(func: (obj: T) => boolean): T[];    
 }
-Array.prototype.Add = function (...objectOrObjects:Array<any>) {
-    if (!Is.Array(objectOrObjects)) {
-        objectOrObjects = [objectOrObjects];
+Array.prototype.Add = function (...objectOrObjects: Array<any>) {
+    var o = objectOrObjects;
+    if (!Is.Array(o)) {
+        o = [o];
     }
-    for (var i = 0; i < objectOrObjects.length; i++) {
-        this.push(objectOrObjects[i]);
+    for (var i = 0; i < o.length; i++) {
+        this.push(o[i]);
     }
 };
 Array.prototype.First = function (func?: (obj) => boolean) {

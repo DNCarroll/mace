@@ -16,8 +16,9 @@ var Has;
         for (var _i = 1; _i < arguments.length; _i++) {
             properties[_i - 1] = arguments[_i];
         }
-        for (var i = 0; i < properties.length; i++) {
-            if (inObject[properties[i]] === undefined) {
+        var p = properties;
+        for (var i = 0; i < p.length; i++) {
+            if (inObject[p[i]] === undefined) {
                 return false;
             }
         }

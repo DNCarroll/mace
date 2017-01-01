@@ -10,7 +10,7 @@ String.prototype.Trim = function () {
 };
 String.prototype.Element = function (): HTMLElement {
     var o = document.getElementById(this.toString());
-    return o ? <HTMLElement>o : null;
+    return o ? o : null;
 };
 String.prototype.CreateElement = function (objectProperties?): HTMLElement {
     var o = document.createElement(this), op = objectProperties;

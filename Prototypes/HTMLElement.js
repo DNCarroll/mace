@@ -1,33 +1,32 @@
 HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
-    nodes == null ? nodes = new Array() : null;
+    var n = nodes == null ? new Array() : nodes;
     var chs = this.children;
     for (var i = 0; i < chs.length; i++) {
-        if (chs[i].nodeType == 1
-            && chs[i].tagName.toLowerCase() != "svg") {
-            var c = chs[i];
+        var c = chs[i];
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
             if (func(c)) {
-                nodes.push(c);
+                n.push(c);
             }
             if (!notRecursive && c.Get) {
-                c.Get(func, notRecursive, nodes);
+                c.Get(func, notRecursive, n);
             }
         }
     }
-    return nodes;
+    return n;
 };
 HTMLElement.prototype.First = function (func) {
     var chs = this.children;
     for (var i = 0; i < chs.length; i++) {
-        if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
-            var c = chs[i];
+        var c = chs[i];
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
             if (func(c)) {
                 return c;
             }
         }
     }
     for (var i = 0; i < chs.length; i++) {
-        if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
-            var c = chs[i];
+        var c = chs[i];
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
             if (c.First) {
                 var f = c.First(func);
                 if (f) {

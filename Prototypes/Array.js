@@ -3,11 +3,12 @@ Array.prototype.Add = function () {
     for (var _i = 0; _i < arguments.length; _i++) {
         objectOrObjects[_i - 0] = arguments[_i];
     }
-    if (!Is.Array(objectOrObjects)) {
-        objectOrObjects = [objectOrObjects];
+    var o = objectOrObjects;
+    if (!Is.Array(o)) {
+        o = [o];
     }
-    for (var i = 0; i < objectOrObjects.length; i++) {
-        this.push(objectOrObjects[i]);
+    for (var i = 0; i < o.length; i++) {
+        this.push(o[i]);
     }
 };
 Array.prototype.First = function (func) {

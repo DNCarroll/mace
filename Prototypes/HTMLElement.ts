@@ -9,35 +9,34 @@ interface HTMLElement extends Element {
     Binder: IBinder;
 }
 HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
-    nodes == null ? nodes = new Array<HTMLElement>() : null;
+    var n = nodes == null ? new Array<HTMLElement>() : nodes;
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
-        if (chs[i].nodeType == 1
-            && chs[i].tagName.toLowerCase() != "svg") {
-            let c = <HTMLElement>chs[i]
+        let c = <HTMLElement>chs[i];
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {            
             if (func(c)) {
-                nodes.push(c);
+                n.push(c);
             }
             if (!notRecursive && c.Get) {
-                c.Get(func, notRecursive, nodes);
+                c.Get(func, notRecursive, n);
             }
         }
     }
-    return nodes;
+    return n;
 };
 HTMLElement.prototype.First = function (func: (ele: HTMLElement) => boolean): HTMLElement {
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
-        if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
-            let c = <HTMLElement>chs[i];
+        let c = <HTMLElement>chs[i];
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {            
             if (func(c)) {
                 return c;
             }
         }
     }
     for (var i = 0; i < chs.length; i++) {
-        if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
-            let c = <HTMLElement>chs[i];
+        let c = <HTMLElement>chs[i];
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {            
             if (c.First) {
                 let f = c.First(func);
                 if (f) {

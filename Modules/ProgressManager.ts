@@ -1,13 +1,15 @@
 ﻿module ProgressManager {
     export var ProgressElement: HTMLElement = null;
     export function Show() {
-        if (ProgressManager.ProgressElement) {
-            ProgressManager.ProgressElement.style.display = "inline";
+        var pe = ProgressManager.ProgressElement;
+        if (pe) {
+            pe.style.display = "inline";
         }
     }
     export function Hide() {
-        if (ProgressManager.ProgressElement) {
-            ProgressManager.ProgressElement.style.display = "none";
+        var pe = ProgressManager.ProgressElement;
+        if (pe) {
+            pe.style.display = "none";
         }
     }
 }

@@ -8,8 +8,9 @@
 } 
 module Has {
     export function Properties(inObject: any, ...properties): boolean {
-        for (var i = 0; i < properties.length; i++) {
-            if (inObject[properties[i]] === undefined) {
+        var p = properties;
+        for (var i = 0; i < p.length; i++) {
+            if (inObject[p[i]] === undefined) {
                 return false;
             }
         }

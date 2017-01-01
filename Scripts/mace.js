@@ -963,8 +963,9 @@ var Has;
         for (var _i = 1; _i < arguments.length; _i++) {
             properties[_i - 1] = arguments[_i];
         }
-        for (var i = 0; i < properties.length; i++) {
-            if (inObject[properties[i]] === undefined) {
+        var p = properties;
+        for (var i = 0; i < p.length; i++) {
+            if (inObject[p[i]] === undefined) {
                 return false;
             }
         }
@@ -977,14 +978,16 @@ var ProgressManager;
 (function (ProgressManager) {
     ProgressManager.ProgressElement = null;
     function Show() {
-        if (ProgressManager.ProgressElement) {
-            ProgressManager.ProgressElement.style.display = "inline";
+        var pe = ProgressManager.ProgressElement;
+        if (pe) {
+            pe.style.display = "inline";
         }
     }
     ProgressManager.Show = Show;
     function Hide() {
-        if (ProgressManager.ProgressElement) {
-            ProgressManager.ProgressElement.style.display = "none";
+        var pe = ProgressManager.ProgressElement;
+        if (pe) {
+            pe.style.display = "none";
         }
     }
     ProgressManager.Hide = Hide;
@@ -995,11 +998,12 @@ Array.prototype.Add = function () {
     for (var _i = 0; _i < arguments.length; _i++) {
         objectOrObjects[_i - 0] = arguments[_i];
     }
-    if (!Is.Array(objectOrObjects)) {
-        objectOrObjects = [objectOrObjects];
+    var o = objectOrObjects;
+    if (!Is.Array(o)) {
+        o = [o];
     }
-    for (var i = 0; i < objectOrObjects.length; i++) {
-        this.push(objectOrObjects[i]);
+    for (var i = 0; i < o.length; i++) {
+        this.push(o[i]);
     }
 };
 Array.prototype.First = function (func) {
@@ -1056,47 +1060,46 @@ Array.prototype.Where = function (func) {
     return m;
 };
 //# sourceMappingURL=Array.js.map
-Date.prototype.Add = function (years, months, days, hours, minutes, seconds) {
-    years = years ? years : 0;
-    months = months ? months : 0;
-    days = days ? days : 0;
-    hours = hours ? hours : 0;
-    minutes = minutes ? minutes : 0;
-    seconds = seconds ? seconds : 0;
+Date.prototype.Add = function (y, m, d, h, mm, s) {
+    y = y ? y : 0;
+    m = m ? m : 0;
+    d = d ? d : 0;
+    h = h ? h : 0;
+    mm = mm ? mm : 0;
+    s = s ? s : 0;
     var t = this;
-    return new Date(t.getFullYear() + years, t.getMonth() + months, t.getDate() + days, t.getHours() + hours, t.getMinutes() + minutes, t.getSeconds() + seconds, t.getMilliseconds());
+    return new Date(t.getFullYear() + y, t.getMonth() + m, t.getDate() + d, t.getHours() + h, t.getMinutes() + mm, t.getSeconds() + s, t.getMilliseconds());
 };
 //# sourceMappingURL=Date.js.map
 HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
-    nodes == null ? nodes = new Array() : null;
+    var n = nodes == null ? new Array() : nodes;
     var chs = this.children;
     for (var i = 0; i < chs.length; i++) {
-        if (chs[i].nodeType == 1
-            && chs[i].tagName.toLowerCase() != "svg") {
-            var c = chs[i];
+        var c = chs[i];
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
             if (func(c)) {
-                nodes.push(c);
+                n.push(c);
             }
             if (!notRecursive && c.Get) {
-                c.Get(func, notRecursive, nodes);
+                c.Get(func, notRecursive, n);
             }
         }
     }
-    return nodes;
+    return n;
 };
 HTMLElement.prototype.First = function (func) {
     var chs = this.children;
     for (var i = 0; i < chs.length; i++) {
-        if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
-            var c = chs[i];
+        var c = chs[i];
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
             if (func(c)) {
                 return c;
             }
         }
     }
     for (var i = 0; i < chs.length; i++) {
-        if (chs[i].nodeType == 1 && chs[i].tagName.toLowerCase() != "svg") {
-            var c = chs[i];
+        var c = chs[i];
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
             if (c.First) {
                 var f = c.First(func);
                 if (f) {
