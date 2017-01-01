@@ -49,7 +49,8 @@ var Ajax = (function () {
         return url;
     };
     Ajax.prototype.isRequestReady = function () {
-        return this.XMLHttpRequest && this.XMLHttpRequest.readyState == 4;
+        var x = this.XMLHttpRequest;
+        return x && x.readyState == 4;
     };
     Ajax.prototype.HideProgress = function () {
         this.showHideProgress(false);
@@ -57,15 +58,17 @@ var Ajax = (function () {
     Ajax.prototype.showHideProgress = function (show) {
         if (this.ManipulateProgressElement) {
             show ? ProgressManager.Show() : ProgressManager.Hide();
-            var de = this.DisableElement, d = "disabled";
+            var de = this.DisableElement, d = "disabled", f = function (e) {
+                show ? e.setAttribute(d, d) : e.removeAttribute(d);
+            };
             if (de) {
                 if (Is.Array(de)) {
                     for (var i = 0; i < de.length; i++) {
-                        show ? de[i].setAttribute(d, d) : de[i].removeAttribute(d);
+                        f(de[i]);
                     }
                 }
                 else {
-                    show ? de.setAttribute(d, d) : de.removeAttribute(d);
+                    f(de);
                 }
             }
         }
@@ -75,8 +78,8 @@ var Ajax = (function () {
         if (t.Header) {
             var h = t.Header();
             if (h) {
-                for (var prop in h) {
-                    t.XMLHttpRequest.setRequestHeader(prop, h[prop]);
+                for (var p in h) {
+                    t.XMLHttpRequest.setRequestHeader(p, h[p]);
                 }
             }
         }
@@ -93,10 +96,10 @@ var Ajax = (function () {
         return r;
     };
     Ajax.prototype.GetRequestData = function () {
-        var r = null, t = this;
-        if (t.isRequestReady() && (t.XMLHttpRequest.status == 200 || t.XMLHttpRequest.status == 204) &&
-            !Is.NullOrEmpty(t.XMLHttpRequest.responseText)) {
-            r = t.XMLHttpRequest.responseText;
+        var r = null, t = this, x = this.XMLHttpRequest;
+        if (t.isRequestReady() && (x.status == 200 || x.status == 204) &&
+            !Is.NullOrEmpty(x.responseText)) {
+            r = x.responseText;
             try {
                 r = JSON.parse(r);
                 if (r.d) {
@@ -111,11 +114,11 @@ var Ajax = (function () {
         }
         return r;
     };
-    Ajax.prototype.convertProperties = function (object) {
+    Ajax.prototype.convertProperties = function (obj) {
         var km, t = this;
-        if (Is.Array(object)) {
-            for (var i = 0; i < object.length; i++) {
-                var o = object[i];
+        if (Is.Array(obj)) {
+            for (var i = 0; i < obj.length; i++) {
+                var o = obj[i];
                 if (o) {
                     try {
                         km = km ? km : t.getKeyMap(o);
@@ -130,11 +133,11 @@ var Ajax = (function () {
                 }
             }
         }
-        else if (object && typeof object === 'object') {
-            km = t.getKeyMap(object);
-            t.setValues(object, km);
-            for (var p in object) {
-                t.convertProperties(object[p]);
+        else if (obj && typeof obj === 'object') {
+            km = t.getKeyMap(obj);
+            t.setValues(obj, km);
+            for (var p in obj) {
+                t.convertProperties(obj[p]);
             }
         }
     };
@@ -214,8 +217,8 @@ var Ajax = (function () {
     };
     Ajax.prototype.Dispatch = function (eventType) {
         var _this = this;
-        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
-        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
+        var l = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
+        l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
     return Ajax;
 }());
