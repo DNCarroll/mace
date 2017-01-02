@@ -197,8 +197,10 @@ class Ajax implements IEventDispatcher<Ajax>{
         }
     }
 
-    Get(url: string, parameters: any = null) { this.Submit("GET", url, parameters); }
-    Put(url: string, parameters: any = null) { this.Submit("PUT", url, parameters); }
+    Get(url: string, prmtrs: any = null) { this.Submit("GET", url, prmtrs); }
+    Put(url: string, prmtrs: any = null) { this.Submit("PUT", url, prmtrs); }
+    Post(url: string, prmtrs: any = null) { this.Submit("POST", url, prmtrs); }
+    Delete(url: string, prmtrs: any = null) { this.Submit("DELETE", url, prmtrs); }
         
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<Ajax>) => void) {
         this.eventHandlers.Add(new Listener(eventType, eventHandler));

@@ -198,13 +198,21 @@ var Ajax = (function () {
             }
         }
     };
-    Ajax.prototype.Get = function (url, parameters) {
-        if (parameters === void 0) { parameters = null; }
-        this.Submit("GET", url, parameters);
+    Ajax.prototype.Get = function (url, prmtrs) {
+        if (prmtrs === void 0) { prmtrs = null; }
+        this.Submit("GET", url, prmtrs);
     };
-    Ajax.prototype.Put = function (url, parameters) {
-        if (parameters === void 0) { parameters = null; }
-        this.Submit("PUT", url, parameters);
+    Ajax.prototype.Put = function (url, prmtrs) {
+        if (prmtrs === void 0) { prmtrs = null; }
+        this.Submit("PUT", url, prmtrs);
+    };
+    Ajax.prototype.Post = function (url, prmtrs) {
+        if (prmtrs === void 0) { prmtrs = null; }
+        this.Submit("POST", url, prmtrs);
+    };
+    Ajax.prototype.Delete = function (url, prmtrs) {
+        if (prmtrs === void 0) { prmtrs = null; }
+        this.Submit("DELETE", url, prmtrs);
     };
     Ajax.prototype.AddListener = function (eventType, eventHandler) {
         this.eventHandlers.Add(new Listener(eventType, eventHandler));
