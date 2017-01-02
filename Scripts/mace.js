@@ -86,12 +86,11 @@ var Ajax = (function () {
     };
     Ajax.prototype.getParameters = function (parameters) {
         var r = "";
-        if (parameters && this.ContentType == "application/json; charset=utf-8") {
-            r = JSON.stringify(parameters);
-            r = r.replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "");
-            r = r.replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "");
-            r = r.replace(/<script/ig, "");
-            r = r.replace(/script>/ig, "");
+        if (parameters && this.ContentType === "application/json; charset=utf-8") {
+            r = JSON.stringify(parameters).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
+                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
+                .replace(/<script/ig, "")
+                .replace(/script>/ig, "");
         }
         return r;
     };
@@ -238,9 +237,8 @@ var Binder = (function () {
         this.PrimaryKeys = new Array();
         this.eventHandlers = new Array();
         this.DataObjects = new Array();
-        this.AssociatedElementIDs = new Array();
-        this.AutomaticallyUpdatesToWebApi = true;
-        this.AutomaticallySelectsFromWebApi = true;
+        this.AutomaticUpdate = true;
+        this.AutomaticSelect = true;
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
     }
@@ -251,7 +249,6 @@ var Binder = (function () {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
         t.WebApi = null;
-        t.AssociatedElementIDs = null;
         if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
@@ -265,7 +262,7 @@ var Binder = (function () {
     Binder.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
-        if (t.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(t.WebApi)) {
+        if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
             var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(), u = t.WebApi;
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
@@ -285,7 +282,7 @@ var Binder = (function () {
             if (d) {
                 if (!Is.Array(d)) {
                     t.IsFormBinding = true;
-                    t.BindToDataObject(t.NewObject(d));
+                    t.Bind(t.NewObject(d));
                 }
                 else {
                     d.forEach(function (d) { return t.Add(t.NewObject(d)); });
@@ -305,7 +302,7 @@ var Binder = (function () {
             be.Add(ne);
             t.DataRowFooter ? t.Element.insertBefore(ne, t.DataRowFooter) : t.Element.appendChild(ne);
             t.DataObjects.Add(objectToAdd);
-            t.BindToDataObject(objectToAdd, be);
+            t.Bind(objectToAdd, be);
         });
     };
     Binder.prototype.prepDataRowTemplates = function () {
@@ -329,7 +326,7 @@ var Binder = (function () {
     };
     Binder.prototype.onObjectStateChanged = function (o) {
         var t = this;
-        if (t.AutomaticallyUpdatesToWebApi && t.WebApi) {
+        if (t.AutomaticUpdate && t.WebApi) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
             a.Put(t.WebApi, o.ServerObject);
@@ -337,7 +334,7 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
-        var t = this, i = a.Sender.GetRequestData(), o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.IsPrimaryKeymatch(d, i); });
+        var t = this, i = a.Sender.GetRequestData(), o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.isPKMatch(d, i); });
         o ? t.SetServerObjectValue(o, i) : null;
     };
     Binder.prototype.SetServerObjectValue = function (d, i) {
@@ -347,7 +344,7 @@ var Binder = (function () {
             }
         }
     };
-    Binder.prototype.IsPrimaryKeymatch = function (d, incoming) {
+    Binder.prototype.isPKMatch = function (d, incoming) {
         var t = this;
         for (var i = 0; i < t.PrimaryKeys.length; i++) {
             if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
@@ -356,7 +353,7 @@ var Binder = (function () {
         }
         return true;
     };
-    Binder.prototype.BindToDataObject = function (o, eles) {
+    Binder.prototype.Bind = function (o, eles) {
         if (eles === void 0) { eles = null; }
         var t = this;
         if (!eles) {
@@ -480,8 +477,8 @@ var DataObject = (function () {
         if (serverObject === void 0) { serverObject = null; }
         this.changeCount = 0;
         this.changeQueued = false;
-        this.eventListeners = new Array();
-        this.objectListener = new Array();
+        this.eLstenrs = new Array();
+        this.oLstenrs = new Array();
         this.objectState = ObjectState.Clean;
         this.serverObject = serverObject;
         this.objectState = ObjectState.Clean;
@@ -501,19 +498,19 @@ var DataObject = (function () {
         configurable: true
     });
     DataObject.prototype.AddPropertyListener = function (p, a, h) {
-        this.eventListeners.Add(new PropertyListener(p, a, h));
+        this.eLstenrs.Add(new PropertyListener(p, a, h));
     };
     DataObject.prototype.RemovePropertyListeners = function () {
-        this.eventListeners.Remove(function (o) { return true; });
+        this.eLstenrs.Remove(function (o) { return true; });
     };
     DataObject.prototype.OnPropertyChanged = function (p) {
         var _this = this;
-        var l = this.eventListeners.Where(function (l) { return l.PropertyName === p; });
+        var l = this.eLstenrs.Where(function (l) { return l.PropertyName === p; });
         l.forEach(function (l) { return l.Handler(l.Attribute, _this[p]); });
     };
     DataObject.prototype.AllPropertiesChanged = function () {
         var _this = this;
-        this.eventListeners.forEach(function (l) { return l.Handler(l.Attribute, _this[l.PropertyName]); });
+        this.eLstenrs.forEach(function (l) { return l.Handler(l.Attribute, _this[l.PropertyName]); });
     };
     DataObject.prototype.InstigatePropertyChangedListeners = function (p, canCauseDirty) {
         if (canCauseDirty === void 0) { canCauseDirty = true; }
@@ -523,14 +520,14 @@ var DataObject = (function () {
         }
     };
     DataObject.prototype.AddObjectStateListener = function (h) {
-        this.objectListener.Add(h);
+        this.oLstenrs.Add(h);
     };
     DataObject.prototype.RemoveObjectStateListener = function () {
-        this.objectListener.Remove(function (o) { return true; });
+        this.oLstenrs.Remove(function (o) { return true; });
     };
     DataObject.prototype.OnObjectStateChanged = function () {
         var _this = this;
-        this.objectListener.forEach(function (o) { return o(_this); });
+        this.oLstenrs.forEach(function (o) { return o(_this); });
     };
     DataObject.prototype.OnElementChanged = function (v, p) {
         this[p] = v;
@@ -563,7 +560,7 @@ var CacheStrategy;
 })(CacheStrategy || (CacheStrategy = {}));
 var View = (function () {
     function View() {
-        this.eventHandlers = new Array();
+        this.eHandlrs = new Array();
         this.preload = null;
     }
     Object.defineProperty(View.prototype, "Preload", {
@@ -621,8 +618,8 @@ var View = (function () {
         var _this = this;
         var containter = this.ContainerID().Element();
         if (!Is.NullOrEmpty(containter)) {
-            this.cachedElement = "div".CreateElement({ "innerHTML": html });
-            var elements = this.cachedElement.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
+            this.cached = "div".CreateElement({ "innerHTML": html });
+            var elements = this.cached.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
             this.countBindersReported = 0;
             this.countBinders = 0;
             if (elements.length > 0) {
@@ -673,28 +670,28 @@ var View = (function () {
         var boundElements = containter.Get(function (e) { return e.Binder != null; });
         boundElements.forEach(function (e) { return e.Binder.Dispose(); });
         containter.Clear();
-        while (this.cachedElement.childNodes.length > 0) {
-            var node = this.cachedElement.childNodes[0];
-            this.cachedElement.removeChild(node);
+        while (this.cached.childNodes.length > 0) {
+            var node = this.cached.childNodes[0];
+            this.cached.removeChild(node);
             containter.appendChild(node);
         }
         this.Dispatch(EventType.Completed);
     };
     View.prototype.AddListener = function (eventType, eventHandler) {
-        var found = this.eventHandlers.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
+        var found = this.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
         if (!found) {
-            this.eventHandlers.Add(new Listener(eventType, eventHandler));
+            this.eHandlrs.Add(new Listener(eventType, eventHandler));
         }
     };
     View.prototype.RemoveListener = function (eventType, eventHandler) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
+        this.eHandlrs.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
     };
     View.prototype.RemoveListeners = function (eventType) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eventType; });
+        this.eHandlrs.Remove(function (l) { return l.EventType === eventType; });
     };
     View.prototype.Dispatch = function (eventType) {
         var _this = this;
-        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
+        var listeners = this.eHandlrs.Where(function (e) { return e.EventType === eventType; });
         listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
     return View;

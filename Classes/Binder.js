@@ -5,9 +5,8 @@ var Binder = (function () {
         this.PrimaryKeys = new Array();
         this.eventHandlers = new Array();
         this.DataObjects = new Array();
-        this.AssociatedElementIDs = new Array();
-        this.AutomaticallyUpdatesToWebApi = true;
-        this.AutomaticallySelectsFromWebApi = true;
+        this.AutomaticUpdate = true;
+        this.AutomaticSelect = true;
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
     }
@@ -18,7 +17,6 @@ var Binder = (function () {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
         t.WebApi = null;
-        t.AssociatedElementIDs = null;
         if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
@@ -32,7 +30,7 @@ var Binder = (function () {
     Binder.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
-        if (t.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(t.WebApi)) {
+        if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
             var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(), u = t.WebApi;
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
@@ -52,7 +50,7 @@ var Binder = (function () {
             if (d) {
                 if (!Is.Array(d)) {
                     t.IsFormBinding = true;
-                    t.BindToDataObject(t.NewObject(d));
+                    t.Bind(t.NewObject(d));
                 }
                 else {
                     d.forEach(function (d) { return t.Add(t.NewObject(d)); });
@@ -72,7 +70,7 @@ var Binder = (function () {
             be.Add(ne);
             t.DataRowFooter ? t.Element.insertBefore(ne, t.DataRowFooter) : t.Element.appendChild(ne);
             t.DataObjects.Add(objectToAdd);
-            t.BindToDataObject(objectToAdd, be);
+            t.Bind(objectToAdd, be);
         });
     };
     Binder.prototype.prepDataRowTemplates = function () {
@@ -96,7 +94,7 @@ var Binder = (function () {
     };
     Binder.prototype.onObjectStateChanged = function (o) {
         var t = this;
-        if (t.AutomaticallyUpdatesToWebApi && t.WebApi) {
+        if (t.AutomaticUpdate && t.WebApi) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
             a.Put(t.WebApi, o.ServerObject);
@@ -104,7 +102,7 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
-        var t = this, i = a.Sender.GetRequestData(), o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.IsPrimaryKeymatch(d, i); });
+        var t = this, i = a.Sender.GetRequestData(), o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.isPKMatch(d, i); });
         o ? t.SetServerObjectValue(o, i) : null;
     };
     Binder.prototype.SetServerObjectValue = function (d, i) {
@@ -114,7 +112,7 @@ var Binder = (function () {
             }
         }
     };
-    Binder.prototype.IsPrimaryKeymatch = function (d, incoming) {
+    Binder.prototype.isPKMatch = function (d, incoming) {
         var t = this;
         for (var i = 0; i < t.PrimaryKeys.length; i++) {
             if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
@@ -123,7 +121,7 @@ var Binder = (function () {
         }
         return true;
     };
-    Binder.prototype.BindToDataObject = function (o, eles) {
+    Binder.prototype.Bind = function (o, eles) {
         if (eles === void 0) { eles = null; }
         var t = this;
         if (!eles) {

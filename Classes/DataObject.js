@@ -4,8 +4,8 @@ var DataObject = (function () {
         if (serverObject === void 0) { serverObject = null; }
         this.changeCount = 0;
         this.changeQueued = false;
-        this.eventListeners = new Array();
-        this.objectListener = new Array();
+        this.eLstenrs = new Array();
+        this.oLstenrs = new Array();
         this.objectState = ObjectState.Clean;
         this.serverObject = serverObject;
         this.objectState = ObjectState.Clean;
@@ -25,19 +25,19 @@ var DataObject = (function () {
         configurable: true
     });
     DataObject.prototype.AddPropertyListener = function (p, a, h) {
-        this.eventListeners.Add(new PropertyListener(p, a, h));
+        this.eLstenrs.Add(new PropertyListener(p, a, h));
     };
     DataObject.prototype.RemovePropertyListeners = function () {
-        this.eventListeners.Remove(function (o) { return true; });
+        this.eLstenrs.Remove(function (o) { return true; });
     };
     DataObject.prototype.OnPropertyChanged = function (p) {
         var _this = this;
-        var l = this.eventListeners.Where(function (l) { return l.PropertyName === p; });
+        var l = this.eLstenrs.Where(function (l) { return l.PropertyName === p; });
         l.forEach(function (l) { return l.Handler(l.Attribute, _this[p]); });
     };
     DataObject.prototype.AllPropertiesChanged = function () {
         var _this = this;
-        this.eventListeners.forEach(function (l) { return l.Handler(l.Attribute, _this[l.PropertyName]); });
+        this.eLstenrs.forEach(function (l) { return l.Handler(l.Attribute, _this[l.PropertyName]); });
     };
     DataObject.prototype.InstigatePropertyChangedListeners = function (p, canCauseDirty) {
         if (canCauseDirty === void 0) { canCauseDirty = true; }
@@ -47,14 +47,14 @@ var DataObject = (function () {
         }
     };
     DataObject.prototype.AddObjectStateListener = function (h) {
-        this.objectListener.Add(h);
+        this.oLstenrs.Add(h);
     };
     DataObject.prototype.RemoveObjectStateListener = function () {
-        this.objectListener.Remove(function (o) { return true; });
+        this.oLstenrs.Remove(function (o) { return true; });
     };
     DataObject.prototype.OnObjectStateChanged = function () {
         var _this = this;
-        this.objectListener.forEach(function (o) { return o(_this); });
+        this.oLstenrs.forEach(function (o) { return o(_this); });
     };
     DataObject.prototype.OnElementChanged = function (v, p) {
         this[p] = v;

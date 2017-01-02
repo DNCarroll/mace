@@ -6,8 +6,8 @@ abstract class DataObject implements IObjectState {
     }
     private changeCount: number = 0;
     private changeQueued: boolean = false;
-    private eventListeners = new Array<PropertyListener>();
-    private objectListener = new Array<(obj: IObjectState) => void>();
+    private eLstenrs = new Array<PropertyListener>();
+    private oLstenrs = new Array<(obj: IObjectState) => void>();
     private objectState: ObjectState = ObjectState.Clean;
     get ObjectState(): ObjectState {
         return this.objectState;
@@ -20,17 +20,17 @@ abstract class DataObject implements IObjectState {
         }
     }
     AddPropertyListener(p: string, a: string, h: (attribute: string, value: any) => void) {
-        this.eventListeners.Add(new PropertyListener(p, a, h));
+        this.eLstenrs.Add(new PropertyListener(p, a, h));
     }
     RemovePropertyListeners() {
-        this.eventListeners.Remove(o => true);
+        this.eLstenrs.Remove(o => true);
     }
     OnPropertyChanged(p: string) {
-        var l = this.eventListeners.Where(l => l.PropertyName === p);
+        var l = this.eLstenrs.Where(l => l.PropertyName === p);
         l.forEach(l => l.Handler(l.Attribute, this[p]));
     }
     AllPropertiesChanged() {
-        this.eventListeners.forEach(l => l.Handler(l.Attribute, this[l.PropertyName]));
+        this.eLstenrs.forEach(l => l.Handler(l.Attribute, this[l.PropertyName]));
     }
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean = true) {
         this.OnPropertyChanged(p);
@@ -39,13 +39,13 @@ abstract class DataObject implements IObjectState {
         }
     }
     AddObjectStateListener(h: (obj: IObjectState) => void) {
-        this.objectListener.Add(h);
+        this.oLstenrs.Add(h);
     }
     RemoveObjectStateListener() {
-        this.objectListener.Remove(o => true);
+        this.oLstenrs.Remove(o => true);
     }
     OnObjectStateChanged() {
-        this.objectListener.forEach(o => o(this));
+        this.oLstenrs.forEach(o => o(this));
     }
     OnElementChanged(v: any, p: string) {
         this[p] = v;

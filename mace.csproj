@@ -47,6 +47,7 @@
     <Content Include="Scripts\mace.min.js">
       <DependentUpon>mace.js</DependentUpon>
     </Content>
+    <Content Include="Scripts\macemin.js" />
     <Content Include="Styles\UnorderList.css" />
     <Content Include="Views\BinderView.html" />
     <Content Include="Views\ContentWithShowByUrl.html" />

@@ -6,7 +6,7 @@ var CacheStrategy;
 })(CacheStrategy || (CacheStrategy = {}));
 var View = (function () {
     function View() {
-        this.eventHandlers = new Array();
+        this.eHandlrs = new Array();
         this.preload = null;
     }
     Object.defineProperty(View.prototype, "Preload", {
@@ -64,8 +64,8 @@ var View = (function () {
         var _this = this;
         var containter = this.ContainerID().Element();
         if (!Is.NullOrEmpty(containter)) {
-            this.cachedElement = "div".CreateElement({ "innerHTML": html });
-            var elements = this.cachedElement.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
+            this.cached = "div".CreateElement({ "innerHTML": html });
+            var elements = this.cached.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
             this.countBindersReported = 0;
             this.countBinders = 0;
             if (elements.length > 0) {
@@ -116,28 +116,28 @@ var View = (function () {
         var boundElements = containter.Get(function (e) { return e.Binder != null; });
         boundElements.forEach(function (e) { return e.Binder.Dispose(); });
         containter.Clear();
-        while (this.cachedElement.childNodes.length > 0) {
-            var node = this.cachedElement.childNodes[0];
-            this.cachedElement.removeChild(node);
+        while (this.cached.childNodes.length > 0) {
+            var node = this.cached.childNodes[0];
+            this.cached.removeChild(node);
             containter.appendChild(node);
         }
         this.Dispatch(EventType.Completed);
     };
     View.prototype.AddListener = function (eventType, eventHandler) {
-        var found = this.eventHandlers.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
+        var found = this.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
         if (!found) {
-            this.eventHandlers.Add(new Listener(eventType, eventHandler));
+            this.eHandlrs.Add(new Listener(eventType, eventHandler));
         }
     };
     View.prototype.RemoveListener = function (eventType, eventHandler) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
+        this.eHandlrs.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
     };
     View.prototype.RemoveListeners = function (eventType) {
-        this.eventHandlers.Remove(function (l) { return l.EventType === eventType; });
+        this.eHandlrs.Remove(function (l) { return l.EventType === eventType; });
     };
     View.prototype.Dispatch = function (eventType) {
         var _this = this;
-        var listeners = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
+        var listeners = this.eHandlrs.Where(function (e) { return e.EventType === eventType; });
         listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
     return View;

@@ -8,8 +8,8 @@ abstract class View implements IView {
     abstract ContainerID(): string;    
     private countBinders: number;
     private countBindersReported: number;
-    private cachedElement: HTMLElement    
-    private eventHandlers = new Array<Listener<IView>>();
+    private cached: HTMLElement    
+    private eHandlrs = new Array<Listener<IView>>();
     ViewInstance: ViewInstance;   
     private preload: IPreViewLoad = null;
     get Preload() {
@@ -61,8 +61,8 @@ abstract class View implements IView {
     SetHTML(html: string) {
         var containter = this.ContainerID().Element();        
         if (!Is.NullOrEmpty(containter)) {
-            this.cachedElement = "div".CreateElement({ "innerHTML": html });
-            var elements = this.cachedElement.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
+            this.cached = "div".CreateElement({ "innerHTML": html });
+            var elements = this.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
             this.countBindersReported = 0;
             this.countBinders = 0;
             if (elements.length > 0) {
@@ -112,27 +112,27 @@ abstract class View implements IView {
         var boundElements = containter.Get(e => e.Binder != null);
         boundElements.forEach(e => e.Binder.Dispose());
         containter.Clear();
-        while (this.cachedElement.childNodes.length > 0) {
-            var node = this.cachedElement.childNodes[0];            
-            this.cachedElement.removeChild(node);            
+        while (this.cached.childNodes.length > 0) {
+            var node = this.cached.childNodes[0];            
+            this.cached.removeChild(node);            
             containter.appendChild(node);
         }
         this.Dispatch(EventType.Completed);
     }
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
-        var found = this.eventHandlers.First(h => h.EventType === eventType && h.EventHandler === eventHandler);
+        var found = this.eHandlrs.First(h => h.EventType === eventType && h.EventHandler === eventHandler);
         if (!found) {
-            this.eventHandlers.Add(new Listener(eventType, eventHandler));
+            this.eHandlrs.Add(new Listener(eventType, eventHandler));
         }
     }
     RemoveListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
-        this.eventHandlers.Remove(l => l.EventType === eventType && eventHandler === eventHandler);
+        this.eHandlrs.Remove(l => l.EventType === eventType && eventHandler === eventHandler);
     }
     RemoveListeners(eventType: EventType) {
-        this.eventHandlers.Remove(l => l.EventType === eventType);
+        this.eHandlrs.Remove(l => l.EventType === eventType);
     }
     Dispatch(eventType: EventType) {
-        var listeners = this.eventHandlers.Where(e => e.EventType === eventType);
+        var listeners = this.eHandlrs.Where(e => e.EventType === eventType);
         listeners.forEach(l => l.EventHandler(new CustomEventArg<IView>(this, eventType)));
     }
 }

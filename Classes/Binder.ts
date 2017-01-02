@@ -9,10 +9,9 @@ abstract class Binder implements IBinder {
     Element: HTMLElement;
     private eventHandlers = new Array<Listener<IBinder>>();
     DataObject: IObjectState;
-    DataObjects: Array<IObjectState> = new Array<IObjectState>();
-    AssociatedElementIDs: Array<string> = new Array<string>();    
-    AutomaticallyUpdatesToWebApi: boolean = true;
-    AutomaticallySelectsFromWebApi: boolean = true;
+    DataObjects: Array<IObjectState> = new Array<IObjectState>();   
+    AutomaticUpdate: boolean = true;
+    AutomaticSelect: boolean = true;
     DataRowTemplates = new Array<string>();
     DataRowFooter :HTMLElement;
     IsFormBinding: boolean = false;
@@ -21,7 +20,6 @@ abstract class Binder implements IBinder {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
         t.WebApi = null;
-        t.AssociatedElementIDs = null;
         if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
@@ -34,7 +32,7 @@ abstract class Binder implements IBinder {
     }
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
-        if (t.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(t.WebApi)) {
+        if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
             var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters,
                 a = new Ajax(), u = t.WebApi;
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
@@ -55,7 +53,7 @@ abstract class Binder implements IBinder {
             if (d) {
                 if (!Is.Array(d)) {
                     t.IsFormBinding = true;        
-                    t.BindToDataObject(t.NewObject(d));
+                    t.Bind(t.NewObject(d));
                 }
                 else {                
                     (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
@@ -77,7 +75,7 @@ abstract class Binder implements IBinder {
             be.Add(ne);
             t.DataRowFooter ? t.Element.insertBefore(ne, t.DataRowFooter) : t.Element.appendChild(ne);
             t.DataObjects.Add(objectToAdd);
-            t.BindToDataObject(objectToAdd, be);
+            t.Bind(objectToAdd, be);
         });
     }    
     private prepDataRowTemplates() {
@@ -103,7 +101,7 @@ abstract class Binder implements IBinder {
     }
     private onObjectStateChanged(o: IObjectState) {
         var t = this;
-        if (t.AutomaticallyUpdatesToWebApi && t.WebApi) {
+        if (t.AutomaticUpdate && t.WebApi) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
             a.Put(t.WebApi, o.ServerObject);
@@ -113,7 +111,7 @@ abstract class Binder implements IBinder {
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
         var t = this,
             i = <any>a.Sender.GetRequestData(),
-            o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.IsPrimaryKeymatch(d, i));
+            o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.isPKMatch(d, i));
         o ? t.SetServerObjectValue(o, i) : null;
     }
     SetServerObjectValue(d: IObjectState, i: any) {
@@ -123,7 +121,7 @@ abstract class Binder implements IBinder {
             }
         }
     }
-    IsPrimaryKeymatch(d: IObjectState, incoming: any): boolean {
+    isPKMatch(d: IObjectState, incoming: any): boolean {
         var t = this;
         for (var i = 0; i < t.PrimaryKeys.length; i++) {
             if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
@@ -132,7 +130,7 @@ abstract class Binder implements IBinder {
         }
         return true;
     }
-    BindToDataObject(o: IObjectState, eles: Array<HTMLElement> = null) { 
+    Bind(o: IObjectState, eles: Array<HTMLElement> = null) { 
         var t = this;  
         if (!eles) {
             eles = t.Element.Get(e => e.HasDataSet());

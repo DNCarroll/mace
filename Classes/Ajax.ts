@@ -84,12 +84,11 @@ class Ajax implements IEventDispatcher<Ajax>{
     }
     private getParameters(parameters: any): string {
         var r = "";
-        if (parameters && this.ContentType == "application/json; charset=utf-8") {
-            r = JSON.stringify(parameters);
-            r = r.replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "");
-            r = r.replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "");
-            r = r.replace(/<script/ig, "");
-            r = r.replace(/script>/ig, "");
+        if (parameters && this.ContentType === "application/json; charset=utf-8") {
+            r = JSON.stringify(parameters).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
+                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
+                .replace(/<script/ig, "")
+                .replace(/script>/ig, "");
         }
         return r;
     }
