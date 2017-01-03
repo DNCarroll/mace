@@ -29,7 +29,7 @@ namespace mace.Api {
         }
 
         [Route]
-        public void Delete(int id) {
+        public void Delete([FromBody]BindingTestObject obj) {
         }
 
     }

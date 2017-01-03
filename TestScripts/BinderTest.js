@@ -136,7 +136,7 @@ var BinderTest = (function (_super) {
         bo.Name = "Test the name";
         bo.ID = 1;
         bo.Value = "test the value";
-        this.BindToDataObject(bo);
+        this.Bind(bo);
         this.Dispatch(EventType.Completed);
     };
     return BinderTest;
@@ -155,7 +155,7 @@ var BinderTest2 = (function (_super) {
         bo.Name = "Test the name";
         bo.ID = 1;
         bo.Value = "test the value";
-        this.BindToDataObject(bo);
+        this.Bind(bo);
         this.Dispatch(EventType.Completed);
     };
     return BinderTest2;

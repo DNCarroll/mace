@@ -5,9 +5,8 @@ var Binder = (function () {
         this.PrimaryKeys = new Array();
         this.eventHandlers = new Array();
         this.DataObjects = new Array();
-        this.AssociatedElementIDs = new Array();
-        this.AutomaticallyUpdatesToWebApi = true;
-        this.AutomaticallySelectsFromWebApi = true;
+        this.AutomaticUpdate = true;
+        this.AutomaticSelect = true;
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
     }
@@ -18,7 +17,6 @@ var Binder = (function () {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
         t.WebApi = null;
-        t.AssociatedElementIDs = null;
         if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
@@ -32,7 +30,7 @@ var Binder = (function () {
     Binder.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
-        if (t.AutomaticallySelectsFromWebApi && !Is.NullOrEmpty(t.WebApi)) {
+        if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
             var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(), u = t.WebApi;
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
@@ -52,7 +50,7 @@ var Binder = (function () {
             if (d) {
                 if (!Is.Array(d)) {
                     t.IsFormBinding = true;
-                    t.BindToDataObject(t.NewObject(d));
+                    t.Bind(t.NewObject(d));
                 }
                 else {
                     d.forEach(function (d) { return t.Add(t.NewObject(d)); });
@@ -61,21 +59,49 @@ var Binder = (function () {
             }
         }
     };
-    //not ready
-    Binder.prototype.Delete = function (objectToRemove) {
+    Binder.prototype.Delete = function (sender, ajaxDeleteFunction) {
+        if (ajaxDeleteFunction === void 0) { ajaxDeleteFunction = null; }
+        //do we have a binder associated correctly here?
+        //may have to traverse up to find my binder parent
+        var obj = sender.DataObject, t = this;
+        if (!obj) {
+            var parent = sender.parentElement;
+            while (!obj || parent !== t.Element) {
+                obj = parent.DataObject;
+                parent = parent.parentElement;
+            }
+        }
+        if (obj) {
+            var a = new Ajax(), f = function () {
+                var es = t.Element.Get(function (e) { return e.DataObject === obj; });
+                es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
+            }, afc = function (a) {
+                var err = function () {
+                    if (a.EventType === EventType.Error) {
+                        throw "Failed to delete row.";
+                    }
+                };
+                ajaxDeleteFunction ? ajaxDeleteFunction(a) : err();
+                a.EventType === EventType.Completed ? f() : null;
+            }, af = function () {
+                a.AddListener(EventType.Any, afc);
+                a.Delete(t.WebApi, obj);
+            };
+            t.AutomaticUpdate ? af() : f();
+        }
     };
-    Binder.prototype.Add = function (objectToAdd) {
+    Binder.prototype.Add = function (obj) {
         var t = this;
-        t.prepDataRowTemplates();
+        t.prepTemplates();
         t.DataRowTemplates.forEach(function (d) {
-            var ne = d.CreateElementFromHtml(), be = ne.Get(function (e) { return e.HasDataSet(); });
+            var ne = d.CreateElementFromHtml(), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter;
             be.Add(ne);
-            t.DataRowFooter ? t.Element.insertBefore(ne, t.DataRowFooter) : t.Element.appendChild(ne);
-            t.DataObjects.Add(objectToAdd);
-            t.BindToDataObject(objectToAdd, be);
+            drf ? t.Element.insertBefore(ne, drf) : t.Element.appendChild(ne);
+            t.DataObjects.Add(obj);
+            t.Bind(obj, be);
         });
     };
-    Binder.prototype.prepDataRowTemplates = function () {
+    Binder.prototype.prepTemplates = function () {
         var t = this;
         if (t.DataRowTemplates.length == 0) {
             var e = t.Element.children, r = new Array(), li = 0;
@@ -94,9 +120,9 @@ var Binder = (function () {
             });
         }
     };
-    Binder.prototype.onObjectStateChanged = function (o) {
+    Binder.prototype.objStateChanged = function (o) {
         var t = this;
-        if (t.AutomaticallyUpdatesToWebApi && t.WebApi) {
+        if (t.AutomaticUpdate && t.WebApi) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
             a.Put(t.WebApi, o.ServerObject);
@@ -104,7 +130,7 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
-        var t = this, i = a.Sender.GetRequestData(), o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.IsPrimaryKeymatch(d, i); });
+        var t = this, i = a.Sender.GetRequestData(), o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.isPKMatch(d, i); });
         o ? t.SetServerObjectValue(o, i) : null;
     };
     Binder.prototype.SetServerObjectValue = function (d, i) {
@@ -114,7 +140,7 @@ var Binder = (function () {
             }
         }
     };
-    Binder.prototype.IsPrimaryKeymatch = function (d, incoming) {
+    Binder.prototype.isPKMatch = function (d, incoming) {
         var t = this;
         for (var i = 0; i < t.PrimaryKeys.length; i++) {
             if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
@@ -123,7 +149,7 @@ var Binder = (function () {
         }
         return true;
     };
-    Binder.prototype.BindToDataObject = function (o, eles) {
+    Binder.prototype.Bind = function (o, eles) {
         if (eles === void 0) { eles = null; }
         var t = this;
         if (!eles) {
@@ -133,10 +159,10 @@ var Binder = (function () {
         if (t.IsFormBinding) {
             t.DataObject = o;
         }
-        o.AddObjectStateListener(t.onObjectStateChanged.bind(this));
+        o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(function (e) {
-            var element = e;
-            t.setListeners(element, o);
+            e.DataObject = o;
+            t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
     };
@@ -153,7 +179,7 @@ var Binder = (function () {
         ba.forEach(function (b) {
             if (!nba.First(function (v) { return v === b.Attribute; })) {
                 var a = t.getAttribute(b.Attribute);
-                t.setObjectPropertyListener(b.Property, a, ele, d);
+                t.setObjPropListener(b.Property, a, ele, d);
                 var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
                 if (ea_1) {
                     var fun_1 = function (evt) {
@@ -178,7 +204,7 @@ var Binder = (function () {
                 return a;
         }
     };
-    Binder.prototype.setObjectPropertyListener = function (p, a, ele, d) {
+    Binder.prototype.setObjPropListener = function (p, a, ele, d) {
         var t = this, fun = function (atr, v) {
             if (Has.Properties(ele, atr)) {
                 if (ele.tagName === "INPUT" && ele["type"] === "radio") {

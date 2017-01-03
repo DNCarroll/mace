@@ -30,7 +30,7 @@
         var it = ignoreTheseNames(),
             w = window;
         for (var o in w) {
-            var n = getNameToTest(getStringOf(w[o]), it);
+            let n = getNameToTest(getStringOf(w[o]), it);
             if (!Is.NullOrEmpty(n)) {
                 try {
                     var no = (new Function("return new " + n + "();"))();                    

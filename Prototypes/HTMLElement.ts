@@ -7,6 +7,8 @@ interface HTMLElement extends Element {
     HasDataSet: () => boolean;
     GetDataSetAttributes: () => { Attribute: string; Property: any; }[];        
     Binder: IBinder;
+    DataObject: IObjectState;   
+    DeleteFromServer(); 
 }
 HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
     var n = nodes == null ? new Array<HTMLElement>() : nodes;
@@ -101,7 +103,18 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     }
     return r;
 };
-
+HTMLElement.prototype.DeleteFromServer = function () {    
+    var p = this.parentElement;
+    while (!p.Binder) {
+        p = p.parentElement;
+        if (p === document.body) {
+            break;
+        }
+    }
+    if (p && p.Binder) {
+        p.Binder.Delete(this);
+    }
+};
 
 
 

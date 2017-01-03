@@ -8,8 +8,8 @@ abstract class View implements IView {
     abstract ContainerID(): string;    
     private countBinders: number;
     private countBindersReported: number;
-    private cachedElement: HTMLElement    
-    private eventHandlers = new Array<Listener<IView>>();
+    private cached: HTMLElement    
+    private eHandlrs = new Array<Listener<IView>>();
     ViewInstance: ViewInstance;   
     private preload: IPreViewLoad = null;
     get Preload() {
@@ -19,72 +19,74 @@ abstract class View implements IView {
         this.preload = value;
     }    
     Cache(strategy: CacheStrategy = CacheStrategy.ViewAndData) {
-        if (this.Preload &&
+        var t = this;
+        if (t.Preload &&
             (strategy === CacheStrategy.ViewAndData || strategy === CacheStrategy.Data)) {
-            this.Preload.Execute(() => { });
+            t.Preload.Execute(() => { });
         }        
-        var found = sessionStorage.getItem(this.ViewUrl());
-        if (!found && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndData)) {
-            var that = this;
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, (arg: ICustomEventArg<Ajax>) => {
-                that.RequestCompleted(arg, true);
+        var f = sessionStorage.getItem(t.ViewUrl());
+        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndData)) {            
+            var a = new Ajax();
+            a.AddListener(EventType.Completed, (arg: ICustomEventArg<Ajax>) => {
+                t.RequestCompleted(arg, true);
             });
-            ajax.Get(this.ViewUrl());
+            a.Get(t.ViewUrl());
         }
     }
     Show(viewInstance: ViewInstance) {
-        this.ViewInstance = viewInstance;
-        this.Preload ? this.Preload.Execute(this.postPreloaded.bind(this)) : this.postPreloaded();
+        var t = this;
+        t.ViewInstance = viewInstance;
+        t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     }
     private postPreloaded() {
-        var found = sessionStorage.getItem(this.ViewUrl());
-        if (!found || window["IsDebug"]) {
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, this.RequestCompleted.bind(this));
-            ajax.Get(this.ViewUrl());
+        var t = this,
+            f = sessionStorage.getItem(t.ViewUrl());
+        if (!f || window["IsDebug"]) {
+            var a = new Ajax();
+            a.AddListener(EventType.Completed, t.RequestCompleted.bind(this));
+            a.Get(t.ViewUrl());
         }
         else {
-            this.SetHTML(found);
+            t.SetHTML(f);
         }
     }
-    RequestCompleted(arg: CustomEventArg<Ajax>, dontSetHTML = false) {        
-        if (arg.Sender.ResponseText) {
-            sessionStorage.setItem(this.ViewUrl(), arg.Sender.ResponseText);
+    RequestCompleted(a: CustomEventArg<Ajax>, dontSetHTML = false) {        
+        if (a.Sender.ResponseText) {
+            sessionStorage.setItem(this.ViewUrl(), a.Sender.ResponseText);
             if (!dontSetHTML) {
-                this.SetHTML(arg.Sender.ResponseText);
+                this.SetHTML(a.Sender.ResponseText);
             }
         }        
-        arg.Sender = null;
+        a.Sender = null;
     }    
-    
     SetHTML(html: string) {
-        var containter = this.ContainerID().Element();        
-        if (!Is.NullOrEmpty(containter)) {
-            this.cachedElement = "div".CreateElement({ "innerHTML": html });
-            var elements = this.cachedElement.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
-            this.countBindersReported = 0;
-            this.countBinders = 0;
-            if (elements.length > 0) {
-                elements.forEach(e => {
+        var t = this,
+            c = t.ContainerID().Element();        
+        if (!Is.NullOrEmpty(c)) {
+            t.cached = "div".CreateElement({ "innerHTML": html });
+            var ele = t.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
+            t.countBindersReported = 0;
+            t.countBinders = 0;
+            if (ele.length > 0) {
+                ele.forEach(e => {
                     try {
                         var attribute = e.getAttribute("data-binder");
                         if (attribute) {
-                            var fun = new Function("return new " + attribute + "()");
+                            let fun = new Function("return new " + attribute + "()");
                             e.Binder = <IBinder>fun();
-                            e.Binder.AddListener(EventType.Completed, this.OnBinderComplete.bind(this));
+                            e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;
-                            this.countBinders = this.countBinders + 1;
+                            t.countBinders = t.countBinders + 1;
                         }
                     }
                     catch (e) {
                         window.Exception(e);
                     }
                 });
-                elements.forEach(e => {
+                ele.forEach(e => {
                     if (e.Binder) {
                         try {
-                            e.Binder.Execute(this.ViewInstance);
+                            e.Binder.Execute(t.ViewInstance);
                         }
                         catch (ex) {
                             window.Exception(e);
@@ -92,48 +94,51 @@ abstract class View implements IView {
                     }
                 });
             } else {
-                this.MoveStuffFromCacheToReal();
+                t.MoveStuffFromCacheToReal();
             }
         }
         else {
-            this.Dispatch(EventType.Completed);
+            t.Dispatch(EventType.Completed);
         }
     }    
-    OnBinderComplete(arg: ICustomEventArg<IBinder>) {
-        if (arg.EventType === EventType.Completed) {
-            this.countBindersReported = this.countBindersReported + 1;
-            if (this.countBinders === this.countBindersReported) {
-                this.MoveStuffFromCacheToReal();
+    OnBinderComplete(a: ICustomEventArg<IBinder>) {
+        var t = this;
+        if (a.EventType === EventType.Completed) {
+            t.countBindersReported = t.countBindersReported + 1;
+            if (t.countBinders === t.countBindersReported) {
+                t.MoveStuffFromCacheToReal();
             }
         }
     }
     MoveStuffFromCacheToReal() {
-        var containter = this.ContainerID().Element();
-        var boundElements = containter.Get(e => e.Binder != null);
-        boundElements.forEach(e => e.Binder.Dispose());
-        containter.Clear();
-        while (this.cachedElement.childNodes.length > 0) {
-            var node = this.cachedElement.childNodes[0];            
-            this.cachedElement.removeChild(node);            
-            containter.appendChild(node);
+        var t = this,
+            c = t.ContainerID().Element();
+        var be = c.Get(e => e.Binder != null);
+        be.forEach(e => e.Binder.Dispose());
+        c.Clear();
+        while (t.cached.childNodes.length > 0) {
+            let n = t.cached.childNodes[0];            
+            t.cached.removeChild(n);            
+            c.appendChild(n);
         }
-        this.Dispatch(EventType.Completed);
+        t.Dispatch(EventType.Completed);
     }
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
-        var found = this.eventHandlers.First(h => h.EventType === eventType && h.EventHandler === eventHandler);
-        if (!found) {
-            this.eventHandlers.Add(new Listener(eventType, eventHandler));
+        var t = this,
+            f = t.eHandlrs.First(h => h.EventType === eventType && h.EventHandler === eventHandler);
+        if (!f) {
+            t.eHandlrs.Add(new Listener(eventType, eventHandler));
         }
     }
     RemoveListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
-        this.eventHandlers.Remove(l => l.EventType === eventType && eventHandler === eventHandler);
+        this.eHandlrs.Remove(l => l.EventType === eventType && eventHandler === eventHandler);
     }
     RemoveListeners(eventType: EventType) {
-        this.eventHandlers.Remove(l => l.EventType === eventType);
+        this.eHandlrs.Remove(l => l.EventType === eventType);
     }
     Dispatch(eventType: EventType) {
-        var listeners = this.eventHandlers.Where(e => e.EventType === eventType);
-        listeners.forEach(l => l.EventHandler(new CustomEventArg<IView>(this, eventType)));
+        var l = this.eHandlrs.Where(e => e.EventType === eventType);
+        l.forEach(l => l.EventHandler(new CustomEventArg<IView>(this, eventType)));
     }
 }
 //thinking is could have a generic type that could 
@@ -149,14 +154,16 @@ class DataLoaders implements IPreViewLoad{
         this._dataLoaders = dataLoaders;
     }
     Execute(callback: () => void) {
-        this._callback = callback;
-        this.completedCount = 0;
-        this._dataLoaders.forEach(d => d.Execute(this.Completed.bind(this)));
+        var t = this;
+        t._callback = callback;
+        t.completedCount = 0;
+        t._dataLoaders.forEach(d => d.Execute(t.Completed.bind(this)));
     }
     Completed() {
-        this.completedCount++;
-        if (this.completedCount === this._dataLoaders.length) {
-            this._callback();
+        var t = this;
+        t.completedCount++;
+        if (t.completedCount === t._dataLoaders.length) {
+            t._callback();
         }
     }
 }
@@ -167,19 +174,21 @@ class DataLoader {
     private _completed: () => void;
     private _parameters: any = null;
     constructor(dataUrl: string, dataCallBack: (arg: ICustomEventArg<Ajax>) => void, shouldTryLoad: () => boolean = null, parameters: any = null) {
-        this._dataCallBack = dataCallBack;
-        this._dataUrl = dataUrl;
-        this._shouldTryLoad = shouldTryLoad;
+        var t = this;
+        t._dataCallBack = dataCallBack;
+        t._dataUrl = dataUrl;
+        t._shouldTryLoad = shouldTryLoad;
     }
     Execute(completed: () => void) {
-        this._completed = completed;
-        if (!this._shouldTryLoad || this._shouldTryLoad()) {
+        var t = this;
+        t._completed = completed;
+        if (!t._shouldTryLoad || t._shouldTryLoad()) {
             var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, this._ajaxCompleted.bind(this));
-            ajax.Get(this._dataUrl, this._parameters);
+            ajax.AddListener(EventType.Completed, t._ajaxCompleted.bind(this));
+            ajax.Get(t._dataUrl, t._parameters);
         }
         else {
-            this._completed();
+            t._completed();
         }
     }
     private _ajaxCompleted(arg: ICustomEventArg<Ajax>) {
