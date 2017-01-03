@@ -66,3 +66,27 @@ abstract class DataObject implements IObjectState {
         }
     }
 }
+class DynamicDataObject extends DataObject {
+    constructor(serverObject: any) {
+        var so = serverObject;
+        super(so);        
+        for (var p in so) {            
+            this.setupProperties(p, so);
+        }
+    }
+    private setupProperties(p: string, o: any) {        
+        var getter = function () {
+            return o[p];
+        },
+        setter = function (v) {
+            this.SetServerProperty(p, v);
+        },
+        odp = Object.defineProperty;
+        if (odp) {
+            odp(this, p, {
+                'get': getter,
+                'set': setter
+            });
+        }
+    }
+}

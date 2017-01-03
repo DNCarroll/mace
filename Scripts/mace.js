@@ -495,6 +495,11 @@ var Binder = (function () {
     return Binder;
 }());
 //# sourceMappingURL=Binder.js.map
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 //state management isnt working right yet with regards to the put and the complete of the ajax call
 var DataObject = (function () {
     function DataObject(serverObject) {
@@ -575,6 +580,30 @@ var DataObject = (function () {
     };
     return DataObject;
 }());
+var DynamicDataObject = (function (_super) {
+    __extends(DynamicDataObject, _super);
+    function DynamicDataObject(serverObject) {
+        var so = serverObject;
+        _super.call(this, so);
+        for (var p in so) {
+            this.setupProperties(p, so);
+        }
+    }
+    DynamicDataObject.prototype.setupProperties = function (p, o) {
+        var getter = function () {
+            return o[p];
+        }, setter = function (v) {
+            this.SetServerProperty(p, v);
+        }, odp = Object.defineProperty;
+        if (odp) {
+            odp(this, p, {
+                'get': getter,
+                'set': setter
+            });
+        }
+    };
+    return DynamicDataObject;
+}(DataObject));
 //# sourceMappingURL=DataObject.js.map
 var CacheStrategy;
 (function (CacheStrategy) {
