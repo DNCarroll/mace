@@ -9,7 +9,7 @@ var Ajax = (function () {
     }
     Object.defineProperty(Ajax.prototype, "ResponseText", {
         get: function () {
-            return this.XMLHttpRequest.responseText;
+            return this.XHttp.responseText;
         },
         enumerable: true,
         configurable: true
@@ -17,30 +17,28 @@ var Ajax = (function () {
     Ajax.prototype.Submit = function (method, url, parameters) {
         if (parameters === void 0) { parameters = null; }
         var t = this;
-        t.showProgress();
+        t.Progress();
         url = t.getUrl(url);
-        t.XMLHttpRequest = new XMLHttpRequest();
-        var x = t.XMLHttpRequest;
-        x.addEventListener("readystatechange", t.onReaderStateChange.bind(t), false);
+        t.XHttp = new XMLHttpRequest();
+        var x = t.XHttp;
+        x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
         x.open(method, url, true);
         x.setRequestHeader("content-type", t.ContentType);
-        t.setCustomHeader();
+        t.setHead();
         try {
             x.send(t.getParameters(parameters));
         }
         catch (e) {
-            t.HideProgress();
+            t.Progress(false);
             window.Exception(e);
         }
     };
-    Ajax.prototype.onReaderStateChange = function (e) {
-        if (this.isRequestReady()) {
-            this.HideProgress();
-            this.Dispatch(EventType.Completed);
+    Ajax.prototype.xStateChanged = function (e) {
+        var t = this;
+        if (t.isRequestReady()) {
+            t.Progress(false);
+            t.Dispatch(EventType.Completed);
         }
-    };
-    Ajax.prototype.showProgress = function () {
-        this.showHideProgress(true);
     };
     Ajax.prototype.getUrl = function (url) {
         if (url.indexOf("http") == -1 && !Is.NullOrEmpty(Ajax.Host)) {
@@ -49,13 +47,11 @@ var Ajax = (function () {
         return url;
     };
     Ajax.prototype.isRequestReady = function () {
-        var x = this.XMLHttpRequest;
+        var x = this.XHttp;
         return x && x.readyState == 4;
     };
-    Ajax.prototype.HideProgress = function () {
-        this.showHideProgress(false);
-    };
-    Ajax.prototype.showHideProgress = function (show) {
+    Ajax.prototype.Progress = function (show) {
+        if (show === void 0) { show = true; }
         if (this.ManipulateProgressElement) {
             show ? ProgressManager.Show() : ProgressManager.Hide();
             var de = this.DisableElement, d = "disabled", f = function (e) {
@@ -73,13 +69,13 @@ var Ajax = (function () {
             }
         }
     };
-    Ajax.prototype.setCustomHeader = function () {
+    Ajax.prototype.setHead = function () {
         var t = this;
         if (t.Header) {
             var h = t.Header();
             if (h) {
                 for (var p in h) {
-                    t.XMLHttpRequest.setRequestHeader(p, h[p]);
+                    t.XHttp.setRequestHeader(p, h[p]);
                 }
             }
         }
@@ -95,7 +91,7 @@ var Ajax = (function () {
         return r;
     };
     Ajax.prototype.GetRequestData = function () {
-        var r = null, t = this, x = this.XMLHttpRequest;
+        var r = null, t = this, x = this.XHttp;
         if (t.isRequestReady() && (x.status == 200 || x.status == 204) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;

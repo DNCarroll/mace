@@ -21,8 +21,8 @@ var ViewContainer = (function () {
         }
         return false;
     };
-    ViewContainer.prototype.ViewLoadCompleted = function (arg) {
-        if (arg.EventType === EventType.Completed) {
+    ViewContainer.prototype.ViewLoadCompleted = function (a) {
+        if (a.EventType === EventType.Completed) {
             this.NumberViewsShown = this.NumberViewsShown + 1;
         }
         if (this.NumberViewsShown === this.Views.length) {

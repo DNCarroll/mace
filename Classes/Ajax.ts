@@ -9,34 +9,32 @@ class Ajax implements IEventDispatcher<Ajax>{
     Header: () => any;
     eventHandlers = new Array<Listener<Ajax>>();
     get ResponseText(): string {
-        return this.XMLHttpRequest.responseText;
+        return this.XHttp.responseText;
     }
-    XMLHttpRequest: XMLHttpRequest;
+    XHttp: XMLHttpRequest;
     Submit(method: string, url: string, parameters: any = null) {
-        var t = this;
-        t.showProgress();
+        var t = this;        
+        t.Progress();
         url = t.getUrl(url);
-        t.XMLHttpRequest = new XMLHttpRequest(); 
-        var x = t.XMLHttpRequest;       
-        x.addEventListener("readystatechange", t.onReaderStateChange.bind(t), false);        
+        t.XHttp = new XMLHttpRequest(); 
+        var x = t.XHttp;       
+        x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);        
         x.open(method, url, true);
         x.setRequestHeader("content-type", t.ContentType);
-        t.setCustomHeader();
+        t.setHead();
         try {
             x.send(t.getParameters(parameters));
-        } catch (e) {
-            t.HideProgress();
+        } catch (e) {            
+            t.Progress(false);
             window.Exception(e);
         }
     }
-    private onReaderStateChange(e) {
-        if (this.isRequestReady()) {
-            this.HideProgress();
-            this.Dispatch(EventType.Completed);            
+    private xStateChanged(e) {
+        var t = this;
+        if (t.isRequestReady()) {            
+            t.Progress(false);
+            t.Dispatch(EventType.Completed);            
         }
-    }
-    private showProgress() {
-        this.showHideProgress(true);
     }
     private getUrl(url: string): string {
         if (url.indexOf("http") == -1 && !Is.NullOrEmpty(Ajax.Host)) {
@@ -45,13 +43,10 @@ class Ajax implements IEventDispatcher<Ajax>{
         return url;
     }
     private isRequestReady(): boolean {
-        var x = this.XMLHttpRequest;
+        var x = this.XHttp;
         return x && x.readyState == 4;
     }
-    HideProgress() {
-        this.showHideProgress(false);
-    }
-    private showHideProgress(show: boolean) {
+    private Progress(show: boolean = true) {
         if (this.ManipulateProgressElement) {
             show ? ProgressManager.Show() : ProgressManager.Hide();
             var de = this.DisableElement,
@@ -71,13 +66,13 @@ class Ajax implements IEventDispatcher<Ajax>{
             }
         }
     }
-    private setCustomHeader() {
+    private setHead() {
         var t = this;
         if (t.Header) {
             var h = t.Header();
             if (h) {
                 for (var p in h) {
-                    t.XMLHttpRequest.setRequestHeader(p, h[p]);
+                    t.XHttp.setRequestHeader(p, h[p]);
                 }
             }
         }
@@ -94,7 +89,7 @@ class Ajax implements IEventDispatcher<Ajax>{
     }
 
     GetRequestData(): any {
-        var r = null, t = this, x = this.XMLHttpRequest;       
+        var r = null, t = this, x = this.XHttp;       
         if (t.isRequestReady() && (x.status == 200 || x.status == 204) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;

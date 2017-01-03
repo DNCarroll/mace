@@ -64,7 +64,7 @@ var Binder = (function () {
     };
     Binder.prototype.Add = function (objectToAdd) {
         var t = this;
-        t.prepDataRowTemplates();
+        t.prepTemplates();
         t.DataRowTemplates.forEach(function (d) {
             var ne = d.CreateElementFromHtml(), be = ne.Get(function (e) { return e.HasDataSet(); });
             be.Add(ne);
@@ -73,7 +73,7 @@ var Binder = (function () {
             t.Bind(objectToAdd, be);
         });
     };
-    Binder.prototype.prepDataRowTemplates = function () {
+    Binder.prototype.prepTemplates = function () {
         var t = this;
         if (t.DataRowTemplates.length == 0) {
             var e = t.Element.children, r = new Array(), li = 0;
@@ -92,7 +92,7 @@ var Binder = (function () {
             });
         }
     };
-    Binder.prototype.onObjectStateChanged = function (o) {
+    Binder.prototype.objStateChanged = function (o) {
         var t = this;
         if (t.AutomaticUpdate && t.WebApi) {
             var a = new Ajax();
@@ -131,7 +131,7 @@ var Binder = (function () {
         if (t.IsFormBinding) {
             t.DataObject = o;
         }
-        o.AddObjectStateListener(t.onObjectStateChanged.bind(this));
+        o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(function (e) {
             var element = e;
             t.setListeners(element, o);
@@ -151,7 +151,7 @@ var Binder = (function () {
         ba.forEach(function (b) {
             if (!nba.First(function (v) { return v === b.Attribute; })) {
                 var a = t.getAttribute(b.Attribute);
-                t.setObjectPropertyListener(b.Property, a, ele, d);
+                t.setObjPropListener(b.Property, a, ele, d);
                 var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
                 if (ea_1) {
                     var fun_1 = function (evt) {
@@ -176,7 +176,7 @@ var Binder = (function () {
                 return a;
         }
     };
-    Binder.prototype.setObjectPropertyListener = function (p, a, ele, d) {
+    Binder.prototype.setObjPropListener = function (p, a, ele, d) {
         var t = this, fun = function (atr, v) {
             if (Has.Properties(ele, atr)) {
                 if (ele.tagName === "INPUT" && ele["type"] === "radio") {

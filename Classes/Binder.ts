@@ -68,7 +68,7 @@ abstract class Binder implements IBinder {
     }   
     Add(objectToAdd: IObjectState) {
         var t = this;
-        t.prepDataRowTemplates();         
+        t.prepTemplates();         
         t.DataRowTemplates.forEach(d => {
             let ne = d.CreateElementFromHtml(),
                 be = ne.Get(e => e.HasDataSet());
@@ -78,7 +78,7 @@ abstract class Binder implements IBinder {
             t.Bind(objectToAdd, be);
         });
     }    
-    private prepDataRowTemplates() {
+    private prepTemplates() {
         var t = this;
         if (t.DataRowTemplates.length == 0) {            
             var e = t.Element.children,
@@ -99,7 +99,7 @@ abstract class Binder implements IBinder {
             });
         }
     }
-    private onObjectStateChanged(o: IObjectState) {
+    private objStateChanged(o: IObjectState) {
         var t = this;
         if (t.AutomaticUpdate && t.WebApi) {
             var a = new Ajax();
@@ -139,7 +139,7 @@ abstract class Binder implements IBinder {
         if (t.IsFormBinding) {
             t.DataObject = o;            
         }
-        o.AddObjectStateListener(t.onObjectStateChanged.bind(this));
+        o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(e => {
             let element = e;
             t.setListeners(element, o);
@@ -162,7 +162,7 @@ abstract class Binder implements IBinder {
         ba.forEach(b => {
             if (!nba.First(v => v === b.Attribute)) {
                 let a = t.getAttribute(b.Attribute);
-                t.setObjectPropertyListener(b.Property, a, ele, d);
+                t.setObjPropListener(b.Property, a, ele, d);
                 let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
                 if (ea) {
                     let fun = (evt) => {
@@ -187,7 +187,7 @@ abstract class Binder implements IBinder {
                 return a;
         }
     }
-    private setObjectPropertyListener(p: string, a: string, ele: HTMLElement, d: IObjectState) {
+    private setObjPropListener(p: string, a: string, ele: HTMLElement, d: IObjectState) {
         var t = this,
             fun = (atr: string, v: any) => {
             if (Has.Properties(ele, atr)) {

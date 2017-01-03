@@ -9,7 +9,7 @@ var Ajax = (function () {
     }
     Object.defineProperty(Ajax.prototype, "ResponseText", {
         get: function () {
-            return this.XMLHttpRequest.responseText;
+            return this.XHttp.responseText;
         },
         enumerable: true,
         configurable: true
@@ -17,30 +17,28 @@ var Ajax = (function () {
     Ajax.prototype.Submit = function (method, url, parameters) {
         if (parameters === void 0) { parameters = null; }
         var t = this;
-        t.showProgress();
+        t.Progress();
         url = t.getUrl(url);
-        t.XMLHttpRequest = new XMLHttpRequest();
-        var x = t.XMLHttpRequest;
-        x.addEventListener("readystatechange", t.onReaderStateChange.bind(t), false);
+        t.XHttp = new XMLHttpRequest();
+        var x = t.XHttp;
+        x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
         x.open(method, url, true);
         x.setRequestHeader("content-type", t.ContentType);
-        t.setCustomHeader();
+        t.setHead();
         try {
             x.send(t.getParameters(parameters));
         }
         catch (e) {
-            t.HideProgress();
+            t.Progress(false);
             window.Exception(e);
         }
     };
-    Ajax.prototype.onReaderStateChange = function (e) {
-        if (this.isRequestReady()) {
-            this.HideProgress();
-            this.Dispatch(EventType.Completed);
+    Ajax.prototype.xStateChanged = function (e) {
+        var t = this;
+        if (t.isRequestReady()) {
+            t.Progress(false);
+            t.Dispatch(EventType.Completed);
         }
-    };
-    Ajax.prototype.showProgress = function () {
-        this.showHideProgress(true);
     };
     Ajax.prototype.getUrl = function (url) {
         if (url.indexOf("http") == -1 && !Is.NullOrEmpty(Ajax.Host)) {
@@ -49,13 +47,11 @@ var Ajax = (function () {
         return url;
     };
     Ajax.prototype.isRequestReady = function () {
-        var x = this.XMLHttpRequest;
+        var x = this.XHttp;
         return x && x.readyState == 4;
     };
-    Ajax.prototype.HideProgress = function () {
-        this.showHideProgress(false);
-    };
-    Ajax.prototype.showHideProgress = function (show) {
+    Ajax.prototype.Progress = function (show) {
+        if (show === void 0) { show = true; }
         if (this.ManipulateProgressElement) {
             show ? ProgressManager.Show() : ProgressManager.Hide();
             var de = this.DisableElement, d = "disabled", f = function (e) {
@@ -73,13 +69,13 @@ var Ajax = (function () {
             }
         }
     };
-    Ajax.prototype.setCustomHeader = function () {
+    Ajax.prototype.setHead = function () {
         var t = this;
         if (t.Header) {
             var h = t.Header();
             if (h) {
                 for (var p in h) {
-                    t.XMLHttpRequest.setRequestHeader(p, h[p]);
+                    t.XHttp.setRequestHeader(p, h[p]);
                 }
             }
         }
@@ -95,7 +91,7 @@ var Ajax = (function () {
         return r;
     };
     Ajax.prototype.GetRequestData = function () {
-        var r = null, t = this, x = this.XMLHttpRequest;
+        var r = null, t = this, x = this.XHttp;
         if (t.isRequestReady() && (x.status == 200 || x.status == 204) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
@@ -296,7 +292,7 @@ var Binder = (function () {
     };
     Binder.prototype.Add = function (objectToAdd) {
         var t = this;
-        t.prepDataRowTemplates();
+        t.prepTemplates();
         t.DataRowTemplates.forEach(function (d) {
             var ne = d.CreateElementFromHtml(), be = ne.Get(function (e) { return e.HasDataSet(); });
             be.Add(ne);
@@ -305,7 +301,7 @@ var Binder = (function () {
             t.Bind(objectToAdd, be);
         });
     };
-    Binder.prototype.prepDataRowTemplates = function () {
+    Binder.prototype.prepTemplates = function () {
         var t = this;
         if (t.DataRowTemplates.length == 0) {
             var e = t.Element.children, r = new Array(), li = 0;
@@ -324,7 +320,7 @@ var Binder = (function () {
             });
         }
     };
-    Binder.prototype.onObjectStateChanged = function (o) {
+    Binder.prototype.objStateChanged = function (o) {
         var t = this;
         if (t.AutomaticUpdate && t.WebApi) {
             var a = new Ajax();
@@ -363,7 +359,7 @@ var Binder = (function () {
         if (t.IsFormBinding) {
             t.DataObject = o;
         }
-        o.AddObjectStateListener(t.onObjectStateChanged.bind(this));
+        o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(function (e) {
             var element = e;
             t.setListeners(element, o);
@@ -383,7 +379,7 @@ var Binder = (function () {
         ba.forEach(function (b) {
             if (!nba.First(function (v) { return v === b.Attribute; })) {
                 var a = t.getAttribute(b.Attribute);
-                t.setObjectPropertyListener(b.Property, a, ele, d);
+                t.setObjPropListener(b.Property, a, ele, d);
                 var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
                 if (ea_1) {
                     var fun_1 = function (evt) {
@@ -408,7 +404,7 @@ var Binder = (function () {
                 return a;
         }
     };
-    Binder.prototype.setObjectPropertyListener = function (p, a, ele, d) {
+    Binder.prototype.setObjPropListener = function (p, a, ele, d) {
         var t = this, fun = function (atr, v) {
             if (Has.Properties(ele, atr)) {
                 if (ele.tagName === "INPUT" && ele["type"] === "radio") {
@@ -575,73 +571,74 @@ var View = (function () {
     });
     View.prototype.Cache = function (strategy) {
         if (strategy === void 0) { strategy = CacheStrategy.ViewAndData; }
-        if (this.Preload &&
+        var t = this;
+        if (t.Preload &&
             (strategy === CacheStrategy.ViewAndData || strategy === CacheStrategy.Data)) {
-            this.Preload.Execute(function () { });
+            t.Preload.Execute(function () { });
         }
-        var found = sessionStorage.getItem(this.ViewUrl());
-        if (!found && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndData)) {
-            var that = this;
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, function (arg) {
-                that.RequestCompleted(arg, true);
+        var f = sessionStorage.getItem(t.ViewUrl());
+        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndData)) {
+            var a = new Ajax();
+            a.AddListener(EventType.Completed, function (arg) {
+                t.RequestCompleted(arg, true);
             });
-            ajax.Get(this.ViewUrl());
+            a.Get(t.ViewUrl());
         }
     };
     View.prototype.Show = function (viewInstance) {
-        this.ViewInstance = viewInstance;
-        this.Preload ? this.Preload.Execute(this.postPreloaded.bind(this)) : this.postPreloaded();
+        var t = this;
+        t.ViewInstance = viewInstance;
+        t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     };
     View.prototype.postPreloaded = function () {
-        var found = sessionStorage.getItem(this.ViewUrl());
-        if (!found || window["IsDebug"]) {
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, this.RequestCompleted.bind(this));
-            ajax.Get(this.ViewUrl());
+        var t = this, f = sessionStorage.getItem(t.ViewUrl());
+        if (!f || window["IsDebug"]) {
+            var a = new Ajax();
+            a.AddListener(EventType.Completed, t.RequestCompleted.bind(this));
+            a.Get(t.ViewUrl());
         }
         else {
-            this.SetHTML(found);
+            t.SetHTML(f);
         }
     };
-    View.prototype.RequestCompleted = function (arg, dontSetHTML) {
+    View.prototype.RequestCompleted = function (a, dontSetHTML) {
         if (dontSetHTML === void 0) { dontSetHTML = false; }
-        if (arg.Sender.ResponseText) {
-            sessionStorage.setItem(this.ViewUrl(), arg.Sender.ResponseText);
+        if (a.Sender.ResponseText) {
+            sessionStorage.setItem(this.ViewUrl(), a.Sender.ResponseText);
             if (!dontSetHTML) {
-                this.SetHTML(arg.Sender.ResponseText);
+                this.SetHTML(a.Sender.ResponseText);
             }
         }
-        arg.Sender = null;
+        a.Sender = null;
     };
     View.prototype.SetHTML = function (html) {
         var _this = this;
-        var containter = this.ContainerID().Element();
-        if (!Is.NullOrEmpty(containter)) {
-            this.cached = "div".CreateElement({ "innerHTML": html });
-            var elements = this.cached.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
-            this.countBindersReported = 0;
-            this.countBinders = 0;
-            if (elements.length > 0) {
-                elements.forEach(function (e) {
+        var t = this, c = t.ContainerID().Element();
+        if (!Is.NullOrEmpty(c)) {
+            t.cached = "div".CreateElement({ "innerHTML": html });
+            var ele = t.cached.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
+            t.countBindersReported = 0;
+            t.countBinders = 0;
+            if (ele.length > 0) {
+                ele.forEach(function (e) {
                     try {
                         var attribute = e.getAttribute("data-binder");
                         if (attribute) {
                             var fun = new Function("return new " + attribute + "()");
                             e.Binder = fun();
-                            e.Binder.AddListener(EventType.Completed, _this.OnBinderComplete.bind(_this));
+                            e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(_this));
                             e.Binder.Element = e;
-                            _this.countBinders = _this.countBinders + 1;
+                            t.countBinders = t.countBinders + 1;
                         }
                     }
                     catch (e) {
                         window.Exception(e);
                     }
                 });
-                elements.forEach(function (e) {
+                ele.forEach(function (e) {
                     if (e.Binder) {
                         try {
-                            e.Binder.Execute(_this.ViewInstance);
+                            e.Binder.Execute(t.ViewInstance);
                         }
                         catch (ex) {
                             window.Exception(e);
@@ -650,37 +647,38 @@ var View = (function () {
                 });
             }
             else {
-                this.MoveStuffFromCacheToReal();
+                t.MoveStuffFromCacheToReal();
             }
         }
         else {
-            this.Dispatch(EventType.Completed);
+            t.Dispatch(EventType.Completed);
         }
     };
-    View.prototype.OnBinderComplete = function (arg) {
-        if (arg.EventType === EventType.Completed) {
-            this.countBindersReported = this.countBindersReported + 1;
-            if (this.countBinders === this.countBindersReported) {
-                this.MoveStuffFromCacheToReal();
+    View.prototype.OnBinderComplete = function (a) {
+        var t = this;
+        if (a.EventType === EventType.Completed) {
+            t.countBindersReported = t.countBindersReported + 1;
+            if (t.countBinders === t.countBindersReported) {
+                t.MoveStuffFromCacheToReal();
             }
         }
     };
     View.prototype.MoveStuffFromCacheToReal = function () {
-        var containter = this.ContainerID().Element();
-        var boundElements = containter.Get(function (e) { return e.Binder != null; });
-        boundElements.forEach(function (e) { return e.Binder.Dispose(); });
-        containter.Clear();
-        while (this.cached.childNodes.length > 0) {
-            var node = this.cached.childNodes[0];
-            this.cached.removeChild(node);
-            containter.appendChild(node);
+        var t = this, c = t.ContainerID().Element();
+        var be = c.Get(function (e) { return e.Binder != null; });
+        be.forEach(function (e) { return e.Binder.Dispose(); });
+        c.Clear();
+        while (t.cached.childNodes.length > 0) {
+            var n = t.cached.childNodes[0];
+            t.cached.removeChild(n);
+            c.appendChild(n);
         }
-        this.Dispatch(EventType.Completed);
+        t.Dispatch(EventType.Completed);
     };
     View.prototype.AddListener = function (eventType, eventHandler) {
-        var found = this.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
-        if (!found) {
-            this.eHandlrs.Add(new Listener(eventType, eventHandler));
+        var t = this, f = t.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
+        if (!f) {
+            t.eHandlrs.Add(new Listener(eventType, eventHandler));
         }
     };
     View.prototype.RemoveListener = function (eventType, eventHandler) {
@@ -691,8 +689,8 @@ var View = (function () {
     };
     View.prototype.Dispatch = function (eventType) {
         var _this = this;
-        var listeners = this.eHandlrs.Where(function (e) { return e.EventType === eventType; });
-        listeners.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
+        var l = this.eHandlrs.Where(function (e) { return e.EventType === eventType; });
+        l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
     return View;
 }());
@@ -707,14 +705,16 @@ var DataLoaders = (function () {
     }
     DataLoaders.prototype.Execute = function (callback) {
         var _this = this;
-        this._callback = callback;
-        this.completedCount = 0;
-        this._dataLoaders.forEach(function (d) { return d.Execute(_this.Completed.bind(_this)); });
+        var t = this;
+        t._callback = callback;
+        t.completedCount = 0;
+        t._dataLoaders.forEach(function (d) { return d.Execute(t.Completed.bind(_this)); });
     };
     DataLoaders.prototype.Completed = function () {
-        this.completedCount++;
-        if (this.completedCount === this._dataLoaders.length) {
-            this._callback();
+        var t = this;
+        t.completedCount++;
+        if (t.completedCount === t._dataLoaders.length) {
+            t._callback();
         }
     };
     return DataLoaders;
@@ -724,19 +724,21 @@ var DataLoader = (function () {
         if (shouldTryLoad === void 0) { shouldTryLoad = null; }
         if (parameters === void 0) { parameters = null; }
         this._parameters = null;
-        this._dataCallBack = dataCallBack;
-        this._dataUrl = dataUrl;
-        this._shouldTryLoad = shouldTryLoad;
+        var t = this;
+        t._dataCallBack = dataCallBack;
+        t._dataUrl = dataUrl;
+        t._shouldTryLoad = shouldTryLoad;
     }
     DataLoader.prototype.Execute = function (completed) {
-        this._completed = completed;
-        if (!this._shouldTryLoad || this._shouldTryLoad()) {
+        var t = this;
+        t._completed = completed;
+        if (!t._shouldTryLoad || t._shouldTryLoad()) {
             var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, this._ajaxCompleted.bind(this));
-            ajax.Get(this._dataUrl, this._parameters);
+            ajax.AddListener(EventType.Completed, t._ajaxCompleted.bind(this));
+            ajax.Get(t._dataUrl, t._parameters);
         }
         else {
-            this._completed();
+            t._completed();
         }
     };
     DataLoader.prototype._ajaxCompleted = function (arg) {
@@ -769,8 +771,8 @@ var ViewContainer = (function () {
         }
         return false;
     };
-    ViewContainer.prototype.ViewLoadCompleted = function (arg) {
-        if (arg.EventType === EventType.Completed) {
+    ViewContainer.prototype.ViewLoadCompleted = function (a) {
+        if (a.EventType === EventType.Completed) {
             this.NumberViewsShown = this.NumberViewsShown + 1;
         }
         if (this.NumberViewsShown === this.Views.length) {
