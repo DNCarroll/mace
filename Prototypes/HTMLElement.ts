@@ -7,6 +7,7 @@ interface HTMLElement extends Element {
     HasDataSet: () => boolean;
     GetDataSetAttributes: () => { Attribute: string; Property: any; }[];        
     Binder: IBinder;
+    DataObject: IObjectState;
 }
 HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
     var n = nodes == null ? new Array<HTMLElement>() : nodes;

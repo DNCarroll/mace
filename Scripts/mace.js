@@ -287,18 +287,27 @@ var Binder = (function () {
             }
         }
     };
-    //not ready
-    Binder.prototype.Delete = function (objectToRemove) {
+    Binder.prototype.Delete = function (obj) {
+        var t = this, e = t.Element, o = e.DataObject;
+        if (e != null) {
+            if (o && o === obj) {
+                e.parentElement.remove();
+            }
+            else {
+                var es = e.Get(function (e) { return e.DataObject === obj; });
+                es.forEach(function (e2) { return e2.parentElement.remove(); });
+            }
+        }
     };
-    Binder.prototype.Add = function (objectToAdd) {
+    Binder.prototype.Add = function (obj) {
         var t = this;
         t.prepTemplates();
         t.DataRowTemplates.forEach(function (d) {
-            var ne = d.CreateElementFromHtml(), be = ne.Get(function (e) { return e.HasDataSet(); });
+            var ne = d.CreateElementFromHtml(), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter;
             be.Add(ne);
-            t.DataRowFooter ? t.Element.insertBefore(ne, t.DataRowFooter) : t.Element.appendChild(ne);
-            t.DataObjects.Add(objectToAdd);
-            t.Bind(objectToAdd, be);
+            drf ? t.Element.insertBefore(ne, drf) : t.Element.appendChild(ne);
+            t.DataObjects.Add(obj);
+            t.Bind(obj, be);
         });
     };
     Binder.prototype.prepTemplates = function () {
@@ -361,8 +370,8 @@ var Binder = (function () {
         }
         o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(function (e) {
-            var element = e;
-            t.setListeners(element, o);
+            e.DataObject = o;
+            t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
     };
