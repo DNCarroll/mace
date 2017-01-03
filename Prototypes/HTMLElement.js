@@ -91,4 +91,16 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     }
     return r;
 };
+HTMLElement.prototype.DeleteFromServer = function () {
+    var p = this.parentElement;
+    while (!p.Binder) {
+        p = p.parentElement;
+        if (p === document.body) {
+            break;
+        }
+    }
+    if (p && p.Binder) {
+        p.Binder.Delete(this);
+    }
+};
 //# sourceMappingURL=HTMLElement.js.map

@@ -34,10 +34,10 @@ var Ajax = (function () {
         }
     };
     Ajax.prototype.xStateChanged = function (e) {
-        var t = this;
+        var t = this, x = t.XHttp;
         if (t.isRequestReady()) {
             t.Progress(false);
-            t.Dispatch(EventType.Completed);
+            t.Dispatch(x.status === 200 || x.status === 204 ? EventType.Completed : EventType.Error);
         }
     };
     Ajax.prototype.getUrl = function (url) {
@@ -220,7 +220,7 @@ var Ajax = (function () {
     };
     Ajax.prototype.Dispatch = function (eventType) {
         var _this = this;
-        var l = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
+        var l = this.eventHandlers.Where(function (e) { return e.EventType === eventType || e.EventType === EventType.Any; });
         l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
     return Ajax;

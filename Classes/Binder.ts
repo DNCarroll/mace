@@ -62,18 +62,39 @@ abstract class Binder implements IBinder {
             }
         }
     }
-    Delete(obj: IObjectState) {
-        var t = this, e = t.Element, o = e.DataObject;
-        if (e != null) {
-            if (o && o === obj) {
-                e.parentElement.remove();
-            }
-            else {
-                var es = e.Get(e => e.DataObject === obj);
-                es.forEach(e2 => e2.parentElement.remove());
+    Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
+        //do we have a binder associated correctly here?
+        //may have to traverse up to find my binder parent
+        var obj = sender.DataObject, t = this;
+        if (!obj) {
+            var parent = sender.parentElement;
+            while (!obj || parent !== t.Element) {
+                obj = parent.DataObject;
+                parent = parent.parentElement;
             }
         }
-    }   
+        if (obj) {
+            var a = new Ajax(),
+                f = () => {
+                    var es = t.Element.Get(e => e.DataObject === obj);
+                    es.forEach(e2 => e2.parentElement.removeChild(e2));
+                },
+                afc = (a: CustomEventArg<Ajax>) => {
+                    var err = () => {
+                        if (a.EventType === EventType.Error) {
+                            throw "Failed to delete row.";
+                        }
+                    };
+                    ajaxDeleteFunction ? ajaxDeleteFunction(a) : err();
+                    a.EventType === EventType.Completed ? f() : null;
+                },
+                af = () => {
+                    a.AddListener(EventType.Any, afc);
+                    a.Delete(t.WebApi, obj);
+                };
+            t.AutomaticUpdate ? af() : f();
+        }
+    }
     Add(obj: IObjectState) {
         var t = this;
         t.prepTemplates();         

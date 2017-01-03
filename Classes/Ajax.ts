@@ -30,10 +30,10 @@ class Ajax implements IEventDispatcher<Ajax>{
         }
     }
     private xStateChanged(e) {
-        var t = this;
-        if (t.isRequestReady()) {            
+        var t = this, x = t.XHttp;
+        if (t.isRequestReady()) {
             t.Progress(false);
-            t.Dispatch(EventType.Completed);            
+            t.Dispatch(x.status === 200 || x.status === 204 ? EventType.Completed : EventType.Error);
         }
     }
     private getUrl(url: string): string {
@@ -206,7 +206,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         this.eventHandlers.Remove(l => l.EventType === eventType);
     }
     Dispatch(eventType: EventType) {
-        var l = this.eventHandlers.Where(e => e.EventType === eventType);
+        var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
         l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));        
     }
 }

@@ -34,10 +34,10 @@ var Ajax = (function () {
         }
     };
     Ajax.prototype.xStateChanged = function (e) {
-        var t = this;
+        var t = this, x = t.XHttp;
         if (t.isRequestReady()) {
             t.Progress(false);
-            t.Dispatch(EventType.Completed);
+            t.Dispatch(x.status === 200 || x.status === 204 ? EventType.Completed : EventType.Error);
         }
     };
     Ajax.prototype.getUrl = function (url) {
@@ -220,7 +220,7 @@ var Ajax = (function () {
     };
     Ajax.prototype.Dispatch = function (eventType) {
         var _this = this;
-        var l = this.eventHandlers.Where(function (e) { return e.EventType === eventType; });
+        var l = this.eventHandlers.Where(function (e) { return e.EventType === eventType || e.EventType === EventType.Any; });
         l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
     return Ajax;
@@ -287,16 +287,35 @@ var Binder = (function () {
             }
         }
     };
-    Binder.prototype.Delete = function (obj) {
-        var t = this, e = t.Element, o = e.DataObject;
-        if (e != null) {
-            if (o && o === obj) {
-                e.parentElement.remove();
+    Binder.prototype.Delete = function (sender, ajaxDeleteFunction) {
+        if (ajaxDeleteFunction === void 0) { ajaxDeleteFunction = null; }
+        //do we have a binder associated correctly here?
+        //may have to traverse up to find my binder parent
+        var obj = sender.DataObject, t = this;
+        if (!obj) {
+            var parent = sender.parentElement;
+            while (!obj || parent !== t.Element) {
+                obj = parent.DataObject;
+                parent = parent.parentElement;
             }
-            else {
-                var es = e.Get(function (e) { return e.DataObject === obj; });
-                es.forEach(function (e2) { return e2.parentElement.remove(); });
-            }
+        }
+        if (obj) {
+            var a = new Ajax(), f = function () {
+                var es = t.Element.Get(function (e) { return e.DataObject === obj; });
+                es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
+            }, afc = function (a) {
+                var err = function () {
+                    if (a.EventType === EventType.Error) {
+                        throw "Failed to delete row.";
+                    }
+                };
+                ajaxDeleteFunction ? ajaxDeleteFunction(a) : err();
+                a.EventType === EventType.Completed ? f() : null;
+            }, af = function () {
+                a.AddListener(EventType.Any, afc);
+                a.Delete(t.WebApi, obj);
+            };
+            t.AutomaticUpdate ? af() : f();
         }
     };
     Binder.prototype.Add = function (obj) {
@@ -1182,6 +1201,18 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
         }
     }
     return r;
+};
+HTMLElement.prototype.DeleteFromServer = function () {
+    var p = this.parentElement;
+    while (!p.Binder) {
+        p = p.parentElement;
+        if (p === document.body) {
+            break;
+        }
+    }
+    if (p && p.Binder) {
+        p.Binder.Delete(this);
+    }
 };
 //# sourceMappingURL=HTMLElement.js.map
 HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty, displayProperty, selectedValue) {
