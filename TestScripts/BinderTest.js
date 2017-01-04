@@ -288,6 +288,9 @@ var ListBinderTest = (function (_super) {
     }
     ListBinderTest.prototype.NewObject = function (obj) {
         return new BinderTestObject(obj);
+        //this worked can use DynamicDataObject inconjunction with statically 
+        //typed objects
+        //return new DynamicDataObject(obj);
     };
     return ListBinderTest;
 }(Binder));

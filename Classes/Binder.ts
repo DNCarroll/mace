@@ -1,5 +1,4 @@
 ﻿//disable the active context or readonly it while the new stuff is coming in?
-//Delete not ready
 abstract class Binder implements IBinder {
     PrimaryKeys: Array<string> = new Array<string>();
     WebApi: string;
@@ -62,9 +61,7 @@ abstract class Binder implements IBinder {
             }
         }
     }
-    Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
-        //do we have a binder associated correctly here?
-        //may have to traverse up to find my binder parent
+    Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {        
         var obj = sender.DataObject, t = this;
         if (!obj) {
             var parent = sender.parentElement;

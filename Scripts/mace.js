@@ -227,7 +227,6 @@ var Ajax = (function () {
 }());
 //# sourceMappingURL=Ajax.js.map
 //disable the active context or readonly it while the new stuff is coming in?
-//Delete not ready
 var Binder = (function () {
     function Binder() {
         this.PrimaryKeys = new Array();
@@ -289,8 +288,6 @@ var Binder = (function () {
     };
     Binder.prototype.Delete = function (sender, ajaxDeleteFunction) {
         if (ajaxDeleteFunction === void 0) { ajaxDeleteFunction = null; }
-        //do we have a binder associated correctly here?
-        //may have to traverse up to find my binder parent
         var obj = sender.DataObject, t = this;
         if (!obj) {
             var parent = sender.parentElement;
@@ -495,6 +492,11 @@ var Binder = (function () {
     return Binder;
 }());
 //# sourceMappingURL=Binder.js.map
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 //state management isnt working right yet with regards to the put and the complete of the ajax call
 var DataObject = (function () {
     function DataObject(serverObject) {
@@ -575,6 +577,21 @@ var DataObject = (function () {
     };
     return DataObject;
 }());
+var DynamicDataObject = (function (_super) {
+    __extends(DynamicDataObject, _super);
+    function DynamicDataObject(serverObject) {
+        var so = serverObject;
+        _super.call(this, so);
+        for (var p in so) {
+            this.setProps(p, so);
+        }
+    }
+    DynamicDataObject.prototype.setProps = function (p, o) {
+        var t = this, g = function () { return o[p]; }, s = function (v) { t.SetServerProperty(p, v); }, odp = Object.defineProperty;
+        odp ? odp(t, p, { 'get': g, 'set': s }) : null;
+    };
+    return DynamicDataObject;
+}(DataObject));
 //# sourceMappingURL=DataObject.js.map
 var CacheStrategy;
 (function (CacheStrategy) {

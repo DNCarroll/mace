@@ -15,7 +15,7 @@
             } else {
                 w.onload = function () {
                     windowLoaded();
-                }
+                };
             }
         }
     }
