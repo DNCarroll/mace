@@ -1,11 +1,13 @@
 //a promise type too?
 var Ajax = (function () {
-    function Ajax() {
+    function Ajax(withProgress) {
+        if (withProgress === void 0) { withProgress = false; }
         this.DisableElement = null;
-        this.ManipulateProgressElement = false;
+        this.WithProgress = false;
         this.UseAsDateUTC = true;
         this.ContentType = "application/json; charset=utf-8";
         this.eventHandlers = new Array();
+        this.WithProgress = withProgress;
     }
     Object.defineProperty(Ajax.prototype, "ResponseText", {
         get: function () {
@@ -52,8 +54,9 @@ var Ajax = (function () {
     };
     Ajax.prototype.Progress = function (show) {
         if (show === void 0) { show = true; }
-        if (this.ManipulateProgressElement) {
-            show ? ProgressManager.Show() : ProgressManager.Hide();
+        if (this.WithProgress) {
+            var pm = ProgressManager;
+            show ? pm.Show() : pm.Hide();
             var de = this.DisableElement, d = "disabled", f = function (e) {
                 show ? e.setAttribute(d, d) : e.removeAttribute(d);
             };
@@ -230,6 +233,7 @@ var Ajax = (function () {
 var Binder = (function () {
     function Binder() {
         this.PrimaryKeys = new Array();
+        this.WithProgress = true;
         this.eventHandlers = new Array();
         this.DataObjects = new Array();
         this.AutomaticUpdate = true;
@@ -258,7 +262,7 @@ var Binder = (function () {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
-            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(), u = t.WebApi;
+            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress), u = t.WebApi;
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -297,7 +301,7 @@ var Binder = (function () {
             }
         }
         if (obj) {
-            var a = new Ajax(), f = function () {
+            var a = new Ajax(t.WithProgress), f = function () {
                 var es = t.Element.Get(function (e) { return e.DataObject === obj; });
                 es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
             }, afc = function (a) {
@@ -348,7 +352,7 @@ var Binder = (function () {
     Binder.prototype.objStateChanged = function (o) {
         var t = this;
         if (t.AutomaticUpdate && t.WebApi) {
-            var a = new Ajax();
+            var a = new Ajax(t.WithProgress);
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
             a.Put(t.WebApi, o.ServerObject);
             o.ObjectState = ObjectState.Clean;

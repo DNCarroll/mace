@@ -1,9 +1,10 @@
-﻿//a promise type too?
-class Ajax implements IEventDispatcher<Ajax>{
-    constructor() { }
+﻿class Ajax implements IEventDispatcher<Ajax>{
+    constructor(withProgress: boolean = false) {
+        this.WithProgress = withProgress;
+    }
     DisableElement: any = null;
     static Host: string;
-    ManipulateProgressElement = false;
+    WithProgress = false;
     UseAsDateUTC = true;
     ContentType = "application/json; charset=utf-8";
     Header: () => any;
@@ -11,7 +12,7 @@ class Ajax implements IEventDispatcher<Ajax>{
     get ResponseText(): string {
         return this.XHttp.responseText;
     }
-    XHttp: XMLHttpRequest;
+    XHttp: XMLHttpRequest;    
     Submit(method: string, url: string, parameters: any = null) {
         var t = this;        
         t.Progress();
@@ -47,8 +48,9 @@ class Ajax implements IEventDispatcher<Ajax>{
         return x && x.readyState == 4;
     }
     private Progress(show: boolean = true) {
-        if (this.ManipulateProgressElement) {
-            show ? ProgressManager.Show() : ProgressManager.Hide();
+        if (this.WithProgress) {
+            var pm = ProgressManager;
+            show ? pm.Show() : pm.Hide();
             var de = this.DisableElement,
                 d = "disabled",
                 f = (e) => {

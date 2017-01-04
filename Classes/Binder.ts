@@ -2,6 +2,7 @@
 abstract class Binder implements IBinder {
     PrimaryKeys: Array<string> = new Array<string>();
     WebApi: string;
+    WithProgress: boolean = true;
     WebApiGetParameters(): any {
         return null;
     }
@@ -33,7 +34,7 @@ abstract class Binder implements IBinder {
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
             var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters,
-                a = new Ajax(), u = t.WebApi;
+                a = new Ajax(t.WithProgress), u = t.WebApi;
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -71,7 +72,7 @@ abstract class Binder implements IBinder {
             }
         }
         if (obj) {
-            var a = new Ajax(),
+            var a = new Ajax(t.WithProgress),
                 f = () => {
                     var es = t.Element.Get(e => e.DataObject === obj);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));
@@ -129,7 +130,7 @@ abstract class Binder implements IBinder {
     private objStateChanged(o: IObjectState) {
         var t = this;
         if (t.AutomaticUpdate && t.WebApi) {
-            var a = new Ajax();
+            var a = new Ajax(t.WithProgress);
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
             a.Put(t.WebApi, o.ServerObject);
             o.ObjectState = ObjectState.Clean;

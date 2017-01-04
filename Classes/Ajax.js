@@ -1,11 +1,12 @@
-//a promise type too?
 var Ajax = (function () {
-    function Ajax() {
+    function Ajax(withProgress) {
+        if (withProgress === void 0) { withProgress = false; }
         this.DisableElement = null;
-        this.ManipulateProgressElement = false;
+        this.WithProgress = false;
         this.UseAsDateUTC = true;
         this.ContentType = "application/json; charset=utf-8";
         this.eventHandlers = new Array();
+        this.WithProgress = withProgress;
     }
     Object.defineProperty(Ajax.prototype, "ResponseText", {
         get: function () {
@@ -52,8 +53,9 @@ var Ajax = (function () {
     };
     Ajax.prototype.Progress = function (show) {
         if (show === void 0) { show = true; }
-        if (this.ManipulateProgressElement) {
-            show ? ProgressManager.Show() : ProgressManager.Hide();
+        if (this.WithProgress) {
+            var pm = ProgressManager;
+            show ? pm.Show() : pm.Hide();
             var de = this.DisableElement, d = "disabled", f = function (e) {
                 show ? e.setAttribute(d, d) : e.removeAttribute(d);
             };
