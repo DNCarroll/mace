@@ -1,5 +1,4 @@
 //disable the active context or readonly it while the new stuff is coming in?
-//Delete not ready
 var Binder = (function () {
     function Binder() {
         this.PrimaryKeys = new Array();
@@ -61,8 +60,6 @@ var Binder = (function () {
     };
     Binder.prototype.Delete = function (sender, ajaxDeleteFunction) {
         if (ajaxDeleteFunction === void 0) { ajaxDeleteFunction = null; }
-        //do we have a binder associated correctly here?
-        //may have to traverse up to find my binder parent
         var obj = sender.DataObject, t = this;
         if (!obj) {
             var parent = sender.parentElement;

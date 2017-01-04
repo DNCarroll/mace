@@ -227,7 +227,6 @@ var Ajax = (function () {
 }());
 //# sourceMappingURL=Ajax.js.map
 //disable the active context or readonly it while the new stuff is coming in?
-//Delete not ready
 var Binder = (function () {
     function Binder() {
         this.PrimaryKeys = new Array();
@@ -289,8 +288,6 @@ var Binder = (function () {
     };
     Binder.prototype.Delete = function (sender, ajaxDeleteFunction) {
         if (ajaxDeleteFunction === void 0) { ajaxDeleteFunction = null; }
-        //do we have a binder associated correctly here?
-        //may have to traverse up to find my binder parent
         var obj = sender.DataObject, t = this;
         if (!obj) {
             var parent = sender.parentElement;
@@ -586,21 +583,12 @@ var DynamicDataObject = (function (_super) {
         var so = serverObject;
         _super.call(this, so);
         for (var p in so) {
-            this.setupProperties(p, so);
+            this.setProps(p, so);
         }
     }
-    DynamicDataObject.prototype.setupProperties = function (p, o) {
-        var getter = function () {
-            return o[p];
-        }, setter = function (v) {
-            this.SetServerProperty(p, v);
-        }, odp = Object.defineProperty;
-        if (odp) {
-            odp(this, p, {
-                'get': getter,
-                'set': setter
-            });
-        }
+    DynamicDataObject.prototype.setProps = function (p, o) {
+        var t = this, g = function () { return o[p]; }, s = function (v) { t.SetServerProperty(p, v); }, odp = Object.defineProperty;
+        odp ? odp(t, p, { 'get': g, 'set': s }) : null;
     };
     return DynamicDataObject;
 }(DataObject));

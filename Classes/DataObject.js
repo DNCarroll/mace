@@ -89,21 +89,12 @@ var DynamicDataObject = (function (_super) {
         var so = serverObject;
         _super.call(this, so);
         for (var p in so) {
-            this.setupProperties(p, so);
+            this.setProps(p, so);
         }
     }
-    DynamicDataObject.prototype.setupProperties = function (p, o) {
-        var getter = function () {
-            return o[p];
-        }, setter = function (v) {
-            this.SetServerProperty(p, v);
-        }, odp = Object.defineProperty;
-        if (odp) {
-            odp(this, p, {
-                'get': getter,
-                'set': setter
-            });
-        }
+    DynamicDataObject.prototype.setProps = function (p, o) {
+        var t = this, g = function () { return o[p]; }, s = function (v) { t.SetServerProperty(p, v); }, odp = Object.defineProperty;
+        odp ? odp(t, p, { 'get': g, 'set': s }) : null;
     };
     return DynamicDataObject;
 }(DataObject));

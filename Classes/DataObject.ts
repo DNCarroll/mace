@@ -70,23 +70,13 @@ class DynamicDataObject extends DataObject {
     constructor(serverObject: any) {
         var so = serverObject;
         super(so);        
-        for (var p in so) {            
-            this.setupProperties(p, so);
-        }
+        for (var p in so) { this.setProps(p, so); }
     }
-    private setupProperties(p: string, o: any) {        
-        var getter = function () {
-            return o[p];
-        },
-        setter = function (v) {
-            this.SetServerProperty(p, v);
-        },
-        odp = Object.defineProperty;
-        if (odp) {
-            odp(this, p, {
-                'get': getter,
-                'set': setter
-            });
-        }
+    private setProps(p: string, o: any) {
+        var t = this,
+            g = function () { return o[p]; },
+            s = function (v) { t.SetServerProperty(p, v); },
+            odp = Object.defineProperty;
+        odp ? odp(t, p, { 'get': g, 'set': s }) : null;
     }
 }

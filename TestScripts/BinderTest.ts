@@ -232,6 +232,11 @@ class ListBinderTest extends Binder {
     }
     NewObject(obj: any) {
         return new BinderTestObject(obj);
+        //this worked can use DynamicDataObject inconjunction with statically 
+        //typed objects
+
+   //return new DynamicDataObject(obj);
+            
     }
 }
 //add a Preload to this before do it
