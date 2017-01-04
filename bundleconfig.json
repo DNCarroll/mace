@@ -9,8 +9,7 @@
       "Classes/ViewContainer.js",
       "Classes/ViewInstance.js",
       "Interfaces/CustomEvent.js",      
-      "Modules/HistoryManager.js",
-      "Modules/Initializer.js",
+      "Modules/HistoryManager.js",      
       "Modules/Is.js",
       "Modules/ProgressManager.js",
       "Prototypes/Array.js",
@@ -18,7 +17,8 @@
       "Prototypes/HTMLElement.js",
       "Prototypes/HTMLSelectElement.js",
       "Prototypes/String.js",
-      "Prototypes/Window.js"
+      "Prototypes/Window.js",
+      "Modules/Initializer.js"
     ]
   }
 ]
