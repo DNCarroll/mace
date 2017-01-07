@@ -8,7 +8,7 @@ var ViewContent = (function (_super) {
     function ViewContent() {
         _super.call(this);
     }
-    ViewContent.prototype.ViewUrl = function () { return "/Views/TestContent.html"; };
+    ViewContent.prototype.Url = function () { return "/Views/TestContent.html"; };
     ;
     ViewContent.prototype.ContainerID = function () {
         return "content";

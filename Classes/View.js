@@ -1,14 +1,27 @@
 var CacheStrategy;
 (function (CacheStrategy) {
-    CacheStrategy[CacheStrategy["ViewAndData"] = 0] = "ViewAndData";
-    CacheStrategy[CacheStrategy["View"] = 1] = "View";
-    CacheStrategy[CacheStrategy["Data"] = 2] = "Data";
+    CacheStrategy[CacheStrategy["None"] = 0] = "None";
+    CacheStrategy[CacheStrategy["ViewAndPreload"] = 1] = "ViewAndPreload";
+    CacheStrategy[CacheStrategy["View"] = 2] = "View";
+    CacheStrategy[CacheStrategy["Preload"] = 3] = "Preload";
 })(CacheStrategy || (CacheStrategy = {}));
 var View = (function () {
     function View() {
+        this.CacheStrategy = CacheStrategy.None;
         this.eHandlrs = new Array();
         this.preload = null;
     }
+    View.prototype.Prefix = function () {
+        return "/Views/";
+    };
+    View.prototype.Url = function () {
+        if (!this.viewPath) {
+            var i = Initializer, name = i.GetFuncName(i.GetStringOf(this.constructor.toString()));
+            this.viewPath = this.Prefix() + name + ".html";
+        }
+        return this.viewPath;
+    };
+    ;
     Object.defineProperty(View.prototype, "Preload", {
         get: function () {
             return this.preload;
@@ -20,19 +33,19 @@ var View = (function () {
         configurable: true
     });
     View.prototype.Cache = function (strategy) {
-        if (strategy === void 0) { strategy = CacheStrategy.ViewAndData; }
+        if (strategy === void 0) { strategy = CacheStrategy.ViewAndPreload; }
         var t = this;
         if (t.Preload &&
-            (strategy === CacheStrategy.ViewAndData || strategy === CacheStrategy.Data)) {
+            (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(function () { });
         }
-        var f = sessionStorage.getItem(t.ViewUrl());
-        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndData)) {
+        var f = sessionStorage.getItem(t.Url());
+        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, function (arg) {
                 t.RequestCompleted(arg, true);
             });
-            a.Get(t.ViewUrl());
+            a.Get(t.Url());
         }
     };
     View.prototype.Show = function (viewInstance) {
@@ -41,11 +54,11 @@ var View = (function () {
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     };
     View.prototype.postPreloaded = function () {
-        var t = this, f = sessionStorage.getItem(t.ViewUrl());
+        var t = this, f = sessionStorage.getItem(t.Url());
         if (!f || window["IsDebug"]) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, t.RequestCompleted.bind(this));
-            a.Get(t.ViewUrl());
+            a.Get(t.Url());
         }
         else {
             t.SetHTML(f);
@@ -54,7 +67,7 @@ var View = (function () {
     View.prototype.RequestCompleted = function (a, dontSetHTML) {
         if (dontSetHTML === void 0) { dontSetHTML = false; }
         if (a.Sender.ResponseText) {
-            sessionStorage.setItem(this.ViewUrl(), a.Sender.ResponseText);
+            sessionStorage.setItem(this.Url(), a.Sender.ResponseText);
             if (!dontSetHTML) {
                 this.SetHTML(a.Sender.ResponseText);
             }

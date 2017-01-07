@@ -8,7 +8,7 @@ var ViewFooter = (function (_super) {
     function ViewFooter() {
         _super.call(this);
     }
-    ViewFooter.prototype.ViewUrl = function () { return "/Views/footer.html"; };
+    ViewFooter.prototype.Url = function () { return "/Views/footer.html"; };
     ;
     ViewFooter.prototype.ContainerID = function () {
         return "footer";

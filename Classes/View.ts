@@ -1,10 +1,23 @@
 ﻿enum CacheStrategy {
-    ViewAndData,
+    None,
+    ViewAndPreload,
     View,
-    Data
+    Preload
 }
 abstract class View implements IView {
-    abstract ViewUrl(): string;
+    private viewPath: string;
+    CacheStrategy: CacheStrategy = CacheStrategy.None;
+    Prefix() {
+        return "/Views/";
+    }
+    Url() {
+        if (!this.viewPath) {
+            var i = Initializer,
+                name = i.GetFuncName(i.GetStringOf(this.constructor.toString()));
+            this.viewPath = this.Prefix() + name + ".html";
+        }       
+        return this.viewPath;
+    };
     abstract ContainerID(): string;    
     private countBinders: number;
     private countBindersReported: number;
@@ -18,19 +31,19 @@ abstract class View implements IView {
     set Preload(value: IPreViewLoad) {
         this.preload = value;
     }    
-    Cache(strategy: CacheStrategy = CacheStrategy.ViewAndData) {
+    Cache(strategy: CacheStrategy = CacheStrategy.ViewAndPreload) {
         var t = this;
         if (t.Preload &&
-            (strategy === CacheStrategy.ViewAndData || strategy === CacheStrategy.Data)) {
+            (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(() => { });
         }        
-        var f = sessionStorage.getItem(t.ViewUrl());
-        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndData)) {            
+        var f = sessionStorage.getItem(t.Url());
+        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {            
             var a = new Ajax();
             a.AddListener(EventType.Completed, (arg: ICustomEventArg<Ajax>) => {
                 t.RequestCompleted(arg, true);
             });
-            a.Get(t.ViewUrl());
+            a.Get(t.Url());
         }
     }
     Show(viewInstance: ViewInstance) {
@@ -40,11 +53,11 @@ abstract class View implements IView {
     }
     private postPreloaded() {
         var t = this,
-            f = sessionStorage.getItem(t.ViewUrl());
+            f = sessionStorage.getItem(t.Url());
         if (!f || window["IsDebug"]) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, t.RequestCompleted.bind(this));
-            a.Get(t.ViewUrl());
+            a.Get(t.Url());
         }
         else {
             t.SetHTML(f);
@@ -52,7 +65,7 @@ abstract class View implements IView {
     }
     RequestCompleted(a: CustomEventArg<Ajax>, dontSetHTML = false) {        
         if (a.Sender.ResponseText) {
-            sessionStorage.setItem(this.ViewUrl(), a.Sender.ResponseText);
+            sessionStorage.setItem(this.Url(), a.Sender.ResponseText);
             if (!dontSetHTML) {
                 this.SetHTML(a.Sender.ResponseText);
             }

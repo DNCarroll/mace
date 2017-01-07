@@ -1,13 +1,14 @@
-//a promise type too?
 var Ajax = (function () {
-    function Ajax(withProgress) {
+    function Ajax(withProgress, disableElement) {
         if (withProgress === void 0) { withProgress = false; }
+        if (disableElement === void 0) { disableElement = null; }
         this.DisableElement = null;
         this.WithProgress = false;
         this.UseAsDateUTC = true;
         this.ContentType = "application/json; charset=utf-8";
         this.eventHandlers = new Array();
         this.WithProgress = withProgress;
+        this.DisableElement = disableElement;
     }
     Object.defineProperty(Ajax.prototype, "ResponseText", {
         get: function () {
@@ -244,6 +245,9 @@ var Binder = (function () {
     Binder.prototype.WebApiGetParameters = function () {
         return null;
     };
+    Binder.prototype.NewObject = function (obj) {
+        return new DynamicDataObject(obj);
+    };
     Binder.prototype.Dispose = function () {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
@@ -262,7 +266,7 @@ var Binder = (function () {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
-            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress), u = t.WebApi;
+            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress, t.DisableElement), u = t.WebApi;
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -301,7 +305,7 @@ var Binder = (function () {
             }
         }
         if (obj) {
-            var a = new Ajax(t.WithProgress), f = function () {
+            var a = new Ajax(t.WithProgress, t.DisableElement), f = function () {
                 var es = t.Element.Get(function (e) { return e.DataObject === obj; });
                 es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
             }, afc = function (a) {
@@ -352,7 +356,7 @@ var Binder = (function () {
     Binder.prototype.objStateChanged = function (o) {
         var t = this;
         if (t.AutomaticUpdate && t.WebApi) {
-            var a = new Ajax(t.WithProgress);
+            var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
             a.Put(t.WebApi, o.ServerObject);
             o.ObjectState = ObjectState.Clean;
@@ -599,15 +603,28 @@ var DynamicDataObject = (function (_super) {
 //# sourceMappingURL=DataObject.js.map
 var CacheStrategy;
 (function (CacheStrategy) {
-    CacheStrategy[CacheStrategy["ViewAndData"] = 0] = "ViewAndData";
-    CacheStrategy[CacheStrategy["View"] = 1] = "View";
-    CacheStrategy[CacheStrategy["Data"] = 2] = "Data";
+    CacheStrategy[CacheStrategy["None"] = 0] = "None";
+    CacheStrategy[CacheStrategy["ViewAndPreload"] = 1] = "ViewAndPreload";
+    CacheStrategy[CacheStrategy["View"] = 2] = "View";
+    CacheStrategy[CacheStrategy["Preload"] = 3] = "Preload";
 })(CacheStrategy || (CacheStrategy = {}));
 var View = (function () {
     function View() {
+        this.CacheStrategy = CacheStrategy.None;
         this.eHandlrs = new Array();
         this.preload = null;
     }
+    View.prototype.Prefix = function () {
+        return "/Views/";
+    };
+    View.prototype.Url = function () {
+        if (!this.viewPath) {
+            var i = Initializer, name = i.GetFuncName(i.GetStringOf(this.constructor.toString()));
+            this.viewPath = this.Prefix() + name + ".html";
+        }
+        return this.viewPath;
+    };
+    ;
     Object.defineProperty(View.prototype, "Preload", {
         get: function () {
             return this.preload;
@@ -619,19 +636,19 @@ var View = (function () {
         configurable: true
     });
     View.prototype.Cache = function (strategy) {
-        if (strategy === void 0) { strategy = CacheStrategy.ViewAndData; }
+        if (strategy === void 0) { strategy = CacheStrategy.ViewAndPreload; }
         var t = this;
         if (t.Preload &&
-            (strategy === CacheStrategy.ViewAndData || strategy === CacheStrategy.Data)) {
+            (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(function () { });
         }
-        var f = sessionStorage.getItem(t.ViewUrl());
-        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndData)) {
+        var f = sessionStorage.getItem(t.Url());
+        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, function (arg) {
                 t.RequestCompleted(arg, true);
             });
-            a.Get(t.ViewUrl());
+            a.Get(t.Url());
         }
     };
     View.prototype.Show = function (viewInstance) {
@@ -640,11 +657,11 @@ var View = (function () {
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     };
     View.prototype.postPreloaded = function () {
-        var t = this, f = sessionStorage.getItem(t.ViewUrl());
+        var t = this, f = sessionStorage.getItem(t.Url());
         if (!f || window["IsDebug"]) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, t.RequestCompleted.bind(this));
-            a.Get(t.ViewUrl());
+            a.Get(t.Url());
         }
         else {
             t.SetHTML(f);
@@ -653,7 +670,7 @@ var View = (function () {
     View.prototype.RequestCompleted = function (a, dontSetHTML) {
         if (dontSetHTML === void 0) { dontSetHTML = false; }
         if (a.Sender.ResponseText) {
-            sessionStorage.setItem(this.ViewUrl(), a.Sender.ResponseText);
+            sessionStorage.setItem(this.Url(), a.Sender.ResponseText);
             if (!dontSetHTML) {
                 this.SetHTML(a.Sender.ResponseText);
             }
@@ -1197,8 +1214,7 @@ String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
 String.prototype.Element = function () {
-    var o = document.getElementById(this.toString());
-    return o ? o : null;
+    return document.getElementById(this.toString());
 };
 String.prototype.CreateElement = function (objectProperties) {
     var o = document.createElement(this), op = objectProperties;
@@ -1290,11 +1306,13 @@ var Initializer;
     function addViewContainers() {
         var it = ignoreTheseNames(), w = window;
         for (var o in w) {
-            var n = getNameToTest(getStringOf(w[o]), it);
+            var n = GetFuncName(GetStringOf(w[o]), it);
             if (!Is.NullOrEmpty(n)) {
                 try {
                     var no = (new Function("return new " + n + "();"))();
                     if (Has.Properties(no, "IsDefault", "Views", "Show", "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
+                        //dont know the cache strategy
+                        no.Views.forEach(function (v) { return v.CacheStrategy != CacheStrategy.None ? v.Cache(v.CacheStrategy) : null; });
                         ViewContainers.Add(no);
                     }
                 }
@@ -1304,7 +1322,8 @@ var Initializer;
             }
         }
     }
-    function getNameToTest(rawFunction, ignoreThese) {
+    function GetFuncName(rawFunction, ignoreThese) {
+        if (ignoreThese === void 0) { ignoreThese = new Array(); }
         var rf = rawFunction;
         if (!Is.NullOrEmpty(rf)) {
             var p = "^function\\s(\\w+)\\(\\)", m = rf.match(p);
@@ -1314,9 +1333,11 @@ var Initializer;
         }
         return null;
     }
-    function getStringOf(o) {
+    Initializer.GetFuncName = GetFuncName;
+    function GetStringOf(o) {
         return o && o.toString ? o.toString() : null;
     }
+    Initializer.GetStringOf = GetStringOf;
     function setProgressElement() {
         var pg = document.getElementById("progress");
         if (pg != null) {

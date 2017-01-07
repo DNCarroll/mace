@@ -9,8 +9,7 @@ String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
 String.prototype.Element = function (): HTMLElement {
-    var o = document.getElementById(this.toString());
-    return o ? o : null;
+    return document.getElementById(this.toString());
 };
 String.prototype.CreateElement = function (objectProperties?): HTMLElement {
     var o = document.createElement(this), op = objectProperties;

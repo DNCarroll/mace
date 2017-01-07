@@ -122,7 +122,7 @@ class BinderView extends View {
     constructor() {
         super();                
     }
-    ViewUrl() { return "/Views/BinderView.html" };
+    Url() { return "/Views/BinderView.html" };
     ContainerID() {
         return "content";        
     }
@@ -148,7 +148,7 @@ class MultipleViewBinder extends View {
     constructor() {
         super();
     }
-    ViewUrl() { return "/Views/MultipleBindings.html" };
+    Url() { return "/Views/MultipleBindings.html" };
     ContainerID() {
         return "content";
     }
@@ -176,9 +176,9 @@ class WebApiFormView extends View {
         super();
         var ajax = new Ajax();        
         this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, () => !WebApiFormView.GenericSelectData));
-        this.Cache();
+        this.CacheStrategy = CacheStrategy.ViewAndPreload;
     }
-    ViewUrl() { return "/Views/WebApiFormView.html" };
+    Url() { return "/Views/WebApiFormView.html" };
     ContainerID() {
         return "content";
     }  
@@ -224,28 +224,18 @@ class WebApiBinder extends Binder {
         return new BinderTestObject(obj);
     }
 }
-class ListBinderTest extends Binder {
+class ListTestData extends Binder {
     constructor() {
         super();
-        this.WebApi = "/Api/ListView";   
-        this.PrimaryKeys.Add("ID");     
-    }
-    NewObject(obj: any) {
-        return new BinderTestObject(obj);
-        //this worked can use DynamicDataObject inconjunction with statically 
-        //typed objects
-
-   //return new DynamicDataObject(obj);
-            
+        this.WebApi = "/Api/ListTestData";   
+        this.PrimaryKeys.Add("ID");  
     }
 }
-//add a Preload to this before do it
-class ListBinderView extends View {    
+class ListTest extends View {    
     constructor() {
-        super();        
-        this.Cache();
-    }    
-    ViewUrl() { return "/Views/ListBinderView.html" };
+        super();
+        this.CacheStrategy = CacheStrategy.View;  
+    }   
     ContainerID() {
         return "content";
     }    
@@ -257,9 +247,9 @@ class ListBinderContainer extends ViewContainer {
             return ListBinderContainer.instance;
         }
         super();
-        this.Views.push(new ListBinderView());
+        this.Views.push(new ListTest());
         this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());        
+        this.Views.push(new ViewFooter());                
         ListBinderContainer.instance = this;
     }
     DocumentTitle(route: ViewInstance) { return "Listbinder Data"; }

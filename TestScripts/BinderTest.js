@@ -165,7 +165,7 @@ var BinderView = (function (_super) {
     function BinderView() {
         _super.call(this);
     }
-    BinderView.prototype.ViewUrl = function () { return "/Views/BinderView.html"; };
+    BinderView.prototype.Url = function () { return "/Views/BinderView.html"; };
     ;
     BinderView.prototype.ContainerID = function () {
         return "content";
@@ -195,7 +195,7 @@ var MultipleViewBinder = (function (_super) {
     function MultipleViewBinder() {
         _super.call(this);
     }
-    MultipleViewBinder.prototype.ViewUrl = function () { return "/Views/MultipleBindings.html"; };
+    MultipleViewBinder.prototype.Url = function () { return "/Views/MultipleBindings.html"; };
     ;
     MultipleViewBinder.prototype.ContainerID = function () {
         return "content";
@@ -226,9 +226,9 @@ var WebApiFormView = (function (_super) {
         _super.call(this);
         var ajax = new Ajax();
         this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, function () { return !WebApiFormView.GenericSelectData; }));
-        this.Cache();
+        this.CacheStrategy = CacheStrategy.ViewAndPreload;
     }
-    WebApiFormView.prototype.ViewUrl = function () { return "/Views/WebApiFormView.html"; };
+    WebApiFormView.prototype.Url = function () { return "/Views/WebApiFormView.html"; };
     ;
     WebApiFormView.prototype.ContainerID = function () {
         return "content";
@@ -279,34 +279,25 @@ var WebApiBinder = (function (_super) {
     };
     return WebApiBinder;
 }(Binder));
-var ListBinderTest = (function (_super) {
-    __extends(ListBinderTest, _super);
-    function ListBinderTest() {
+var ListTestData = (function (_super) {
+    __extends(ListTestData, _super);
+    function ListTestData() {
         _super.call(this);
-        this.WebApi = "/Api/ListView";
+        this.WebApi = "/Api/ListTestData";
         this.PrimaryKeys.Add("ID");
     }
-    ListBinderTest.prototype.NewObject = function (obj) {
-        return new BinderTestObject(obj);
-        //this worked can use DynamicDataObject inconjunction with statically 
-        //typed objects
-        //return new DynamicDataObject(obj);
-    };
-    return ListBinderTest;
+    return ListTestData;
 }(Binder));
-//add a Preload to this before do it
-var ListBinderView = (function (_super) {
-    __extends(ListBinderView, _super);
-    function ListBinderView() {
+var ListTest = (function (_super) {
+    __extends(ListTest, _super);
+    function ListTest() {
         _super.call(this);
-        this.Cache();
+        this.CacheStrategy = CacheStrategy.View;
     }
-    ListBinderView.prototype.ViewUrl = function () { return "/Views/ListBinderView.html"; };
-    ;
-    ListBinderView.prototype.ContainerID = function () {
+    ListTest.prototype.ContainerID = function () {
         return "content";
     };
-    return ListBinderView;
+    return ListTest;
 }(View));
 var ListBinderContainer = (function (_super) {
     __extends(ListBinderContainer, _super);
@@ -315,7 +306,7 @@ var ListBinderContainer = (function (_super) {
             return ListBinderContainer.instance;
         }
         _super.call(this);
-        this.Views.push(new ListBinderView());
+        this.Views.push(new ListTest());
         this.Views.push(new ViewHeader());
         this.Views.push(new ViewFooter());
         ListBinderContainer.instance = this;

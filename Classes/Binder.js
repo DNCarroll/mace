@@ -13,6 +13,9 @@ var Binder = (function () {
     Binder.prototype.WebApiGetParameters = function () {
         return null;
     };
+    Binder.prototype.NewObject = function (obj) {
+        return new DynamicDataObject(obj);
+    };
     Binder.prototype.Dispose = function () {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
@@ -31,7 +34,7 @@ var Binder = (function () {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
-            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress), u = t.WebApi;
+            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress, t.DisableElement), u = t.WebApi;
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -70,7 +73,7 @@ var Binder = (function () {
             }
         }
         if (obj) {
-            var a = new Ajax(t.WithProgress), f = function () {
+            var a = new Ajax(t.WithProgress, t.DisableElement), f = function () {
                 var es = t.Element.Get(function (e) { return e.DataObject === obj; });
                 es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
             }, afc = function (a) {
@@ -121,7 +124,7 @@ var Binder = (function () {
     Binder.prototype.objStateChanged = function (o) {
         var t = this;
         if (t.AutomaticUpdate && t.WebApi) {
-            var a = new Ajax(t.WithProgress);
+            var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
             a.Put(t.WebApi, o.ServerObject);
             o.ObjectState = ObjectState.Clean;

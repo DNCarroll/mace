@@ -1,6 +1,7 @@
 ﻿class Ajax implements IEventDispatcher<Ajax>{
-    constructor(withProgress: boolean = false) {
+    constructor(withProgress: boolean = false, disableElement:any = null) {
         this.WithProgress = withProgress;
+        this.DisableElement = disableElement;
     }
     DisableElement: any = null;
     static Host: string;

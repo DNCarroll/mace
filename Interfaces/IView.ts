@@ -1,8 +1,9 @@
 ﻿interface IView extends IEventDispatcher<IView> {
-    ViewUrl: () => string;
+    Url: () => string;
     Show: (route: ViewInstance) => void;
     ContainerID: () => string;
-    
+    CacheStrategy: CacheStrategy;
+    Cache: (strategy: CacheStrategy) => void;
 }
 interface IBinder extends IEventDispatcher<IBinder> {
     Execute: (viewInstance: ViewInstance) => void;

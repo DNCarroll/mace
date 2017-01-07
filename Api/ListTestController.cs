@@ -6,8 +6,8 @@ using System.Net.Http;
 using System.Web.Http;
 
 namespace mace.Api {
-    [RoutePrefix("Api/ListView")]
-    public class ListViewController : ApiController {
+    [RoutePrefix("Api/ListTestData")]
+    public class ListTestController : ApiController {
         [Route]
         public List<BindingTestObject> Get() {
             return new List<BindingTestObject>() {

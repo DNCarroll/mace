@@ -3,6 +3,7 @@ abstract class Binder implements IBinder {
     PrimaryKeys: Array<string> = new Array<string>();
     WebApi: string;
     WithProgress: boolean = true;
+    DisableElement: any;
     WebApiGetParameters(): any {
         return null;
     }
@@ -15,7 +16,9 @@ abstract class Binder implements IBinder {
     DataRowTemplates = new Array<string>();
     DataRowFooter :HTMLElement;
     IsFormBinding: boolean = false;
-    abstract NewObject(rawObj: any): IObjectState;  
+    NewObject(obj: any): IObjectState {
+        return new DynamicDataObject(obj);
+    }  
     Dispose() {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
@@ -34,7 +37,7 @@ abstract class Binder implements IBinder {
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
             var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters,
-                a = new Ajax(t.WithProgress), u = t.WebApi;
+                a = new Ajax(t.WithProgress, t.DisableElement), u = t.WebApi;
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -72,7 +75,7 @@ abstract class Binder implements IBinder {
             }
         }
         if (obj) {
-            var a = new Ajax(t.WithProgress),
+            var a = new Ajax(t.WithProgress, t.DisableElement),
                 f = () => {
                     var es = t.Element.Get(e => e.DataObject === obj);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));
@@ -130,7 +133,7 @@ abstract class Binder implements IBinder {
     private objStateChanged(o: IObjectState) {
         var t = this;
         if (t.AutomaticUpdate && t.WebApi) {
-            var a = new Ajax(t.WithProgress);
+            var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
             a.Put(t.WebApi, o.ServerObject);
             o.ObjectState = ObjectState.Clean;

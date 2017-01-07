@@ -1,12 +1,14 @@
 var Ajax = (function () {
-    function Ajax(withProgress) {
+    function Ajax(withProgress, disableElement) {
         if (withProgress === void 0) { withProgress = false; }
+        if (disableElement === void 0) { disableElement = null; }
         this.DisableElement = null;
         this.WithProgress = false;
         this.UseAsDateUTC = true;
         this.ContentType = "application/json; charset=utf-8";
         this.eventHandlers = new Array();
         this.WithProgress = withProgress;
+        this.DisableElement = disableElement;
     }
     Object.defineProperty(Ajax.prototype, "ResponseText", {
         get: function () {

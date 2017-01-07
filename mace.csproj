@@ -56,7 +56,7 @@
     <Content Include="Views\header.html" />
     <Content Include="Views\MultipleBindings.html" />
     <Content Include="Views\TestContent.html" />
-    <Content Include="Views\ListBinderView.html" />
+    <Content Include="Views\ListTest.html" />
     <Content Include="Views\WebApiFormView.html" />
     <Content Include="web.config" />
   </ItemGroup>
@@ -104,7 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\GenericSelectDataController.cs" />
-    <Compile Include="Api\ListViewControllerController.cs" />
+    <Compile Include="Api\ListTestController.cs" />
     <Compile Include="Api\WebApiBinder.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Global.asax.cs">

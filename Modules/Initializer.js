@@ -31,11 +31,13 @@ var Initializer;
     function addViewContainers() {
         var it = ignoreTheseNames(), w = window;
         for (var o in w) {
-            var n = getNameToTest(getStringOf(w[o]), it);
+            var n = GetFuncName(GetStringOf(w[o]), it);
             if (!Is.NullOrEmpty(n)) {
                 try {
                     var no = (new Function("return new " + n + "();"))();
                     if (Has.Properties(no, "IsDefault", "Views", "Show", "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
+                        //dont know the cache strategy
+                        no.Views.forEach(function (v) { return v.CacheStrategy != CacheStrategy.None ? v.Cache(v.CacheStrategy) : null; });
                         ViewContainers.Add(no);
                     }
                 }
@@ -45,7 +47,8 @@ var Initializer;
             }
         }
     }
-    function getNameToTest(rawFunction, ignoreThese) {
+    function GetFuncName(rawFunction, ignoreThese) {
+        if (ignoreThese === void 0) { ignoreThese = new Array(); }
         var rf = rawFunction;
         if (!Is.NullOrEmpty(rf)) {
             var p = "^function\\s(\\w+)\\(\\)", m = rf.match(p);
@@ -55,9 +58,11 @@ var Initializer;
         }
         return null;
     }
-    function getStringOf(o) {
+    Initializer.GetFuncName = GetFuncName;
+    function GetStringOf(o) {
         return o && o.toString ? o.toString() : null;
     }
+    Initializer.GetStringOf = GetStringOf;
     function setProgressElement() {
         var pg = document.getElementById("progress");
         if (pg != null) {

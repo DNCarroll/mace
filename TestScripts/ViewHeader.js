@@ -8,7 +8,7 @@ var ViewHeader = (function (_super) {
     function ViewHeader() {
         _super.call(this);
     }
-    ViewHeader.prototype.ViewUrl = function () { return "/Views/header.html"; };
+    ViewHeader.prototype.Url = function () { return "/Views/header.html"; };
     ;
     ViewHeader.prototype.ContainerID = function () {
         return "header";

@@ -8,7 +8,7 @@ var ContentWithShowByUrlContent = (function (_super) {
     function ContentWithShowByUrlContent() {
         _super.call(this);
     }
-    ContentWithShowByUrlContent.prototype.ViewUrl = function () { return "/Views/ContentWithShowByUrl.html"; };
+    ContentWithShowByUrlContent.prototype.Url = function () { return "/Views/ContentWithShowByUrl.html"; };
     ;
     ContentWithShowByUrlContent.prototype.ContainerID = function () {
         return "content";

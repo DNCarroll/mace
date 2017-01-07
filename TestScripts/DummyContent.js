@@ -8,7 +8,7 @@ var DummyContent = (function (_super) {
     function DummyContent() {
         _super.call(this);
     }
-    DummyContent.prototype.ViewUrl = function () { return "/Views/DummyContent.html"; };
+    DummyContent.prototype.Url = function () { return "/Views/DummyContent.html"; };
     ;
     DummyContent.prototype.ContainerID = function () {
         return "content";
