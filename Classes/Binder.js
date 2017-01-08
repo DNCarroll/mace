@@ -1,6 +1,7 @@
 //disable the active context or readonly it while the new stuff is coming in?
 var Binder = (function () {
     function Binder() {
+        this._api = null;
         this.PrimaryKeys = new Array();
         this.WithProgress = true;
         this.eventHandlers = new Array();
@@ -10,6 +11,16 @@ var Binder = (function () {
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
     }
+    Binder.prototype.ApiPrefix = function () {
+        return "/Api/";
+    };
+    Binder.prototype.Api = function () {
+        if (!this._api) {
+            var r = Reflection, name = r.GetName(this.constructor);
+            this._api = this.ApiPrefix() + name;
+        }
+        return this._api;
+    };
     Binder.prototype.WebApiGetParameters = function () {
         return null;
     };
@@ -19,7 +30,7 @@ var Binder = (function () {
     Binder.prototype.Dispose = function () {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
-        t.WebApi = null;
+        t.Api = null;
         if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
@@ -33,8 +44,8 @@ var Binder = (function () {
     Binder.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
-        if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
-            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress, t.DisableElement), u = t.WebApi;
+        if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
+            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -86,7 +97,7 @@ var Binder = (function () {
                 a.EventType === EventType.Completed ? f() : null;
             }, af = function () {
                 a.AddListener(EventType.Any, afc);
-                a.Delete(t.WebApi, obj);
+                a.Delete(t.Api(), obj);
             };
             t.AutomaticUpdate ? af() : f();
         }
@@ -123,10 +134,10 @@ var Binder = (function () {
     };
     Binder.prototype.objStateChanged = function (o) {
         var t = this;
-        if (t.AutomaticUpdate && t.WebApi) {
+        if (t.AutomaticUpdate && t.Api) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
-            a.Put(t.WebApi, o.ServerObject);
+            a.Put(t.Api(), o.ServerObject);
             o.ObjectState = ObjectState.Clean;
         }
     };

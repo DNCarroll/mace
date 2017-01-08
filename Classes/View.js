@@ -16,7 +16,7 @@ var View = (function () {
     };
     View.prototype.Url = function () {
         if (!this.viewPath) {
-            var i = Initializer, name = i.GetFuncName(i.GetStringOf(this.constructor.toString()));
+            var r = Reflection, name = r.GetName(this.constructor);
             this.viewPath = this.Prefix() + name + ".html";
         }
         return this.viewPath;

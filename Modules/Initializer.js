@@ -29,9 +29,9 @@ var Initializer;
         w.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function addViewContainers() {
-        var it = ignoreTheseNames(), w = window;
+        var it = ignoreTheseNames(), w = window, r = Reflection;
         for (var o in w) {
-            var n = GetFuncName(GetStringOf(w[o]), it);
+            var n = r.GetName(w[o], it);
             if (!Is.NullOrEmpty(n)) {
                 try {
                     var no = (new Function("return new " + n + "();"))();
@@ -47,22 +47,6 @@ var Initializer;
             }
         }
     }
-    function GetFuncName(rawFunction, ignoreThese) {
-        if (ignoreThese === void 0) { ignoreThese = new Array(); }
-        var rf = rawFunction;
-        if (!Is.NullOrEmpty(rf)) {
-            var p = "^function\\s(\\w+)\\(\\)", m = rf.match(p);
-            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
-                return m[1];
-            }
-        }
-        return null;
-    }
-    Initializer.GetFuncName = GetFuncName;
-    function GetStringOf(o) {
-        return o && o.toString ? o.toString() : null;
-    }
-    Initializer.GetStringOf = GetStringOf;
     function setProgressElement() {
         var pg = document.getElementById("progress");
         if (pg != null) {
@@ -75,5 +59,20 @@ var Initializer;
             "ObjectState", "HistoryManager", "Initializer", "Is", "ProgressManager"];
     }
 })(Initializer || (Initializer = {}));
+var Reflection;
+(function (Reflection) {
+    function GetName(o, ignoreThese) {
+        if (ignoreThese === void 0) { ignoreThese = new Array(); }
+        var r = o && o.toString ? o.toString() : null;
+        if (!Is.NullOrEmpty(r)) {
+            var p = "^function\\s(\\w+)\\(\\)", m = r.match(p);
+            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
+                return m[1];
+            }
+        }
+        return null;
+    }
+    Reflection.GetName = GetName;
+})(Reflection || (Reflection = {}));
 Initializer.WindowLoad();
 //# sourceMappingURL=Initializer.js.map

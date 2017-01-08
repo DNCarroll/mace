@@ -233,6 +233,7 @@ var Ajax = (function () {
 //disable the active context or readonly it while the new stuff is coming in?
 var Binder = (function () {
     function Binder() {
+        this._api = null;
         this.PrimaryKeys = new Array();
         this.WithProgress = true;
         this.eventHandlers = new Array();
@@ -242,6 +243,16 @@ var Binder = (function () {
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
     }
+    Binder.prototype.ApiPrefix = function () {
+        return "/Api/";
+    };
+    Binder.prototype.Api = function () {
+        if (!this._api) {
+            var r = Reflection, name = r.GetName(this.constructor);
+            this._api = this.ApiPrefix() + name;
+        }
+        return this._api;
+    };
     Binder.prototype.WebApiGetParameters = function () {
         return null;
     };
@@ -251,7 +262,7 @@ var Binder = (function () {
     Binder.prototype.Dispose = function () {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
-        t.WebApi = null;
+        t.Api = null;
         if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
@@ -265,8 +276,8 @@ var Binder = (function () {
     Binder.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
-        if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
-            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress, t.DisableElement), u = t.WebApi;
+        if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
+            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -318,7 +329,7 @@ var Binder = (function () {
                 a.EventType === EventType.Completed ? f() : null;
             }, af = function () {
                 a.AddListener(EventType.Any, afc);
-                a.Delete(t.WebApi, obj);
+                a.Delete(t.Api(), obj);
             };
             t.AutomaticUpdate ? af() : f();
         }
@@ -355,10 +366,10 @@ var Binder = (function () {
     };
     Binder.prototype.objStateChanged = function (o) {
         var t = this;
-        if (t.AutomaticUpdate && t.WebApi) {
+        if (t.AutomaticUpdate && t.Api) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
-            a.Put(t.WebApi, o.ServerObject);
+            a.Put(t.Api(), o.ServerObject);
             o.ObjectState = ObjectState.Clean;
         }
     };
@@ -619,7 +630,7 @@ var View = (function () {
     };
     View.prototype.Url = function () {
         if (!this.viewPath) {
-            var i = Initializer, name = i.GetFuncName(i.GetStringOf(this.constructor.toString()));
+            var r = Reflection, name = r.GetName(this.constructor);
             this.viewPath = this.Prefix() + name + ".html";
         }
         return this.viewPath;
@@ -1304,9 +1315,9 @@ var Initializer;
         w.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function addViewContainers() {
-        var it = ignoreTheseNames(), w = window;
+        var it = ignoreTheseNames(), w = window, r = Reflection;
         for (var o in w) {
-            var n = GetFuncName(GetStringOf(w[o]), it);
+            var n = r.GetName(w[o], it);
             if (!Is.NullOrEmpty(n)) {
                 try {
                     var no = (new Function("return new " + n + "();"))();
@@ -1322,22 +1333,6 @@ var Initializer;
             }
         }
     }
-    function GetFuncName(rawFunction, ignoreThese) {
-        if (ignoreThese === void 0) { ignoreThese = new Array(); }
-        var rf = rawFunction;
-        if (!Is.NullOrEmpty(rf)) {
-            var p = "^function\\s(\\w+)\\(\\)", m = rf.match(p);
-            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
-                return m[1];
-            }
-        }
-        return null;
-    }
-    Initializer.GetFuncName = GetFuncName;
-    function GetStringOf(o) {
-        return o && o.toString ? o.toString() : null;
-    }
-    Initializer.GetStringOf = GetStringOf;
     function setProgressElement() {
         var pg = document.getElementById("progress");
         if (pg != null) {
@@ -1350,5 +1345,20 @@ var Initializer;
             "ObjectState", "HistoryManager", "Initializer", "Is", "ProgressManager"];
     }
 })(Initializer || (Initializer = {}));
+var Reflection;
+(function (Reflection) {
+    function GetName(o, ignoreThese) {
+        if (ignoreThese === void 0) { ignoreThese = new Array(); }
+        var r = o && o.toString ? o.toString() : null;
+        if (!Is.NullOrEmpty(r)) {
+            var p = "^function\\s(\\w+)\\(\\)", m = r.match(p);
+            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
+                return m[1];
+            }
+        }
+        return null;
+    }
+    Reflection.GetName = GetName;
+})(Reflection || (Reflection = {}));
 Initializer.WindowLoad();
 //# sourceMappingURL=Initializer.js.map

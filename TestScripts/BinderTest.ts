@@ -178,7 +178,6 @@ class WebApiFormView extends View {
         this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, () => !WebApiFormView.GenericSelectData));
         this.CacheStrategy = CacheStrategy.ViewAndPreload;
     }
-    Url() { return "/Views/WebApiFormView.html" };
     ContainerID() {
         return "content";
     }  
@@ -217,20 +216,26 @@ class WebApiBindingContainer extends ViewContainer {
 class WebApiBinder extends Binder {
     constructor() {
         super();
-        this.WebApi = "/Api/WebApiBinder";      
-        this.PrimaryKeys.Add("ID");  
+        this.PrimaryKeys.Add("ID");
     }
     NewObject(obj: any) {
         return new BinderTestObject(obj);
     }
 }
+//can this be inline 100% now?
+//Binder.Make("ApiName", "PK");
+//Binder.Make({ ApiName }, pk:Array<string>, TypeNewObject)
 class ListTestData extends Binder {
     constructor() {
-        super();
-        this.WebApi = "/Api/ListTestData";   
+        super();  
         this.PrimaryKeys.Add("ID");  
     }
 }
+
+//could the Views also be just on the fly?
+//ala this.Views.push(new View(CacheStrategy, ElementHousingView, Preload:nullable)
+//this.Views.push(new ListTest());
+
 class ListTest extends View {    
     constructor() {
         super();

@@ -1,7 +1,18 @@
 ﻿//disable the active context or readonly it while the new stuff is coming in?
 abstract class Binder implements IBinder {
+    _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
-    WebApi: string;
+    ApiPrefix() {
+        return "/Api/";
+    }
+    Api(): string {
+        if (!this._api) {
+            var r = Reflection,
+                name = r.GetName(this.constructor);
+            this._api = this.ApiPrefix() + name;
+        }
+        return this._api;
+    }
     WithProgress: boolean = true;
     DisableElement: any;
     WebApiGetParameters(): any {
@@ -22,7 +33,7 @@ abstract class Binder implements IBinder {
     Dispose() {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
-        t.WebApi = null;
+        t.Api = null;
         if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
@@ -35,9 +46,9 @@ abstract class Binder implements IBinder {
     }
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
-        if (t.AutomaticSelect && !Is.NullOrEmpty(t.WebApi)) {
+        if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
             var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters,
-                a = new Ajax(t.WithProgress, t.DisableElement), u = t.WebApi;
+                a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -91,7 +102,7 @@ abstract class Binder implements IBinder {
                 },
                 af = () => {
                     a.AddListener(EventType.Any, afc);
-                    a.Delete(t.WebApi, obj);
+                    a.Delete(t.Api(), obj);
                 };
             t.AutomaticUpdate ? af() : f();
         }
@@ -132,10 +143,10 @@ abstract class Binder implements IBinder {
     }
     private objStateChanged(o: IObjectState) {
         var t = this;
-        if (t.AutomaticUpdate && t.WebApi) {
+        if (t.AutomaticUpdate && t.Api) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
-            a.Put(t.WebApi, o.ServerObject);
+            a.Put(t.Api(), o.ServerObject);
             o.ObjectState = ObjectState.Clean;
         }
     }

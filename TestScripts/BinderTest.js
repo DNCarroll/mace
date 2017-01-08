@@ -228,8 +228,6 @@ var WebApiFormView = (function (_super) {
         this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, function () { return !WebApiFormView.GenericSelectData; }));
         this.CacheStrategy = CacheStrategy.ViewAndPreload;
     }
-    WebApiFormView.prototype.Url = function () { return "/Views/WebApiFormView.html"; };
-    ;
     WebApiFormView.prototype.ContainerID = function () {
         return "content";
     };
@@ -271,7 +269,6 @@ var WebApiBinder = (function (_super) {
     __extends(WebApiBinder, _super);
     function WebApiBinder() {
         _super.call(this);
-        this.WebApi = "/Api/WebApiBinder";
         this.PrimaryKeys.Add("ID");
     }
     WebApiBinder.prototype.NewObject = function (obj) {
@@ -279,15 +276,20 @@ var WebApiBinder = (function (_super) {
     };
     return WebApiBinder;
 }(Binder));
+//can this be inline 100% now?
+//Binder.Make("ApiName", "PK");
+//Binder.Make({ ApiName }, pk:Array<string>, TypeNewObject)
 var ListTestData = (function (_super) {
     __extends(ListTestData, _super);
     function ListTestData() {
         _super.call(this);
-        this.WebApi = "/Api/ListTestData";
         this.PrimaryKeys.Add("ID");
     }
     return ListTestData;
 }(Binder));
+//could the Views also be just on the fly?
+//ala this.Views.push(new View(CacheStrategy, ElementHousingView, Preload:nullable)
+//this.Views.push(new ListTest());
 var ListTest = (function (_super) {
     __extends(ListTest, _super);
     function ListTest() {

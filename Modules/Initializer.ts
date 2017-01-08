@@ -28,9 +28,10 @@
     }
     function addViewContainers() {
         var it = ignoreTheseNames(),
-            w = window;
+            w = window,
+            r = Reflection;
         for (var o in w) {
-            let n = GetFuncName(GetStringOf(w[o]), it);
+            let n = r.GetName(w[o], it);
             if (!Is.NullOrEmpty(n)) {
                 try {
                     var no = (new Function("return new " + n + "();"))();
@@ -47,20 +48,6 @@
             }
         }
     }
-    export function GetFuncName(rawFunction: string, ignoreThese: Array<string> = new Array<string>()) {
-        var rf = rawFunction;
-        if (!Is.NullOrEmpty(rf)) {
-            var p = "^function\\s(\\w+)\\(\\)",
-                m = rf.match(p);
-            if (m && !ignoreThese.First(i => i === m[1])) {
-                return m[1];
-            }
-        }
-        return null;
-    }
-    export function GetStringOf(o: any): string {
-        return o && o.toString ? o.toString() : null;
-    }
     function setProgressElement() {
         var pg = document.getElementById("progress");
         if (pg != null) {
@@ -71,6 +58,19 @@
         return ["Ajax", "Binder", "DataObject", "View", "ViewContainer", "ViewContainers",
             "ViewInstance", "EventType", "CustomEventArg", "Listener", "PropertyListener",
             "ObjectState", "HistoryManager", "Initializer", "Is", "ProgressManager"];
+    }
+}
+module Reflection {
+    export function GetName(o: any, ignoreThese: Array<string> = new Array<string>()) {
+        var r = o && o.toString ? o.toString() : null;
+        if (!Is.NullOrEmpty(r)) {
+            var p = "^function\\s(\\w+)\\(\\)",
+                m = r.match(p);
+            if (m && !ignoreThese.First(i => i === m[1])) {
+                return m[1];
+            }
+        }
+        return null;
     }
 }
 Initializer.WindowLoad();
