@@ -173,8 +173,7 @@ class MultipleBindingsContainer extends ViewContainer {
 class WebApiFormView extends View {
     static GenericSelectData: any;
     constructor() {
-        super(CacheStrategy.ViewAndPreload, "content");
-        var ajax = new Ajax();        
+        super(CacheStrategy.ViewAndPreload, "content");        
         this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, () => !WebApiFormView.GenericSelectData));        
     }
     AjaxLoadCompleted(arg: ICustomEventArg<Ajax>) {
@@ -211,13 +210,13 @@ class WebApiBindingContainer extends ViewContainer {
 }
 class WebApiBinder extends Binder {
     constructor() {
-        super(["ID"], BinderTestObject);
+        super(["ID"], null, BinderTestObject);
     }
 }
 
 class ListTestData extends Binder {
     constructor() {
-        super(["ID"], BinderTestObject);
+        super(["ID"]);
     }
 }
 class ListTest extends View {    
@@ -233,8 +232,8 @@ class ListBinderContainer extends ViewContainer {
         }
         super();
         this.Views.push(new View(CacheStrategy.View, "content", "/Views/ListTest.html"));
-        this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());                
+        this.Views.push(new View(CacheStrategy.View, "header", "/Views/header.html"));
+        this.Views.push(new View(CacheStrategy.View, "footer", "/Views/footer.html"));
         ListBinderContainer.instance = this;
     }
     DocumentTitle(route: ViewInstance) { return "Listbinder Data"; }

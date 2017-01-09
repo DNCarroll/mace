@@ -89,9 +89,9 @@ class View implements IView {
             if (ele.length > 0) {
                 ele.forEach(e => {
                     try {
-                        var attribute = e.getAttribute("data-binder");
-                        if (attribute) {
-                            let fun = new Function("return new " + attribute + "()");
+                        let a = e.getAttribute("data-binder");
+                        if (a) {
+                            let fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
                             e.Binder = <IBinder>fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;

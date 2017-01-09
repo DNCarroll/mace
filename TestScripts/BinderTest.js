@@ -224,7 +224,6 @@ var WebApiFormView = (function (_super) {
     __extends(WebApiFormView, _super);
     function WebApiFormView() {
         _super.call(this, CacheStrategy.ViewAndPreload, "content");
-        var ajax = new Ajax();
         this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, function () { return !WebApiFormView.GenericSelectData; }));
     }
     WebApiFormView.prototype.AjaxLoadCompleted = function (arg) {
@@ -264,14 +263,14 @@ var WebApiBindingContainer = (function (_super) {
 var WebApiBinder = (function (_super) {
     __extends(WebApiBinder, _super);
     function WebApiBinder() {
-        _super.call(this, ["ID"], BinderTestObject);
+        _super.call(this, ["ID"], null, BinderTestObject);
     }
     return WebApiBinder;
 }(Binder));
 var ListTestData = (function (_super) {
     __extends(ListTestData, _super);
     function ListTestData() {
-        _super.call(this, ["ID"], BinderTestObject);
+        _super.call(this, ["ID"]);
     }
     return ListTestData;
 }(Binder));
@@ -290,8 +289,8 @@ var ListBinderContainer = (function (_super) {
         }
         _super.call(this);
         this.Views.push(new View(CacheStrategy.View, "content", "/Views/ListTest.html"));
-        this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
+        this.Views.push(new View(CacheStrategy.View, "header", "/Views/header.html"));
+        this.Views.push(new View(CacheStrategy.View, "footer", "/Views/footer.html"));
         ListBinderContainer.instance = this;
     }
     ListBinderContainer.prototype.DocumentTitle = function (route) { return "Listbinder Data"; };

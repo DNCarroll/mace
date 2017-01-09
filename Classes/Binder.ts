@@ -2,7 +2,7 @@
 class Binder implements IBinder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();    
-    constructor(primaryKeys: Array<string> = null, TypeObject: { new (obj: any): IObjectState; } = null, api: string = null) {
+    constructor(primaryKeys: Array<string> = null, api: string = null, TypeObject: { new (obj: any): IObjectState; } = null) {
         var p = primaryKeys;
         this.PrimaryKeys = p ? p : this.PrimaryKeys;
         if (TypeObject) {

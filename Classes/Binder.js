@@ -1,9 +1,9 @@
 //disable the active context or readonly it while the new stuff is coming in?
 var Binder = (function () {
-    function Binder(primaryKeys, TypeObject, api) {
+    function Binder(primaryKeys, api, TypeObject) {
         if (primaryKeys === void 0) { primaryKeys = null; }
-        if (TypeObject === void 0) { TypeObject = null; }
         if (api === void 0) { api = null; }
+        if (TypeObject === void 0) { TypeObject = null; }
         this._api = null;
         this.PrimaryKeys = new Array();
         this.WithProgress = true;
