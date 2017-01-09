@@ -1,15 +1,25 @@
 ﻿//disable the active context or readonly it while the new stuff is coming in?
-abstract class Binder implements IBinder {
+class Binder implements IBinder {
     _api: string = null;
-    PrimaryKeys: Array<string> = new Array<string>();
+    PrimaryKeys: Array<string> = new Array<string>();    
+    constructor(primaryKeys: Array<string> = null, TypeObject: { new (obj: any): IObjectState; } = null, api: string = null) {
+        var p = primaryKeys;
+        this.PrimaryKeys = p ? p : this.PrimaryKeys;
+        if (TypeObject) {
+            this.NewObject = (obj: any) => {
+                return new TypeObject(obj);
+            };
+        }
+        this._api = api;
+    }
     ApiPrefix() {
         return "/Api/";
     }
     Api(): string {
         if (!this._api) {
             var r = Reflection,
-                name = r.GetName(this.constructor);
-            this._api = this.ApiPrefix() + name;
+                n = r.GetName(this.constructor);
+            this._api = this.ApiPrefix() + n;
         }
         return this._api;
     }

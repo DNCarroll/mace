@@ -6,21 +6,30 @@ var CacheStrategy;
     CacheStrategy[CacheStrategy["Preload"] = 3] = "Preload";
 })(CacheStrategy || (CacheStrategy = {}));
 var View = (function () {
-    function View() {
+    function View(cacheStrategy, containerId, viewPath) {
+        if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.None; }
+        if (containerId === void 0) { containerId = null; }
+        if (viewPath === void 0) { viewPath = null; }
         this.CacheStrategy = CacheStrategy.None;
+        this._containerID = null;
         this.eHandlrs = new Array();
         this.preload = null;
+        this._viewPath = viewPath;
+        this._containerID = containerId;
+        this.CacheStrategy = cacheStrategy;
     }
     View.prototype.Prefix = function () {
         return "/Views/";
     };
     View.prototype.Url = function () {
-        if (!this.viewPath) {
-            var r = Reflection, name = r.GetName(this.constructor);
-            this.viewPath = this.Prefix() + name + ".html";
+        if (!this._viewPath) {
+            var r = Reflection, n = r.GetName(this.constructor);
+            this._viewPath = this.Prefix() + n + ".html";
         }
-        return this.viewPath;
+        return this._viewPath;
     };
+    ;
+    View.prototype.ContainerID = function () { return this._containerID; };
     ;
     Object.defineProperty(View.prototype, "Preload", {
         get: function () {

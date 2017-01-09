@@ -18,7 +18,7 @@ Window.prototype.Exception = function () {
     }
 };
 Window.prototype.Show = function (type, parameters) {
-    var vc = new type(), vi = new ViewInstance(parameters, vc);
+    var vc = Reflection.NewObject(type), vi = new ViewInstance(parameters, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };

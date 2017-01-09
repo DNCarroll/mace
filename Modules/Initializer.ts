@@ -72,5 +72,8 @@ module Reflection {
         }
         return null;
     }
+    export function NewObject(type: { new () }) {
+        return new type();
+    }
 }
 Initializer.WindowLoad();

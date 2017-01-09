@@ -223,14 +223,10 @@ var MultipleBindingsContainer = (function (_super) {
 var WebApiFormView = (function (_super) {
     __extends(WebApiFormView, _super);
     function WebApiFormView() {
-        _super.call(this);
+        _super.call(this, CacheStrategy.ViewAndPreload, "content");
         var ajax = new Ajax();
         this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, function () { return !WebApiFormView.GenericSelectData; }));
-        this.CacheStrategy = CacheStrategy.ViewAndPreload;
     }
-    WebApiFormView.prototype.ContainerID = function () {
-        return "content";
-    };
     WebApiFormView.prototype.AjaxLoadCompleted = function (arg) {
         WebApiFormView.GenericSelectData = arg.Sender.GetRequestData();
     };
@@ -268,37 +264,22 @@ var WebApiBindingContainer = (function (_super) {
 var WebApiBinder = (function (_super) {
     __extends(WebApiBinder, _super);
     function WebApiBinder() {
-        _super.call(this);
-        this.PrimaryKeys.Add("ID");
+        _super.call(this, ["ID"], BinderTestObject);
     }
-    WebApiBinder.prototype.NewObject = function (obj) {
-        return new BinderTestObject(obj);
-    };
     return WebApiBinder;
 }(Binder));
-//can this be inline 100% now?
-//Binder.Make("ApiName", "PK");
-//Binder.Make({ ApiName }, pk:Array<string>, TypeNewObject)
 var ListTestData = (function (_super) {
     __extends(ListTestData, _super);
     function ListTestData() {
-        _super.call(this);
-        this.PrimaryKeys.Add("ID");
+        _super.call(this, ["ID"], BinderTestObject);
     }
     return ListTestData;
 }(Binder));
-//could the Views also be just on the fly?
-//ala this.Views.push(new View(CacheStrategy, ElementHousingView, Preload:nullable)
-//this.Views.push(new ListTest());
 var ListTest = (function (_super) {
     __extends(ListTest, _super);
     function ListTest() {
-        _super.call(this);
-        this.CacheStrategy = CacheStrategy.View;
+        _super.call(this, CacheStrategy.View, "content");
     }
-    ListTest.prototype.ContainerID = function () {
-        return "content";
-    };
     return ListTest;
 }(View));
 var ListBinderContainer = (function (_super) {
@@ -308,7 +289,7 @@ var ListBinderContainer = (function (_super) {
             return ListBinderContainer.instance;
         }
         _super.call(this);
-        this.Views.push(new ListTest());
+        this.Views.push(new View(CacheStrategy.View, "content", "/Views/ListTest.html"));
         this.Views.push(new ViewHeader());
         this.Views.push(new ViewFooter());
         ListBinderContainer.instance = this;

@@ -21,7 +21,7 @@ Window.prototype.Exception = function (...parameters: any[]) {
     }
 };
 Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, parameters?: Array<any>) {    
-    var vc = new type(),   
+    var vc = Reflection.NewObject(type),   
         vi = new ViewInstance(parameters, vc);    
     vc.Show(vi);
     HistoryManager.Add(vi);

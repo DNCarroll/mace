@@ -4,21 +4,27 @@
     View,
     Preload
 }
-abstract class View implements IView {
-    private viewPath: string;
+class View implements IView {
+    private _viewPath: string;
     CacheStrategy: CacheStrategy = CacheStrategy.None;
+    constructor(cacheStrategy: CacheStrategy = CacheStrategy.None, containerId: string = null, viewPath: string = null) {
+        this._viewPath = viewPath;
+        this._containerID = containerId;
+        this.CacheStrategy = cacheStrategy;
+    }
     Prefix() {
         return "/Views/";
     }
     Url() {
-        if (!this.viewPath) {
+        if (!this._viewPath) {
             var r = Reflection,
-                name = r.GetName(this.constructor);
-            this.viewPath = this.Prefix() + name + ".html";
+                n = r.GetName(this.constructor);
+            this._viewPath = this.Prefix() + n + ".html";
         }       
-        return this.viewPath;
+        return this._viewPath;
     };
-    abstract ContainerID(): string;    
+    _containerID: string = null;
+    ContainerID(): string { return this._containerID; };    
     private countBinders: number;
     private countBindersReported: number;
     private cached: HTMLElement    

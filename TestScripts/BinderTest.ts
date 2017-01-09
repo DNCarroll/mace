@@ -173,14 +173,10 @@ class MultipleBindingsContainer extends ViewContainer {
 class WebApiFormView extends View {
     static GenericSelectData: any;
     constructor() {
-        super();
+        super(CacheStrategy.ViewAndPreload, "content");
         var ajax = new Ajax();        
-        this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, () => !WebApiFormView.GenericSelectData));
-        this.CacheStrategy = CacheStrategy.ViewAndPreload;
+        this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, () => !WebApiFormView.GenericSelectData));        
     }
-    ContainerID() {
-        return "content";
-    }  
     AjaxLoadCompleted(arg: ICustomEventArg<Ajax>) {
         WebApiFormView.GenericSelectData = arg.Sender.GetRequestData();
     }  
@@ -215,34 +211,18 @@ class WebApiBindingContainer extends ViewContainer {
 }
 class WebApiBinder extends Binder {
     constructor() {
-        super();
-        this.PrimaryKeys.Add("ID");
-    }
-    NewObject(obj: any) {
-        return new BinderTestObject(obj);
+        super(["ID"], BinderTestObject);
     }
 }
-//can this be inline 100% now?
-//Binder.Make("ApiName", "PK");
-//Binder.Make({ ApiName }, pk:Array<string>, TypeNewObject)
+
 class ListTestData extends Binder {
     constructor() {
-        super();  
-        this.PrimaryKeys.Add("ID");  
+        super(["ID"], BinderTestObject);
     }
 }
-
-//could the Views also be just on the fly?
-//ala this.Views.push(new View(CacheStrategy, ElementHousingView, Preload:nullable)
-//this.Views.push(new ListTest());
-
 class ListTest extends View {    
     constructor() {
-        super();
-        this.CacheStrategy = CacheStrategy.View;  
-    }   
-    ContainerID() {
-        return "content";
+        super(CacheStrategy.View, "content");
     }    
 }
 class ListBinderContainer extends ViewContainer {
@@ -252,7 +232,7 @@ class ListBinderContainer extends ViewContainer {
             return ListBinderContainer.instance;
         }
         super();
-        this.Views.push(new ListTest());
+        this.Views.push(new View(CacheStrategy.View, "content", "/Views/ListTest.html"));
         this.Views.push(new ViewHeader());
         this.Views.push(new ViewFooter());                
         ListBinderContainer.instance = this;

@@ -232,7 +232,10 @@ var Ajax = (function () {
 //# sourceMappingURL=Ajax.js.map
 //disable the active context or readonly it while the new stuff is coming in?
 var Binder = (function () {
-    function Binder() {
+    function Binder(primaryKeys, TypeObject, api) {
+        if (primaryKeys === void 0) { primaryKeys = null; }
+        if (TypeObject === void 0) { TypeObject = null; }
+        if (api === void 0) { api = null; }
         this._api = null;
         this.PrimaryKeys = new Array();
         this.WithProgress = true;
@@ -242,14 +245,22 @@ var Binder = (function () {
         this.AutomaticSelect = true;
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
+        var p = primaryKeys;
+        this.PrimaryKeys = p ? p : this.PrimaryKeys;
+        if (TypeObject) {
+            this.NewObject = function (obj) {
+                return new TypeObject(obj);
+            };
+        }
+        this._api = api;
     }
     Binder.prototype.ApiPrefix = function () {
         return "/Api/";
     };
     Binder.prototype.Api = function () {
         if (!this._api) {
-            var r = Reflection, name = r.GetName(this.constructor);
-            this._api = this.ApiPrefix() + name;
+            var r = Reflection, n = r.GetName(this.constructor);
+            this._api = this.ApiPrefix() + n;
         }
         return this._api;
     };
@@ -620,21 +631,30 @@ var CacheStrategy;
     CacheStrategy[CacheStrategy["Preload"] = 3] = "Preload";
 })(CacheStrategy || (CacheStrategy = {}));
 var View = (function () {
-    function View() {
+    function View(cacheStrategy, containerId, viewPath) {
+        if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.None; }
+        if (containerId === void 0) { containerId = null; }
+        if (viewPath === void 0) { viewPath = null; }
         this.CacheStrategy = CacheStrategy.None;
+        this._containerID = null;
         this.eHandlrs = new Array();
         this.preload = null;
+        this._viewPath = viewPath;
+        this._containerID = containerId;
+        this.CacheStrategy = cacheStrategy;
     }
     View.prototype.Prefix = function () {
         return "/Views/";
     };
     View.prototype.Url = function () {
-        if (!this.viewPath) {
-            var r = Reflection, name = r.GetName(this.constructor);
-            this.viewPath = this.Prefix() + name + ".html";
+        if (!this._viewPath) {
+            var r = Reflection, n = r.GetName(this.constructor);
+            this._viewPath = this.Prefix() + n + ".html";
         }
-        return this.viewPath;
+        return this._viewPath;
     };
+    ;
+    View.prototype.ContainerID = function () { return this._containerID; };
     ;
     Object.defineProperty(View.prototype, "Preload", {
         get: function () {
@@ -1270,7 +1290,7 @@ Window.prototype.Exception = function () {
     }
 };
 Window.prototype.Show = function (type, parameters) {
-    var vc = new type(), vi = new ViewInstance(parameters, vc);
+    var vc = Reflection.NewObject(type), vi = new ViewInstance(parameters, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
@@ -1359,6 +1379,10 @@ var Reflection;
         return null;
     }
     Reflection.GetName = GetName;
+    function NewObject(type) {
+        return new type();
+    }
+    Reflection.NewObject = NewObject;
 })(Reflection || (Reflection = {}));
 Initializer.WindowLoad();
 //# sourceMappingURL=Initializer.js.map

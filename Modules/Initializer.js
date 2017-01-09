@@ -73,6 +73,10 @@ var Reflection;
         return null;
     }
     Reflection.GetName = GetName;
+    function NewObject(type) {
+        return new type();
+    }
+    Reflection.NewObject = NewObject;
 })(Reflection || (Reflection = {}));
 Initializer.WindowLoad();
 //# sourceMappingURL=Initializer.js.map
