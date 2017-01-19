@@ -39,10 +39,11 @@
         }
     }
     private getUrl(url: string): string {
-        if (url.indexOf("http") == -1 && !Is.NullOrEmpty(Ajax.Host)) {
-            url = Ajax.Host + (url.indexOf("/") == 0 ? url : "/" + url);
+        var u = url, a = Ajax.Host;
+        if (u.indexOf("http") == -1 && !Is.NullOrEmpty(a)) {
+            u = a + (u.indexOf("/") == 0 ? u : "/" + u);
         }
-        return url;
+        return u;
     }
     private isRequestReady(): boolean {
         var x = this.XHttp;
@@ -157,9 +158,9 @@
     }
     private setValues(obj, keyMap: Array<any>) {
         for (var j = 0; j < keyMap.length; j++) {
-            let k = keyMap[j].Key;
-            let t = keyMap[j].Type;
-            let v = obj[k];
+            let k = keyMap[j].Key,
+                t = keyMap[j].Type,
+                v = obj[k];
             switch (t) {
                 case "Date":
                     if (v) {

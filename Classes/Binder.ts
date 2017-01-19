@@ -2,8 +2,9 @@
 class Binder implements IBinder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();    
-    constructor(primaryKeys: Array<string> = null, api: string = null, TypeObject: { new (obj: any): IObjectState; } = null) {
+    constructor(primaryKeys: Array<string> = null, api: string = null, staticProperties: Array<string> = null, TypeObject: { new (obj: any): IObjectState; } = null) {
         var p = primaryKeys;
+        this.StaticProperties = staticProperties;
         this.PrimaryKeys = p ? p : this.PrimaryKeys;
         if (TypeObject) {
             this.NewObject = (obj: any) => {
@@ -37,8 +38,9 @@ class Binder implements IBinder {
     DataRowTemplates = new Array<string>();
     DataRowFooter :HTMLElement;
     IsFormBinding: boolean = false;
+    StaticProperties: Array<string>;
     NewObject(obj: any): IObjectState {
-        return new DynamicDataObject(obj);
+        return new DynamicDataObject(obj, this.StaticProperties);
     }  
     Dispose() {
         var t = this, d = t.DataObject;

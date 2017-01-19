@@ -1,7 +1,14 @@
 ﻿//state management isnt working right yet with regards to the put and the complete of the ajax call
-abstract class DataObject implements IObjectState {
-    constructor(serverObject: any = null) {
-        this.serverObject = serverObject;
+abstract class DataObject implements IObjectState {    
+    constructor(serverObject: any, staticProperties: Array<string> = null) {
+        var so = serverObject;
+        this.serverObject = so;
+        staticProperties ?
+            staticProperties.forEach(s => {
+                if (!Has.Properties(so, s)) {
+                    so[s] = null;
+                }
+            }) : null;
         this.objectState = ObjectState.Clean;
     }
     private changeCount: number = 0;
@@ -67,9 +74,9 @@ abstract class DataObject implements IObjectState {
     }
 }
 class DynamicDataObject extends DataObject {
-    constructor(serverObject: any) {
+    constructor(serverObject: any, staticProperties:Array<string> = null) {
         var so = serverObject;
-        super(so);        
+        super(so, staticProperties);        
         for (var p in so) { this.setProps(p, so); }
     }
     private setProps(p: string, o: any) {

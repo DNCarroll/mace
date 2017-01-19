@@ -44,10 +44,11 @@ var Ajax = (function () {
         }
     };
     Ajax.prototype.getUrl = function (url) {
-        if (url.indexOf("http") == -1 && !Is.NullOrEmpty(Ajax.Host)) {
-            url = Ajax.Host + (url.indexOf("/") == 0 ? url : "/" + url);
+        var u = url, a = Ajax.Host;
+        if (u.indexOf("http") == -1 && !Is.NullOrEmpty(a)) {
+            u = a + (u.indexOf("/") == 0 ? u : "/" + u);
         }
-        return url;
+        return u;
     };
     Ajax.prototype.isRequestReady = function () {
         var x = this.XHttp;
@@ -161,9 +162,7 @@ var Ajax = (function () {
     };
     Ajax.prototype.setValues = function (obj, keyMap) {
         for (var j = 0; j < keyMap.length; j++) {
-            var k = keyMap[j].Key;
-            var t = keyMap[j].Type;
-            var v = obj[k];
+            var k = keyMap[j].Key, t = keyMap[j].Type, v = obj[k];
             switch (t) {
                 case "Date":
                     if (v) {
@@ -232,9 +231,10 @@ var Ajax = (function () {
 //# sourceMappingURL=Ajax.js.map
 //disable the active context or readonly it while the new stuff is coming in?
 var Binder = (function () {
-    function Binder(primaryKeys, api, TypeObject) {
+    function Binder(primaryKeys, api, staticProperties, TypeObject) {
         if (primaryKeys === void 0) { primaryKeys = null; }
         if (api === void 0) { api = null; }
+        if (staticProperties === void 0) { staticProperties = null; }
         if (TypeObject === void 0) { TypeObject = null; }
         this._api = null;
         this.PrimaryKeys = new Array();
@@ -246,6 +246,7 @@ var Binder = (function () {
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
         var p = primaryKeys;
+        this.StaticProperties = staticProperties;
         this.PrimaryKeys = p ? p : this.PrimaryKeys;
         if (TypeObject) {
             this.NewObject = function (obj) {
@@ -268,7 +269,7 @@ var Binder = (function () {
         return null;
     };
     Binder.prototype.NewObject = function (obj) {
-        return new DynamicDataObject(obj);
+        return new DynamicDataObject(obj, this.StaticProperties);
     };
     Binder.prototype.Dispose = function () {
         var t = this, d = t.DataObject;
@@ -529,14 +530,21 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 //state management isnt working right yet with regards to the put and the complete of the ajax call
 var DataObject = (function () {
-    function DataObject(serverObject) {
-        if (serverObject === void 0) { serverObject = null; }
+    function DataObject(serverObject, staticProperties) {
+        if (staticProperties === void 0) { staticProperties = null; }
         this.changeCount = 0;
         this.changeQueued = false;
         this.eLstenrs = new Array();
         this.oLstenrs = new Array();
         this.objectState = ObjectState.Clean;
-        this.serverObject = serverObject;
+        var so = serverObject;
+        this.serverObject = so;
+        staticProperties ?
+            staticProperties.forEach(function (s) {
+                if (!Has.Properties(so, s)) {
+                    so[s] = null;
+                }
+            }) : null;
         this.objectState = ObjectState.Clean;
     }
     Object.defineProperty(DataObject.prototype, "ObjectState", {
@@ -609,9 +617,10 @@ var DataObject = (function () {
 }());
 var DynamicDataObject = (function (_super) {
     __extends(DynamicDataObject, _super);
-    function DynamicDataObject(serverObject) {
+    function DynamicDataObject(serverObject, staticProperties) {
+        if (staticProperties === void 0) { staticProperties = null; }
         var so = serverObject;
-        _super.call(this, so);
+        _super.call(this, so, staticProperties);
         for (var p in so) {
             this.setProps(p, so);
         }

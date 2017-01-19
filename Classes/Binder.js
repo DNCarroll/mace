@@ -1,8 +1,9 @@
 //disable the active context or readonly it while the new stuff is coming in?
 var Binder = (function () {
-    function Binder(primaryKeys, api, TypeObject) {
+    function Binder(primaryKeys, api, staticProperties, TypeObject) {
         if (primaryKeys === void 0) { primaryKeys = null; }
         if (api === void 0) { api = null; }
+        if (staticProperties === void 0) { staticProperties = null; }
         if (TypeObject === void 0) { TypeObject = null; }
         this._api = null;
         this.PrimaryKeys = new Array();
@@ -14,6 +15,7 @@ var Binder = (function () {
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
         var p = primaryKeys;
+        this.StaticProperties = staticProperties;
         this.PrimaryKeys = p ? p : this.PrimaryKeys;
         if (TypeObject) {
             this.NewObject = function (obj) {
@@ -36,7 +38,7 @@ var Binder = (function () {
         return null;
     };
     Binder.prototype.NewObject = function (obj) {
-        return new DynamicDataObject(obj);
+        return new DynamicDataObject(obj, this.StaticProperties);
     };
     Binder.prototype.Dispose = function () {
         var t = this, d = t.DataObject;

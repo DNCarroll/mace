@@ -5,14 +5,21 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 //state management isnt working right yet with regards to the put and the complete of the ajax call
 var DataObject = (function () {
-    function DataObject(serverObject) {
-        if (serverObject === void 0) { serverObject = null; }
+    function DataObject(serverObject, staticProperties) {
+        if (staticProperties === void 0) { staticProperties = null; }
         this.changeCount = 0;
         this.changeQueued = false;
         this.eLstenrs = new Array();
         this.oLstenrs = new Array();
         this.objectState = ObjectState.Clean;
-        this.serverObject = serverObject;
+        var so = serverObject;
+        this.serverObject = so;
+        staticProperties ?
+            staticProperties.forEach(function (s) {
+                if (!Has.Properties(so, s)) {
+                    so[s] = null;
+                }
+            }) : null;
         this.objectState = ObjectState.Clean;
     }
     Object.defineProperty(DataObject.prototype, "ObjectState", {
@@ -85,9 +92,10 @@ var DataObject = (function () {
 }());
 var DynamicDataObject = (function (_super) {
     __extends(DynamicDataObject, _super);
-    function DynamicDataObject(serverObject) {
+    function DynamicDataObject(serverObject, staticProperties) {
+        if (staticProperties === void 0) { staticProperties = null; }
         var so = serverObject;
-        _super.call(this, so);
+        _super.call(this, so, staticProperties);
         for (var p in so) {
             this.setProps(p, so);
         }

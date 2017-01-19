@@ -44,10 +44,11 @@ var Ajax = (function () {
         }
     };
     Ajax.prototype.getUrl = function (url) {
-        if (url.indexOf("http") == -1 && !Is.NullOrEmpty(Ajax.Host)) {
-            url = Ajax.Host + (url.indexOf("/") == 0 ? url : "/" + url);
+        var u = url, a = Ajax.Host;
+        if (u.indexOf("http") == -1 && !Is.NullOrEmpty(a)) {
+            u = a + (u.indexOf("/") == 0 ? u : "/" + u);
         }
-        return url;
+        return u;
     };
     Ajax.prototype.isRequestReady = function () {
         var x = this.XHttp;
@@ -161,9 +162,7 @@ var Ajax = (function () {
     };
     Ajax.prototype.setValues = function (obj, keyMap) {
         for (var j = 0; j < keyMap.length; j++) {
-            var k = keyMap[j].Key;
-            var t = keyMap[j].Type;
-            var v = obj[k];
+            var k = keyMap[j].Key, t = keyMap[j].Type, v = obj[k];
             switch (t) {
                 case "Date":
                     if (v) {

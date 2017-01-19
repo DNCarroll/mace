@@ -132,7 +132,7 @@ var BinderTest = (function (_super) {
     };
     BinderTest.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
-        var bo = new BinderTestObject();
+        var bo = new BinderTestObject(null);
         bo.Name = "Test the name";
         bo.ID = 1;
         bo.Value = "test the value";
@@ -151,7 +151,7 @@ var BinderTest2 = (function (_super) {
     };
     BinderTest2.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
-        var bo = new BinderTestObject();
+        var bo = new BinderTestObject(null);
         bo.Name = "Test the name";
         bo.ID = 1;
         bo.Value = "test the value";
@@ -263,7 +263,7 @@ var WebApiBindingContainer = (function (_super) {
 var WebApiBinder = (function (_super) {
     __extends(WebApiBinder, _super);
     function WebApiBinder() {
-        _super.call(this, ["ID"], null, BinderTestObject);
+        _super.call(this, ["ID"], null, null, BinderTestObject);
     }
     return WebApiBinder;
 }(Binder));

@@ -92,7 +92,7 @@ class BinderTest extends Binder {
         return new BinderTestObject(obj);
     }
     Execute(viewInstance: ViewInstance = null) {
-        var bo = new BinderTestObject();
+        var bo = new BinderTestObject(null);
         bo.Name = "Test the name";
         bo.ID = 1;
         bo.Value = "test the value";
@@ -109,7 +109,7 @@ class BinderTest2 extends Binder {
         return new BinderTestObject(obj);
     }
     Execute(viewInstance: ViewInstance = null) {
-        var bo = new BinderTestObject();
+        var bo = new BinderTestObject(null);
         bo.Name = "Test the name";
         bo.ID = 1;
         bo.Value = "test the value";
@@ -210,7 +210,7 @@ class WebApiBindingContainer extends ViewContainer {
 }
 class WebApiBinder extends Binder {
     constructor() {
-        super(["ID"], null, BinderTestObject);
+        super(["ID"], null, null, BinderTestObject);
     }
 }
 
@@ -252,3 +252,4 @@ class ListBinderContainer extends ViewContainer {
     UrlPattern() { return "ListBinder"; }
     UrlTitle(route: ViewInstance) { return "ListBinder view"; }
 }
+

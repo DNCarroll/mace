@@ -4,32 +4,41 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using BattleAxe;
 
 namespace mace.Api {
     [RoutePrefix("Api/ListTestData")]
     public class ListTestController : ApiController {
         [Route]
-        public List<BindingTestObject> Get() {
-            return new List<BindingTestObject>() {
-                new BindingTestObject { ID = 1, Name = "Obj1", Value = "Value1", Checked = true },
-                new BindingTestObject { ID = 2, Name = "Obj2", Value = "Value2", Checked = false },
-                new BindingTestObject { ID = 3, Name = "Obj3", Value = "Value3", Checked = true }
-            };
+        public List<Dynamic> Get() {
+            var lastChecked = false;
+            var ret = new List<Dynamic>();
+            for (int i = 0; i < 10; i++) {
+                var obj = new Dynamic();
+                obj["ID"] = i;
+                obj["Name"] = $"Obj{i}";
+                obj["Value"] = $"Value{i}";
+                obj["Checked"] = !lastChecked;
+                ret.Add(obj);
+                lastChecked = !lastChecked;
+            }
+            return ret;
         }
 
         [Route]
-        public BindingTestObject Post([FromBody]BindingTestObject value) {
+        public Dynamic Post([FromBody]Dynamic value) {
             return value;
         }
 
         [Route]
-        public BindingTestObject Put([FromBody]BindingTestObject value) {
-            value.Name = "Updated";
+        public Dynamic Put([FromBody]Dynamic value) {
+            dynamic d = value;
+            d.Name = "Updated";
             return value;
         }
 
         [Route]
-        public void Delete([FromBody]BindingTestObject obj) {
+        public void Delete([FromBody]Dynamic obj) {
         }
 
     }
