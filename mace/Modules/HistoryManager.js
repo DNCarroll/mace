@@ -4,7 +4,7 @@ var HistoryContainer;
         function History() {
             this.ViewInstances = new Array();
         }
-        History.prototype.CurrentRoute = function () {
+        History.prototype.CurrentViewInstance = function () {
             var vi = this.ViewInstances;
             if (vi != null && vi.length > 0) {
                 return vi[vi.length - 1];

@@ -7,8 +7,8 @@ var CacheStrategy;
 })(CacheStrategy || (CacheStrategy = {}));
 var View = (function () {
     function View(cacheStrategy, containerId, viewPath) {
-        if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.None; }
-        if (containerId === void 0) { containerId = null; }
+        if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.View; }
+        if (containerId === void 0) { containerId = "content"; }
         if (viewPath === void 0) { viewPath = null; }
         this.CacheStrategy = CacheStrategy.None;
         this._containerID = null;

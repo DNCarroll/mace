@@ -7,7 +7,7 @@
 class View implements IView {
     private _viewPath: string;
     CacheStrategy: CacheStrategy = CacheStrategy.None;
-    constructor(cacheStrategy: CacheStrategy = CacheStrategy.None, containerId: string = null, viewPath: string = null) {
+    constructor(cacheStrategy: CacheStrategy = CacheStrategy.View, containerId: string = "content", viewPath: string = null) {
         this._viewPath = viewPath;
         this._containerID = containerId;
         this.CacheStrategy = cacheStrategy;
@@ -20,31 +20,31 @@ class View implements IView {
             var r = Reflection,
                 n = r.GetName(this.constructor);
             this._viewPath = this.Prefix() + n + ".html";
-        }       
+        }
         return this._viewPath;
     };
     _containerID: string = null;
-    ContainerID(): string { return this._containerID; };    
+    ContainerID(): string { return this._containerID; };
     private countBinders: number;
     private countBindersReported: number;
-    private cached: HTMLElement    
+    private cached: HTMLElement
     private eHandlrs = new Array<Listener<IView>>();
-    ViewInstance: ViewInstance;   
+    ViewInstance: ViewInstance;
     private preload: IPreViewLoad = null;
     get Preload() {
         return this.preload;
     }
     set Preload(value: IPreViewLoad) {
         this.preload = value;
-    }    
+    }
     Cache(strategy: CacheStrategy = CacheStrategy.ViewAndPreload) {
         var t = this;
         if (t.Preload &&
             (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(() => { });
-        }        
+        }
         var f = sessionStorage.getItem(t.Url());
-        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {            
+        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {
             var a = new Ajax();
             a.AddListener(EventType.Completed, (arg: ICustomEventArg<Ajax>) => {
                 t.RequestCompleted(arg, true);
@@ -69,18 +69,18 @@ class View implements IView {
             t.SetHTML(f);
         }
     }
-    RequestCompleted(a: CustomEventArg<Ajax>, dontSetHTML = false) {        
+    RequestCompleted(a: CustomEventArg<Ajax>, dontSetHTML = false) {
         if (a.Sender.ResponseText) {
             sessionStorage.setItem(this.Url(), a.Sender.ResponseText);
             if (!dontSetHTML) {
                 this.SetHTML(a.Sender.ResponseText);
             }
-        }        
+        }
         a.Sender = null;
-    }    
+    }
     SetHTML(html: string) {
         var t = this,
-            c = t.ContainerID().Element();        
+            c = t.ContainerID().Element();
         if (!Is.NullOrEmpty(c)) {
             t.cached = "div".CreateElement({ "innerHTML": html });
             var ele = t.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
@@ -119,7 +119,7 @@ class View implements IView {
         else {
             t.Dispatch(EventType.Completed);
         }
-    }    
+    }
     OnBinderComplete(a: ICustomEventArg<IBinder>) {
         var t = this;
         if (a.EventType === EventType.Completed) {
@@ -136,8 +136,8 @@ class View implements IView {
         be.forEach(e => e.Binder.Dispose());
         c.Clear();
         while (t.cached.childNodes.length > 0) {
-            let n = t.cached.childNodes[0];            
-            t.cached.removeChild(n);            
+            let n = t.cached.childNodes[0];
+            t.cached.removeChild(n);
             c.appendChild(n);
         }
         t.Dispatch(EventType.Completed);

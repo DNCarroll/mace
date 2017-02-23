@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace", "mace.csproj", "{5E51DCBF-995C-45AE-BCD6-1D4866B912F0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace", "mace\mace.csproj", "{5E51DCBF-995C-45AE-BCD6-1D4866B912F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace.Test", "..\mace.Test\mace.Test.csproj", "{F281D93B-6CD2-481F-8060-C9F371E6E63F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace.Test", "mace.Test\mace.Test.csproj", "{F281D93B-6CD2-481F-8060-C9F371E6E63F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

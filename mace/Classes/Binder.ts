@@ -1,7 +1,7 @@
 ﻿//disable the active context or readonly it while the new stuff is coming in?
 class Binder implements IBinder {
     _api: string = null;
-    PrimaryKeys: Array<string> = new Array<string>();    
+    PrimaryKeys: Array<string> = new Array<string>();
     constructor(primaryKeys: Array<string> = null, api: string = null, staticProperties: Array<string> = null, TypeObject: { new (obj: any): IObjectState; } = null) {
         var p = primaryKeys;
         this.StaticProperties = staticProperties;
@@ -20,28 +20,40 @@ class Binder implements IBinder {
         if (!this._api) {
             var r = Reflection,
                 n = r.GetName(this.constructor);
+            n = n.replace("Binder", "");
             this._api = this.ApiPrefix() + n;
         }
         return this._api;
     }
     WithProgress: boolean = true;
     DisableElement: any;
-    WebApiGetParameters(): any {
-        return null;
+    WebApiGetParameters(currentParameters: any[]): any {
+        var cp = currentParameters,
+            a = this.Api();
+        if (a) {
+            var as = a.split("/");
+            if (cp != null && cp.length > 0 && cp[0] == as[as.length - 1]) {
+                cp = cp.slice(1);
+                if (cp.length == 0) {
+                    return null;
+                }
+            }
+        }
+        return cp;
     }
     Element: HTMLElement;
     private eventHandlers = new Array<Listener<IBinder>>();
     DataObject: IObjectState;
-    DataObjects: Array<IObjectState> = new Array<IObjectState>();   
+    DataObjects: Array<IObjectState> = new Array<IObjectState>();
     AutomaticUpdate: boolean = true;
     AutomaticSelect: boolean = true;
     DataRowTemplates = new Array<string>();
-    DataRowFooter :HTMLElement;
+    DataRowFooter: HTMLElement;
     IsFormBinding: boolean = false;
     StaticProperties: Array<string>;
     NewObject(obj: any): IObjectState {
         return new DynamicDataObject(obj, this.StaticProperties);
-    }  
+    }
     Dispose() {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
@@ -59,7 +71,7 @@ class Binder implements IBinder {
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters,
+            var p = t.WebApiGetParameters(viewInstance.Parameters),
                 a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
@@ -71,24 +83,24 @@ class Binder implements IBinder {
         else {
             t.Dispatch(EventType.Completed);
         }
-    }    
-    OnAjaxComplete(arg: CustomEventArg<Ajax>) {  
+    }
+    OnAjaxComplete(arg: CustomEventArg<Ajax>) {
         var t = this;
         if (arg.EventType === EventType.Completed) {
             var d = arg.Sender.GetRequestData();
             if (d) {
-                if (!Is.Array(d)) {
-                    t.IsFormBinding = true;        
-                    t.Bind(t.NewObject(d));
-                }
-                else {                
+                if (Is.Array(d)) {
                     (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
+                }
+                else if (d) {
+                    t.IsFormBinding = true;
+                    t.Bind(t.NewObject(d));
                 }
                 t.Dispatch(EventType.Completed);
             }
         }
     }
-    Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {        
+    Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
         var obj = sender.DataObject, t = this;
         if (!obj) {
             var parent = sender.parentElement;
@@ -121,7 +133,7 @@ class Binder implements IBinder {
     }
     Add(obj: IObjectState) {
         var t = this;
-        t.prepTemplates();         
+        t.prepTemplates();
         t.DataRowTemplates.forEach(d => {
             let ne = d.CreateElementFromHtml(),
                 be = ne.Get(e => e.HasDataSet()),
@@ -131,10 +143,10 @@ class Binder implements IBinder {
             t.DataObjects.Add(obj);
             t.Bind(obj, be);
         });
-    }    
+    }
     private prepTemplates() {
         var t = this;
-        if (t.DataRowTemplates.length == 0) {            
+        if (t.DataRowTemplates.length == 0) {
             var e = t.Element.children,
                 r = new Array<HTMLElement>(),
                 li = 0;
@@ -143,7 +155,7 @@ class Binder implements IBinder {
                     r.Add(e[i]);
                     li = i;
                 }
-            }          
+            }
             if (e[e.length - 1] != r[r.length - 1]) {
                 t.DataRowFooter = <HTMLElement>e[e.length - 1];
             }
@@ -184,25 +196,25 @@ class Binder implements IBinder {
         }
         return true;
     }
-    Bind(o: IObjectState, eles: Array<HTMLElement> = null) { 
-        var t = this;  
+    Bind(o: IObjectState, eles: Array<HTMLElement> = null) {
+        var t = this;
         if (!eles) {
             eles = t.Element.Get(e => e.HasDataSet());
             eles.Add(t.Element);
         }
         if (t.IsFormBinding) {
-            t.DataObject = o;            
+            t.DataObject = o;
         }
         o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(e => {
             e.DataObject = o;
             t.setListeners(e, o);
-        });        
+        });
         o.AllPropertiesChanged();
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
-        if (ele.tagName === "SELECT") {            
+        if (ele.tagName === "SELECT") {
             var ds = ba.First(f => f.Attribute == "datasource"),
                 dm = ba.First(f => f.Attribute == "displaymember"),
                 vm = ba.First(f => f.Attribute == "valuemember");
@@ -226,7 +238,7 @@ class Binder implements IBinder {
                 }
             }
         });
-    }    
+    }
     getAttribute(a: string) {
         a = a.toLowerCase();
         switch (a) {
@@ -237,37 +249,37 @@ class Binder implements IBinder {
                 return "innerHTML";
             case "readonly":
                 return "readOnly";
-            default:                
+            default:
                 return a;
         }
     }
     private setObjPropListener(p: string, a: string, ele: HTMLElement, d: IObjectState) {
         var t = this,
             fun = (atr: string, v: any) => {
-            if (Has.Properties(ele, atr)) {
-                if (ele.tagName === "INPUT" && ele["type"] === "radio") {
-                    var r = ele.parentElement.Get(e2 => e2["name"] === ele["name"] && e2["type"] === "radio");
-                    r.forEach(r => r["checked"] = false);
-                    var f = r.First(r => r["value"] === v.toString());
-                    f ? f["checked"] = true : null;
-                }
-                else if (atr === "className") {
-                    ele.className = null;
-                    ele.className = v;
+                if (Has.Properties(ele, atr)) {
+                    if (ele.tagName === "INPUT" && ele["type"] === "radio") {
+                        var r = ele.parentElement.Get(e2 => e2["name"] === ele["name"] && e2["type"] === "radio");
+                        r.forEach(r => r["checked"] = false);
+                        var f = r.First(r => r["value"] === v.toString());
+                        f ? f["checked"] = true : null;
+                    }
+                    else if (atr === "className") {
+                        ele.className = null;
+                        ele.className = v;
+                    }
+                    else {
+                        ele[atr] = v;
+                    }
                 }
                 else {
-                    ele[atr] = v;
+                    var s = t.getStyle(atr);
+                    s ? ele["style"][s] = v : ele[atr] = v;
                 }
-            }
-            else {
-                var s = t.getStyle(atr);
-                s ? ele["style"][s] = v : ele[atr] = v;
-            }
-        };
+            };
         d.AddPropertyListener(p, a, fun);
     }
 
-    getStyle(v: string):string {
+    getStyle(v: string): string {
         for (var p in document.body.style) {
             if (p.toLowerCase() === v.toLowerCase()) {
                 return p;
@@ -275,14 +287,14 @@ class Binder implements IBinder {
         }
         return null;
     }
-    
+
     private selectedObject: IObjectState;
     get SelectedObject() {
         return this.selectedObject;
     }
-    set SelectedObject(value) {        
+    set SelectedObject(value) {
         this.selectedObject = value;
-    }    
+    }
 
     AddListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
         var f = this.eventHandlers.First(h => h.EventType === et && h.EventHandler === eh);
@@ -293,11 +305,11 @@ class Binder implements IBinder {
     RemoveListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
         this.eventHandlers.Remove(l => l.EventType === et && eh === eh);
     }
-    RemoveListeners(et: EventType = EventType.Any) {        
+    RemoveListeners(et: EventType = EventType.Any) {
         this.eventHandlers.Remove(l => et === EventType.Any || l.EventType === et);
     }
     Dispatch(et: EventType) {
         var l = this.eventHandlers.Where(e => e.EventType === et);
         l.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, et)));
-    }
+    }    
 }

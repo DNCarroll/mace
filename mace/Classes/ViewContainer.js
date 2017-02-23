@@ -3,6 +3,8 @@ var ViewContainer = (function () {
     function ViewContainer() {
         this.Views = new Array();
         this.IsDefault = false;
+        var n = Reflection.GetName(this.constructor);
+        this.UrlBase = n.replace("Container", "");
     }
     ViewContainer.prototype.Show = function (route) {
         var _this = this;
@@ -28,6 +30,25 @@ var ViewContainer = (function () {
         if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
         }
+    };
+    ViewContainer.prototype.Url = function (route) {
+        var rp = route.Parameters;
+        if (rp) {
+            var part = rp[0] == this.UrlBase ?
+                rp.slice(1).join("/") :
+                rp.join("/");
+            return this.UrlBase + (part.length > 0 ? "/" + part : "");
+        }
+        return this.UrlBase;
+    };
+    ViewContainer.prototype.DocumentTitle = function (route) {
+        return this.UrlBase;
+    };
+    ViewContainer.prototype.UrlPattern = function () {
+        return this.UrlBase;
+    };
+    ViewContainer.prototype.UrlTitle = function (route) {
+        return this.UrlBase;
     };
     return ViewContainer;
 }());

@@ -30,12 +30,23 @@ var Binder = (function () {
     Binder.prototype.Api = function () {
         if (!this._api) {
             var r = Reflection, n = r.GetName(this.constructor);
+            n = n.replace("Binder", "");
             this._api = this.ApiPrefix() + n;
         }
         return this._api;
     };
-    Binder.prototype.WebApiGetParameters = function () {
-        return null;
+    Binder.prototype.WebApiGetParameters = function (currentParameters) {
+        var cp = currentParameters, a = this.Api();
+        if (a) {
+            var as = a.split("/");
+            if (cp != null && cp.length > 0 && cp[0] == as[as.length - 1]) {
+                cp = cp.slice(1);
+                if (cp.length == 0) {
+                    return null;
+                }
+            }
+        }
+        return cp;
     };
     Binder.prototype.NewObject = function (obj) {
         return new DynamicDataObject(obj, this.StaticProperties);
@@ -58,7 +69,7 @@ var Binder = (function () {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
+            var p = t.WebApiGetParameters(viewInstance.Parameters), a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -75,12 +86,12 @@ var Binder = (function () {
         if (arg.EventType === EventType.Completed) {
             var d = arg.Sender.GetRequestData();
             if (d) {
-                if (!Is.Array(d)) {
+                if (Is.Array(d)) {
+                    d.forEach(function (d) { return t.Add(t.NewObject(d)); });
+                }
+                else if (d) {
                     t.IsFormBinding = true;
                     t.Bind(t.NewObject(d));
-                }
-                else {
-                    d.forEach(function (d) { return t.Add(t.NewObject(d)); });
                 }
                 t.Dispatch(EventType.Completed);
             }

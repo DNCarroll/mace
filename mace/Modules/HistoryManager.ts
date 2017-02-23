@@ -1,7 +1,7 @@
 ﻿module HistoryContainer {
     export class History {
         private ViewInstances = new Array<ViewInstance>();
-        CurrentRoute(): ViewInstance {
+        CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
             if (vi != null && vi.length > 0) {
                 return vi[vi.length - 1];

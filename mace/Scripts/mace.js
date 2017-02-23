@@ -261,12 +261,23 @@ var Binder = (function () {
     Binder.prototype.Api = function () {
         if (!this._api) {
             var r = Reflection, n = r.GetName(this.constructor);
+            n = n.replace("Binder", "");
             this._api = this.ApiPrefix() + n;
         }
         return this._api;
     };
-    Binder.prototype.WebApiGetParameters = function () {
-        return null;
+    Binder.prototype.WebApiGetParameters = function (currentParameters) {
+        var cp = currentParameters, a = this.Api();
+        if (a) {
+            var as = a.split("/");
+            if (cp != null && cp.length > 0 && cp[0] == as[as.length - 1]) {
+                cp = cp.slice(1);
+                if (cp.length == 0) {
+                    return null;
+                }
+            }
+        }
+        return cp;
     };
     Binder.prototype.NewObject = function (obj) {
         return new DynamicDataObject(obj, this.StaticProperties);
@@ -289,7 +300,7 @@ var Binder = (function () {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-            var p = t.WebApiGetParameters() ? t.WebApiGetParameters() : viewInstance.Parameters, a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
+            var p = t.WebApiGetParameters(viewInstance.Parameters), a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
             if (p) {
                 u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
@@ -306,12 +317,12 @@ var Binder = (function () {
         if (arg.EventType === EventType.Completed) {
             var d = arg.Sender.GetRequestData();
             if (d) {
-                if (!Is.Array(d)) {
+                if (Is.Array(d)) {
+                    d.forEach(function (d) { return t.Add(t.NewObject(d)); });
+                }
+                else if (d) {
                     t.IsFormBinding = true;
                     t.Bind(t.NewObject(d));
-                }
-                else {
-                    d.forEach(function (d) { return t.Add(t.NewObject(d)); });
                 }
                 t.Dispatch(EventType.Completed);
             }
@@ -641,8 +652,8 @@ var CacheStrategy;
 })(CacheStrategy || (CacheStrategy = {}));
 var View = (function () {
     function View(cacheStrategy, containerId, viewPath) {
-        if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.None; }
-        if (containerId === void 0) { containerId = null; }
+        if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.View; }
+        if (containerId === void 0) { containerId = "content"; }
         if (viewPath === void 0) { viewPath = null; }
         this.CacheStrategy = CacheStrategy.None;
         this._containerID = null;
@@ -859,6 +870,8 @@ var ViewContainer = (function () {
     function ViewContainer() {
         this.Views = new Array();
         this.IsDefault = false;
+        var n = Reflection.GetName(this.constructor);
+        this.UrlBase = n.replace("Container", "");
     }
     ViewContainer.prototype.Show = function (route) {
         var _this = this;
@@ -884,6 +897,25 @@ var ViewContainer = (function () {
         if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
         }
+    };
+    ViewContainer.prototype.Url = function (route) {
+        var rp = route.Parameters;
+        if (rp) {
+            var part = rp[0] == this.UrlBase ?
+                rp.slice(1).join("/") :
+                rp.join("/");
+            return this.UrlBase + (part.length > 0 ? "/" + part : "");
+        }
+        return this.UrlBase;
+    };
+    ViewContainer.prototype.DocumentTitle = function (route) {
+        return this.UrlBase;
+    };
+    ViewContainer.prototype.UrlPattern = function () {
+        return this.UrlBase;
+    };
+    ViewContainer.prototype.UrlTitle = function (route) {
+        return this.UrlBase;
     };
     return ViewContainer;
 }());
@@ -940,7 +972,7 @@ var HistoryContainer;
         function History() {
             this.ViewInstances = new Array();
         }
-        History.prototype.CurrentRoute = function () {
+        History.prototype.CurrentViewInstance = function () {
             var vi = this.ViewInstances;
             if (vi != null && vi.length > 0) {
                 return vi[vi.length - 1];
@@ -1217,6 +1249,13 @@ HTMLElement.prototype.DeleteFromServer = function () {
     if (p && p.Binder) {
         p.Binder.Delete(this);
     }
+};
+HTMLElement.prototype.Ancestor = function (func) {
+    var p = this.parentElement;
+    while (!func(p)) {
+        p = p.parentElement;
+    }
+    return p;
 };
 //# sourceMappingURL=HTMLElement.js.map
 HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty, displayProperty, selectedValue) {
