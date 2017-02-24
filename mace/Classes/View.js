@@ -13,8 +13,9 @@ var View = (function () {
         this.CacheStrategy = CacheStrategy.None;
         this._containerID = null;
         this.eHandlrs = new Array();
+        this.binders = new Array();
         this.preload = null;
-        this._viewPath = viewPath;
+        this.url = viewPath;
         this._containerID = containerId;
         this.CacheStrategy = cacheStrategy;
     }
@@ -22,11 +23,11 @@ var View = (function () {
         return "/Views/";
     };
     View.prototype.Url = function () {
-        if (!this._viewPath) {
-            var r = Reflection, n = r.GetName(this.constructor);
-            this._viewPath = this.Prefix() + n + ".html";
+        if (!this.url) {
+            var n = Reflection.GetName(this.constructor).replace("View", "");
+            this.url = this.Prefix() + n + ".html";
         }
-        return this._viewPath;
+        return this.url;
     };
     ;
     View.prototype.ContainerID = function () { return this._containerID; };
@@ -60,6 +61,8 @@ var View = (function () {
     View.prototype.Show = function (viewInstance) {
         var t = this;
         t.ViewInstance = viewInstance;
+        t.binders = new Array();
+        t.binders.forEach(function (b) { return b.RemoveListeners(EventType.Any); });
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     };
     View.prototype.postPreloaded = function () {
@@ -90,7 +93,6 @@ var View = (function () {
             t.cached = "div".CreateElement({ "innerHTML": html });
             var ele = t.cached.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
             t.countBindersReported = 0;
-            t.countBinders = 0;
             if (ele.length > 0) {
                 ele.forEach(function (e) {
                     try {
@@ -100,7 +102,7 @@ var View = (function () {
                             e.Binder = fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(_this));
                             e.Binder.Element = e;
-                            t.countBinders = t.countBinders + 1;
+                            t.binders.Add(e.Binder);
                         }
                     }
                     catch (e) {
@@ -127,11 +129,15 @@ var View = (function () {
         }
     };
     View.prototype.OnBinderComplete = function (a) {
+        var _this = this;
         var t = this;
         if (a.EventType === EventType.Completed) {
             t.countBindersReported = t.countBindersReported + 1;
-            if (t.countBinders === t.countBindersReported) {
+            if (t.binders.length === t.countBindersReported) {
                 t.MoveStuffFromCacheToReal();
+                t.binders.forEach(function (b) {
+                    b.RemoveListener(EventType.Completed, t.OnBinderComplete.bind(_this));
+                });
             }
         }
     };

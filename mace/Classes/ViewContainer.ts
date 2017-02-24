@@ -3,6 +3,7 @@ abstract class ViewContainer implements IViewContainer {
     constructor() {
         var n = Reflection.GetName(this.constructor);
         this.UrlBase = n.replace("Container", "");
+        ViewContainers.push(this);
     }
     UrlBase: string;
     Views: Array<IView> = new Array<IView>();

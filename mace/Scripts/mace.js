@@ -4,7 +4,7 @@ var Ajax = (function () {
         if (disableElement === void 0) { disableElement = null; }
         this.DisableElement = null;
         this.WithProgress = false;
-        this.UseAsDateUTC = true;
+        this.UseAsDateUTC = false;
         this.ContentType = "application/json; charset=utf-8";
         this.eventHandlers = new Array();
         this.WithProgress = withProgress;
@@ -319,6 +319,11 @@ var Binder = (function () {
             if (d) {
                 if (Is.Array(d)) {
                     d.forEach(function (d) { return t.Add(t.NewObject(d)); });
+                    var tm = t.MoreElement, tms = "none";
+                    if (tm) {
+                        tms = t.DataObjects.length % 50 == 0 ? "inline" : "none";
+                        tm ? tm.style.display = tms : null;
+                    }
                 }
                 else if (d) {
                     t.IsFormBinding = true;
@@ -365,6 +370,7 @@ var Binder = (function () {
             be.Add(ne);
             drf ? t.Element.insertBefore(ne, drf) : t.Element.appendChild(ne);
             t.DataObjects.Add(obj);
+            obj.Container = t.DataObjects;
             t.Bind(obj, be);
         });
     };
@@ -385,6 +391,16 @@ var Binder = (function () {
                 t.DataRowTemplates.Add(r.outerHTML);
                 r.parentElement.removeChild(r);
             });
+            var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(function (m) { return m.HasDataSet() && m.getAttribute(dmk) != null &&
+                m.getAttribute(dmt) != null; });
+            if (more) {
+                t.MoreElement = more;
+                t.MoreKeys = more.getAttribute(dmk).split(";");
+                t.MoreThreshold = parseInt(more.getAttribute(dmt));
+                t.MoreElement.onclick = function () {
+                    t.More();
+                };
+            }
         }
     };
     Binder.prototype.objStateChanged = function (o) {
@@ -432,6 +448,7 @@ var Binder = (function () {
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
+        //is there a more element        
     };
     Binder.prototype.setListeners = function (ele, d) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -531,6 +548,25 @@ var Binder = (function () {
         var l = this.eventHandlers.Where(function (e) { return e.EventType === et; });
         l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, et)); });
     };
+    Binder.prototype.More = function () {
+        var pb = this.Element.Binder, vi = HistoryManager.CurrentViewInstance(), pbd = pb.DataObjects;
+        if (pbd && pbd.length > 0) {
+            var nvi = new ViewInstance(new Array(), vi.ViewContainer), o = pbd[pbd.length - 1], p = vi.Parameters;
+            if (p != null) {
+                for (var i = 0; i < p.length; i++) {
+                    var v = p[i];
+                    if (v == 0 && this._api.indexOf(v) == 0) {
+                        continue;
+                    }
+                    nvi.Parameters.Add(v);
+                }
+            }
+            this.MoreKeys.forEach(function (k) {
+                nvi.Parameters.Add(o[k]);
+            });
+            pb.Execute(nvi);
+        }
+    };
     return Binder;
 }());
 //# sourceMappingURL=Binder.js.map
@@ -543,6 +579,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var DataObject = (function () {
     function DataObject(serverObject, staticProperties) {
         if (staticProperties === void 0) { staticProperties = null; }
+        this.AlternateOnEvens = true;
         this.changeCount = 0;
         this.changeQueued = false;
         this.eLstenrs = new Array();
@@ -558,6 +595,21 @@ var DataObject = (function () {
             }) : null;
         this.objectState = ObjectState.Clean;
     }
+    Object.defineProperty(DataObject.prototype, "AlternatingClass", {
+        get: function () {
+            if (this.alternatingClass != null) {
+                var index = this.Container.indexOf(this) + 1;
+                var isEven = index % 2 == 0;
+                return isEven == this.AlternateOnEvens ? this.alternatingClass : null;
+            }
+            return null;
+        },
+        set: function (value) {
+            this.alternatingClass = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(DataObject.prototype, "ObjectState", {
         get: function () {
             return this.objectState;
@@ -658,8 +710,9 @@ var View = (function () {
         this.CacheStrategy = CacheStrategy.None;
         this._containerID = null;
         this.eHandlrs = new Array();
+        this.binders = new Array();
         this.preload = null;
-        this._viewPath = viewPath;
+        this.url = viewPath;
         this._containerID = containerId;
         this.CacheStrategy = cacheStrategy;
     }
@@ -667,11 +720,11 @@ var View = (function () {
         return "/Views/";
     };
     View.prototype.Url = function () {
-        if (!this._viewPath) {
-            var r = Reflection, n = r.GetName(this.constructor);
-            this._viewPath = this.Prefix() + n + ".html";
+        if (!this.url) {
+            var n = Reflection.GetName(this.constructor).replace("View", "");
+            this.url = this.Prefix() + n + ".html";
         }
-        return this._viewPath;
+        return this.url;
     };
     ;
     View.prototype.ContainerID = function () { return this._containerID; };
@@ -705,6 +758,8 @@ var View = (function () {
     View.prototype.Show = function (viewInstance) {
         var t = this;
         t.ViewInstance = viewInstance;
+        t.binders = new Array();
+        t.binders.forEach(function (b) { return b.RemoveListeners(EventType.Any); });
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     };
     View.prototype.postPreloaded = function () {
@@ -735,7 +790,6 @@ var View = (function () {
             t.cached = "div".CreateElement({ "innerHTML": html });
             var ele = t.cached.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
             t.countBindersReported = 0;
-            t.countBinders = 0;
             if (ele.length > 0) {
                 ele.forEach(function (e) {
                     try {
@@ -745,7 +799,7 @@ var View = (function () {
                             e.Binder = fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(_this));
                             e.Binder.Element = e;
-                            t.countBinders = t.countBinders + 1;
+                            t.binders.Add(e.Binder);
                         }
                     }
                     catch (e) {
@@ -772,11 +826,15 @@ var View = (function () {
         }
     };
     View.prototype.OnBinderComplete = function (a) {
+        var _this = this;
         var t = this;
         if (a.EventType === EventType.Completed) {
             t.countBindersReported = t.countBindersReported + 1;
-            if (t.countBinders === t.countBindersReported) {
+            if (t.binders.length === t.countBindersReported) {
                 t.MoveStuffFromCacheToReal();
+                t.binders.forEach(function (b) {
+                    b.RemoveListener(EventType.Completed, t.OnBinderComplete.bind(_this));
+                });
             }
         }
     };
@@ -872,6 +930,7 @@ var ViewContainer = (function () {
         this.IsDefault = false;
         var n = Reflection.GetName(this.constructor);
         this.UrlBase = n.replace("Container", "");
+        ViewContainers.push(this);
     }
     ViewContainer.prototype.Show = function (route) {
         var _this = this;
@@ -1144,6 +1203,13 @@ Date.prototype.Add = function (y, m, d, h, mm, s) {
     var t = this;
     return new Date(t.getFullYear() + y, t.getMonth() + m, t.getDate() + d, t.getHours() + h, t.getMinutes() + mm, t.getSeconds() + s, t.getMilliseconds());
 };
+Date.prototype.ToyyyymmddHHMMss = function () {
+    var f = function (v) {
+        return (v <= 9 ? '0' : '') + v.toString();
+    };
+    var d = f(this.getDate()), m = f(this.getMonth() + 1), y = this.getFullYear(), h = f(this.getHours()), M = f(this.getMinutes()), s = f(this.getSeconds());
+    return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
+};
 //# sourceMappingURL=Date.js.map
 HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
     var n = nodes == null ? new Array() : nodes;
@@ -1354,52 +1420,25 @@ Window.prototype.ShowByUrl = function (url) {
 //# sourceMappingURL=Window.js.map
 var Initializer;
 (function (Initializer) {
-    function WindowLoad(e) {
+    function Execute(e) {
         var w = window;
         if (document.readyState === "complete") {
             windowLoaded();
+            Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
         }
         else {
-            if (w.onload) {
-                var c = w.onload, nl = function () {
-                    c(e);
-                    windowLoaded();
-                };
-                w.onload = nl;
-            }
-            else {
-                w.onload = function () {
-                    windowLoaded();
-                };
-            }
+            w.onload = function () {
+                windowLoaded();
+                Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+            };
         }
     }
-    Initializer.WindowLoad = WindowLoad;
+    Initializer.Execute = Execute;
     function windowLoaded() {
         var w = window;
-        addViewContainers();
         setProgressElement();
         w.ShowByUrl(w.location.pathname.substring(1));
         w.addEventListener("popstate", HistoryManager.BackEvent);
-    }
-    function addViewContainers() {
-        var it = ignoreTheseNames(), w = window, r = Reflection;
-        for (var o in w) {
-            var n = r.GetName(w[o], it);
-            if (!Is.NullOrEmpty(n)) {
-                try {
-                    var no = (new Function("return new " + n + "();"))();
-                    if (Has.Properties(no, "IsDefault", "Views", "Show", "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
-                        //dont know the cache strategy
-                        no.Views.forEach(function (v) { return v.CacheStrategy != CacheStrategy.None ? v.Cache(v.CacheStrategy) : null; });
-                        ViewContainers.Add(no);
-                    }
-                }
-                catch (e) {
-                    w.Exception(e);
-                }
-            }
-        }
     }
     function setProgressElement() {
         var pg = document.getElementById("progress");
@@ -1432,5 +1471,5 @@ var Reflection;
     }
     Reflection.NewObject = NewObject;
 })(Reflection || (Reflection = {}));
-Initializer.WindowLoad();
+Initializer.Execute();
 //# sourceMappingURL=Initializer.js.map

@@ -4,7 +4,7 @@ var Ajax = (function () {
         if (disableElement === void 0) { disableElement = null; }
         this.DisableElement = null;
         this.WithProgress = false;
-        this.UseAsDateUTC = true;
+        this.UseAsDateUTC = false;
         this.ContentType = "application/json; charset=utf-8";
         this.eventHandlers = new Array();
         this.WithProgress = withProgress;

@@ -7,6 +7,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var DataObject = (function () {
     function DataObject(serverObject, staticProperties) {
         if (staticProperties === void 0) { staticProperties = null; }
+        this.AlternateOnEvens = true;
         this.changeCount = 0;
         this.changeQueued = false;
         this.eLstenrs = new Array();
@@ -22,6 +23,21 @@ var DataObject = (function () {
             }) : null;
         this.objectState = ObjectState.Clean;
     }
+    Object.defineProperty(DataObject.prototype, "AlternatingClass", {
+        get: function () {
+            if (this.alternatingClass != null) {
+                var index = this.Container.indexOf(this) + 1;
+                var isEven = index % 2 == 0;
+                return isEven == this.AlternateOnEvens ? this.alternatingClass : null;
+            }
+            return null;
+        },
+        set: function (value) {
+            this.alternatingClass = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(DataObject.prototype, "ObjectState", {
         get: function () {
             return this.objectState;

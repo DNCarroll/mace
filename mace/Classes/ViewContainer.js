@@ -5,6 +5,7 @@ var ViewContainer = (function () {
         this.IsDefault = false;
         var n = Reflection.GetName(this.constructor);
         this.UrlBase = n.replace("Container", "");
+        ViewContainers.push(this);
     }
     ViewContainer.prototype.Show = function (route) {
         var _this = this;

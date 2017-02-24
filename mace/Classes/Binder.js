@@ -88,6 +88,11 @@ var Binder = (function () {
             if (d) {
                 if (Is.Array(d)) {
                     d.forEach(function (d) { return t.Add(t.NewObject(d)); });
+                    var tm = t.MoreElement, tms = "none";
+                    if (tm) {
+                        tms = t.DataObjects.length % 50 == 0 ? "inline" : "none";
+                        tm ? tm.style.display = tms : null;
+                    }
                 }
                 else if (d) {
                     t.IsFormBinding = true;
@@ -134,6 +139,7 @@ var Binder = (function () {
             be.Add(ne);
             drf ? t.Element.insertBefore(ne, drf) : t.Element.appendChild(ne);
             t.DataObjects.Add(obj);
+            obj.Container = t.DataObjects;
             t.Bind(obj, be);
         });
     };
@@ -154,6 +160,16 @@ var Binder = (function () {
                 t.DataRowTemplates.Add(r.outerHTML);
                 r.parentElement.removeChild(r);
             });
+            var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(function (m) { return m.HasDataSet() && m.getAttribute(dmk) != null &&
+                m.getAttribute(dmt) != null; });
+            if (more) {
+                t.MoreElement = more;
+                t.MoreKeys = more.getAttribute(dmk).split(";");
+                t.MoreThreshold = parseInt(more.getAttribute(dmt));
+                t.MoreElement.onclick = function () {
+                    t.More();
+                };
+            }
         }
     };
     Binder.prototype.objStateChanged = function (o) {
@@ -201,6 +217,7 @@ var Binder = (function () {
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
+        //is there a more element        
     };
     Binder.prototype.setListeners = function (ele, d) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -299,6 +316,25 @@ var Binder = (function () {
         var _this = this;
         var l = this.eventHandlers.Where(function (e) { return e.EventType === et; });
         l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, et)); });
+    };
+    Binder.prototype.More = function () {
+        var pb = this.Element.Binder, vi = HistoryManager.CurrentViewInstance(), pbd = pb.DataObjects;
+        if (pbd && pbd.length > 0) {
+            var nvi = new ViewInstance(new Array(), vi.ViewContainer), o = pbd[pbd.length - 1], p = vi.Parameters;
+            if (p != null) {
+                for (var i = 0; i < p.length; i++) {
+                    var v = p[i];
+                    if (v == 0 && this._api.indexOf(v) == 0) {
+                        continue;
+                    }
+                    nvi.Parameters.Add(v);
+                }
+            }
+            this.MoreKeys.forEach(function (k) {
+                nvi.Parameters.Add(o[k]);
+            });
+            pb.Execute(nvi);
+        }
     };
     return Binder;
 }());

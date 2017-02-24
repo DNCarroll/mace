@@ -5,10 +5,10 @@
     Preload
 }
 class View implements IView {
-    private _viewPath: string;
+    private url: string;
     CacheStrategy: CacheStrategy = CacheStrategy.None;
     constructor(cacheStrategy: CacheStrategy = CacheStrategy.View, containerId: string = "content", viewPath: string = null) {
-        this._viewPath = viewPath;
+        this.url = viewPath;
         this._containerID = containerId;
         this.CacheStrategy = cacheStrategy;
     }
@@ -16,19 +16,18 @@ class View implements IView {
         return "/Views/";
     }
     Url() {
-        if (!this._viewPath) {
-            var r = Reflection,
-                n = r.GetName(this.constructor);
-            this._viewPath = this.Prefix() + n + ".html";
+        if (!this.url) {
+            var n = Reflection.GetName(this.constructor).replace("View","");
+            this.url = this.Prefix() + n + ".html";
         }
-        return this._viewPath;
+        return this.url;
     };
     _containerID: string = null;
-    ContainerID(): string { return this._containerID; };
-    private countBinders: number;
+    ContainerID(): string { return this._containerID; };    
     private countBindersReported: number;
     private cached: HTMLElement
     private eHandlrs = new Array<Listener<IView>>();
+    private binders = new Array<IBinder>();
     ViewInstance: ViewInstance;
     private preload: IPreViewLoad = null;
     get Preload() {
@@ -55,6 +54,8 @@ class View implements IView {
     Show(viewInstance: ViewInstance) {
         var t = this;
         t.ViewInstance = viewInstance;
+        t.binders = new Array<IBinder>();
+        t.binders.forEach(b => b.RemoveListeners(EventType.Any));
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     }
     private postPreloaded() {
@@ -84,8 +85,7 @@ class View implements IView {
         if (!Is.NullOrEmpty(c)) {
             t.cached = "div".CreateElement({ "innerHTML": html });
             var ele = t.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
-            t.countBindersReported = 0;
-            t.countBinders = 0;
+            t.countBindersReported = 0;            
             if (ele.length > 0) {
                 ele.forEach(e => {
                     try {
@@ -95,7 +95,7 @@ class View implements IView {
                             e.Binder = <IBinder>fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;
-                            t.countBinders = t.countBinders + 1;
+                            t.binders.Add(e.Binder);                            
                         }
                     }
                     catch (e) {
@@ -124,8 +124,11 @@ class View implements IView {
         var t = this;
         if (a.EventType === EventType.Completed) {
             t.countBindersReported = t.countBindersReported + 1;
-            if (t.countBinders === t.countBindersReported) {
-                t.MoveStuffFromCacheToReal();
+            if (t.binders.length === t.countBindersReported) {
+                t.MoveStuffFromCacheToReal();                
+                t.binders.forEach(b => {
+                    b.RemoveListener(EventType.Completed, t.OnBinderComplete.bind(this));
+                });   
             }
         }
     }

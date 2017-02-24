@@ -50,6 +50,9 @@ class Binder implements IBinder {
     DataRowTemplates = new Array<string>();
     DataRowFooter: HTMLElement;
     IsFormBinding: boolean = false;
+    MoreKeys: string[];
+    MoreThreshold: number;
+    MoreElement: HTMLElement;
     StaticProperties: Array<string>;
     NewObject(obj: any): IObjectState {
         return new DynamicDataObject(obj, this.StaticProperties);
@@ -91,6 +94,11 @@ class Binder implements IBinder {
             if (d) {
                 if (Is.Array(d)) {
                     (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
+                    var tm = t.MoreElement, tms = "none";
+                    if (tm) {
+                        tms = t.DataObjects.length % 50 == 0 ? "inline" : "none";
+                        tm ? tm.style.display = tms : null;
+                    }
                 }
                 else if (d) {
                     t.IsFormBinding = true;
@@ -141,6 +149,7 @@ class Binder implements IBinder {
             be.Add(ne);
             drf ? t.Element.insertBefore(ne, drf) : t.Element.appendChild(ne);
             t.DataObjects.Add(obj);
+            obj.Container = t.DataObjects;
             t.Bind(obj, be);
         });
     }
@@ -163,6 +172,18 @@ class Binder implements IBinder {
                 t.DataRowTemplates.Add(r.outerHTML);
                 r.parentElement.removeChild(r);
             });
+            var dmk = "data-morekeys",
+                dmt = "data-morethreshold",
+                more = t.Element.First(m => m.HasDataSet() && m.getAttribute(dmk) != null &&
+                m.getAttribute(dmt) != null);
+            if (more) {
+                t.MoreElement = more;
+                t.MoreKeys = more.getAttribute(dmk).split(";");
+                t.MoreThreshold = parseInt(more.getAttribute(dmt));
+                t.MoreElement.onclick = () => {
+                    t.More();
+                }
+            }
         }
     }
     private objStateChanged(o: IObjectState) {
@@ -211,6 +232,7 @@ class Binder implements IBinder {
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
+        //is there a more element        
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -311,5 +333,28 @@ class Binder implements IBinder {
     Dispatch(et: EventType) {
         var l = this.eventHandlers.Where(e => e.EventType === et);
         l.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, et)));
-    }    
+    }
+    More() {
+        var pb = this.Element.Binder,
+            vi = HistoryManager.CurrentViewInstance(),
+            pbd = pb.DataObjects;
+        if (pbd && pbd.length > 0) {
+            var nvi = new ViewInstance(new Array<any>(), vi.ViewContainer),
+                o = pbd[pbd.length - 1],
+                p = vi.Parameters;
+            if (p != null) {
+                for (var i = 0; i < p.length; i++) {
+                    var v = p[i];
+                    if (v == 0 && this._api.indexOf(v) == 0) {
+                        continue;
+                    }
+                    nvi.Parameters.Add(v)
+                }
+            }
+            this.MoreKeys.forEach(k => {
+                nvi.Parameters.Add(o[k]);
+            });
+            pb.Execute(nvi);
+        }
+    }
 }

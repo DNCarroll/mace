@@ -6,7 +6,7 @@ class Ajax implements IEventDispatcher<Ajax>{
     DisableElement: any = null;
     static Host: string;
     WithProgress = false;
-    UseAsDateUTC = true;
+    UseAsDateUTC = false;
     ContentType = "application/json; charset=utf-8";
     Header: () => any;
     eventHandlers = new Array<Listener<Ajax>>();
@@ -246,14 +246,18 @@ class Binder implements IBinder {
     WithProgress: boolean = true;
     DisableElement: any;
     WebApiGetParameters(currentParameters: any[]): any {
-        var as = this._api.split("/"),
-            l = as[as.length - 1],
-            cp = currentParameters;
-        if (cp != null &&
-            cp.length == 1 && cp[0] == l) {
-            return currentParameters.slice(1);
+        var cp = currentParameters,
+            a = this.Api();
+        if (a) {
+            var as = a.split("/");
+            if (cp != null && cp.length > 0 && cp[0] == as[as.length - 1]) {
+                cp = cp.slice(1);
+                if (cp.length == 0) {
+                    return null;
+                }
+            }
         }
-        return currentParameters;
+        return cp;
     }
     Element: HTMLElement;
     private eventHandlers = new Array<Listener<IBinder>>();
@@ -264,6 +268,9 @@ class Binder implements IBinder {
     DataRowTemplates = new Array<string>();
     DataRowFooter: HTMLElement;
     IsFormBinding: boolean = false;
+    MoreKeys: string[];
+    MoreThreshold: number;
+    MoreElement: HTMLElement;
     StaticProperties: Array<string>;
     NewObject(obj: any): IObjectState {
         return new DynamicDataObject(obj, this.StaticProperties);
@@ -303,12 +310,17 @@ class Binder implements IBinder {
         if (arg.EventType === EventType.Completed) {
             var d = arg.Sender.GetRequestData();
             if (d) {
-                if (!Is.Array(d)) {
+                if (Is.Array(d)) {
+                    (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
+                    if (t.MoreElement) {
+                        var m = t.DataObjects.length % 50 == 0;
+                        var sd = m ? "inline" : "none";
+                        t.MoreElement.style.display = sd;
+                    }
+                }
+                else if (d) {
                     t.IsFormBinding = true;
                     t.Bind(t.NewObject(d));
-                }
-                else {
-                    (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
                 }
                 t.Dispatch(EventType.Completed);
             }
@@ -355,6 +367,7 @@ class Binder implements IBinder {
             be.Add(ne);
             drf ? t.Element.insertBefore(ne, drf) : t.Element.appendChild(ne);
             t.DataObjects.Add(obj);
+            obj.Container = t.DataObjects;
             t.Bind(obj, be);
         });
     }
@@ -377,6 +390,18 @@ class Binder implements IBinder {
                 t.DataRowTemplates.Add(r.outerHTML);
                 r.parentElement.removeChild(r);
             });
+            var dmk = "data-morekeys",
+                dmt = "data-morethreshold",
+                more = t.Element.First(m => m.HasDataSet() && m.getAttribute(dmk) != null &&
+                m.getAttribute(dmt) != null);
+            if (more) {
+                t.MoreElement = more;
+                t.MoreKeys = more.getAttribute(dmk).split(";");
+                t.MoreThreshold = parseInt(more.getAttribute(dmt));
+                t.MoreElement.onclick = () => {
+                    t.More();
+                }
+            }
         }
     }
     private objStateChanged(o: IObjectState) {
@@ -425,6 +450,7 @@ class Binder implements IBinder {
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
+        //is there a more element        
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -526,6 +552,21 @@ class Binder implements IBinder {
         var l = this.eventHandlers.Where(e => e.EventType === et);
         l.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, et)));
     }
+    More() {
+        var pb = this.Element.Binder,
+            vi = HistoryManager.CurrentViewInstance(),
+            pbd = pb.DataObjects;
+        if (pbd && pbd.length > 0) {
+            var nvi = new ViewInstance(new Array<any>(), vi.ViewContainer),
+                o = pbd[pbd.length - 1],
+                p = vi.Parameters;
+            p.forEach(v => nvi.Parameters.Add(v));
+            this.MoreKeys.forEach(k => {
+                nvi.Parameters.Add(o[k]);
+            });
+            pb.Execute(nvi);
+        }
+    }
 }
 //state management isnt working right yet with regards to the put and the complete of the ajax call
 abstract class DataObject implements IObjectState {    
@@ -539,6 +580,20 @@ abstract class DataObject implements IObjectState {
                 }
             }) : null;
         this.objectState = ObjectState.Clean;
+    }
+    Container: Array<IObjectState>;
+    private alternatingClass: string;
+    AlternateOnEvens: boolean = true;
+    set AlternatingClass(value: string) {
+        this.alternatingClass = value;
+    }
+    get AlternatingClass() {
+        if (this.alternatingClass != null) {
+            var index = this.Container.indexOf(this) + 1;
+            var isEven = index % 2 == 0;
+            return isEven == this.AlternateOnEvens ? this.alternatingClass : null;
+        }
+        return null;
     }
     private changeCount: number = 0;
     private changeQueued: boolean = false;
@@ -624,10 +679,10 @@ enum CacheStrategy {
     Preload
 }
 class View implements IView {
-    private _viewPath: string;
+    private url: string;
     CacheStrategy: CacheStrategy = CacheStrategy.None;
     constructor(cacheStrategy: CacheStrategy = CacheStrategy.View, containerId: string = "content", viewPath: string = null) {
-        this._viewPath = viewPath;
+        this.url = viewPath;
         this._containerID = containerId;
         this.CacheStrategy = cacheStrategy;
     }
@@ -635,19 +690,18 @@ class View implements IView {
         return "/Views/";
     }
     Url() {
-        if (!this._viewPath) {
-            var r = Reflection,
-                n = r.GetName(this.constructor);
-            this._viewPath = this.Prefix() + n + ".html";
+        if (!this.url) {
+            var n = Reflection.GetName(this.constructor).replace("View","");
+            this.url = this.Prefix() + n + ".html";
         }
-        return this._viewPath;
+        return this.url;
     };
     _containerID: string = null;
-    ContainerID(): string { return this._containerID; };
-    private countBinders: number;
+    ContainerID(): string { return this._containerID; };    
     private countBindersReported: number;
     private cached: HTMLElement
     private eHandlrs = new Array<Listener<IView>>();
+    private binders = new Array<IBinder>();
     ViewInstance: ViewInstance;
     private preload: IPreViewLoad = null;
     get Preload() {
@@ -674,6 +728,8 @@ class View implements IView {
     Show(viewInstance: ViewInstance) {
         var t = this;
         t.ViewInstance = viewInstance;
+        t.binders = new Array<IBinder>();
+        t.binders.forEach(b => b.RemoveListeners(EventType.Any));
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     }
     private postPreloaded() {
@@ -703,8 +759,7 @@ class View implements IView {
         if (!Is.NullOrEmpty(c)) {
             t.cached = "div".CreateElement({ "innerHTML": html });
             var ele = t.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
-            t.countBindersReported = 0;
-            t.countBinders = 0;
+            t.countBindersReported = 0;            
             if (ele.length > 0) {
                 ele.forEach(e => {
                     try {
@@ -714,7 +769,7 @@ class View implements IView {
                             e.Binder = <IBinder>fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;
-                            t.countBinders = t.countBinders + 1;
+                            t.binders.Add(e.Binder);                            
                         }
                     }
                     catch (e) {
@@ -743,8 +798,11 @@ class View implements IView {
         var t = this;
         if (a.EventType === EventType.Completed) {
             t.countBindersReported = t.countBindersReported + 1;
-            if (t.countBinders === t.countBindersReported) {
-                t.MoveStuffFromCacheToReal();
+            if (t.binders.length === t.countBindersReported) {
+                t.MoveStuffFromCacheToReal();                
+                t.binders.forEach(b => {
+                    b.RemoveListener(EventType.Completed, t.OnBinderComplete.bind(this));
+                });   
             }
         }
     }
@@ -835,12 +893,17 @@ class DataLoader {
     }
 }
 var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
-abstract class ViewContainer implements IViewContainer {    
-    constructor() { }        
-    Views: Array<IView> = new Array<IView>();    
+abstract class ViewContainer implements IViewContainer {
+    constructor() {
+        var n = Reflection.GetName(this.constructor);
+        this.UrlBase = n.replace("Container", "");
+        ViewContainers.push(this);
+    }
+    UrlBase: string;
+    Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
     NumberViewsShown: number;
-    Show(route: ViewInstance) {        
+    Show(route: ViewInstance) {
         this.NumberViewsShown = 0;
         ProgressManager.Show();
         this.Views.forEach(s => {
@@ -860,14 +923,29 @@ abstract class ViewContainer implements IViewContainer {
         if (a.EventType === EventType.Completed) {
             this.NumberViewsShown = this.NumberViewsShown + 1;
         }
-        if (this.NumberViewsShown === this.Views.length) {            
+        if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
         }
     }
-    abstract DocumentTitle(route: ViewInstance): string;
-    abstract Url(route: ViewInstance): string;
-    abstract UrlPattern(): string;  
-    abstract UrlTitle(route: ViewInstance): string;      
+    Url(route: ViewInstance): string {
+        var rp = route.Parameters;
+        if (rp) {
+            var part = rp[0] == this.UrlBase ?
+                rp.slice(1).join("/") :
+                rp.join("/");
+            return this.UrlBase + (part.length > 0 ? "/" + part : "");
+        }
+        return this.UrlBase;
+    }
+    DocumentTitle(route: ViewInstance): string {
+        return this.UrlBase;
+    }
+    UrlPattern(): string {
+        return this.UrlBase;
+    }
+    UrlTitle(route: ViewInstance): string {
+        return this.UrlBase;
+    }
 }
 class ViewInstance {    
     Parameters: Array<any>;
@@ -940,6 +1018,7 @@ interface IObjectState extends IPropertyChangedDispatcher {
     AllPropertiesChanged();
     ServerObject: any;
     SetServerProperty(propertyName: string, value: any);
+    Container: Array<IObjectState>;
 }
 enum ObjectState {
     Dirty,
@@ -957,6 +1036,7 @@ interface IBinder extends IEventDispatcher<IBinder> {
     Execute: (viewInstance: ViewInstance) => void;
     Dispose: () => void;
     Element: HTMLElement;
+    DataObjects: Array<IObjectState>;
 }
 interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
@@ -969,124 +1049,10 @@ interface IViewContainer {
     IsUrlPatternMatch: (url: string) => boolean;
     Views: Array<IView>;
 }
-//module Formatters {
-//    export module DateTime {
-//        export var Token: any = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g;
-//        export var Timezone: any = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g;
-//        export var TimezoneClip: any = /[^-+\dA-Z]/g;
-//        export var i18n: any = {
-//            dayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-//            monthNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-//        };
-//        export var Masks: any = {
-//            "default": "ddd mmm dd yyyy HH:MM:ss",
-//            shortDate: "m/d/yy",
-//            mediumDate: "mmm d, yyyy",
-//            longDate: "mmmm d, yyyy",
-//            fullDate: "dddd, mmmm d, yyyy",
-//            shortTime: "h:MM TT",
-//            mediumTime: "h:MM:ss TT",
-//            longTime: "h:MM:ss TT Z",
-//            isoDate: "yyyy-mm-dd",
-//            isoTime: "HH:MM:ss",
-//            isoDateTime: "yyyy-mm-dd'T'HH:MM:ss",
-//            isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
-//        };
-
-//        export function Pad(val: any, len?: number) {
-//            val = String(val);
-//            len = len || 2;
-//            while (val.length < len) val = "0" + val;
-//            return val;
-//        }
-
-//        export function Format(date: any, mask?: string, utc?: boolean) {
-//            if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
-//                mask = date;
-//                date = undefined;
-//            }
-//            date = date ? new Date(date) : new Date();
-//            if (isNaN(date)) throw SyntaxError("invalid date");
-//            mask = String(DateTime.Masks[mask] || mask || DateTime.Masks["default"]);
-//            if (mask.slice(0, 4) == "UTC:") {
-//                mask = mask.slice(4);
-//                utc = true;
-//            }
-//            var _ = utc ? "getUTC" : "get",
-//            d = date[_ + "Date"](),
-//            D = date[_ + "Day"](),
-//            m = date[_ + "Month"](),
-//            y = date[_ + "FullYear"](),
-//            H = date[_ + "Hours"](),
-//            M = date[_ + "Minutes"](),
-//            s = date[_ + "Seconds"](),
-//            L = date[_ + "Milliseconds"](),
-//            o = utc ? 0 : date.getTimezoneOffset(),
-//            flags = {
-//                d: d,
-//                dd: DateTime.Pad(d),
-//                ddd: DateTime.i18n.dayNames[D],
-//                dddd: DateTime.i18n.dayNames[D + 7],
-//                m: m + 1,
-//                mm: DateTime.Pad(m + 1),
-//                mmm: DateTime.i18n.monthNames[m],
-//                mmmm: DateTime.i18n.monthNames[m + 12],
-//                yy: String(y).slice(2),
-//                yyyy: y,
-//                h: H % 12 || 12,
-//                hh: DateTime.Pad(H % 12 || 12),
-//                H: H,
-//                HH: DateTime.Pad(H),
-//                M: M,
-//                MM: DateTime.Pad(M),
-//                s: s,
-//                ss: DateTime.Pad(s),
-//                l: DateTime.Pad(L, 3),
-//                L: DateTime.Pad(L > 99 ? Math.round(L / 10) : L),
-//                t: H < 12 ? "a" : "p",
-//                tt: H < 12 ? "am" : "pm",
-//                T: H < 12 ? "A" : "P",
-//                TT: H < 12 ? "AM" : "PM",
-//                Z: utc ? "UTC" : (String(date).match(DateTime.Timezone) || [""]).pop().replace(DateTime.TimezoneClip, ""),
-//                o: (o > 0 ? "-" : "+") + DateTime.Pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4)
-//                //,
-//                //S: ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
-//            };
-
-            
-
-//            return mask.replace(DateTime.Token, function ($0) {
-//                return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
-//            });
-//        }
-//    }
-
-//    export module Number {
-//        export function Comma(stringOrNumber: any) {
-//            stringOrNumber += '';
-//            var x = stringOrNumber.split('.');
-//            var x1 = x[0];
-//            var x2 = x.length > 1 ? '.' + x[1] : '';
-//            var rgx = /(\d+)(\d{3})/;
-//            while (rgx.test(x1)) {
-//                x1 = x1.replace(rgx, '$1' + ',' + '$2');
-//            }
-//            return x1 + x2;
-//        }
-
-//        export function Pad(value: any, length: number) {
-//            var str = '' + value;
-//            while (str.length < length) {
-//                str = '0' + str;
-//            }
-//            return str;
-//        }
-//    }
-//}
 module HistoryContainer {
     export class History {
         private ViewInstances = new Array<ViewInstance>();
-        CurrentRoute(): ViewInstance {
+        CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
             if (vi != null && vi.length > 0) {
                 return vi[vi.length - 1];
@@ -1161,33 +1127,33 @@ module Initializer {
     }
     function windowLoaded() {
         var w = window;
-        addViewContainers();
+        //addViewContainers();
         setProgressElement();
         w.ShowByUrl(w.location.pathname.substring(1));
         w.addEventListener("popstate", HistoryManager.BackEvent);
     }
-    function addViewContainers() {
-        var it = ignoreTheseNames(),
-            w = window,
-            r = Reflection;
-        for (var o in w) {
-            let n = r.GetName(w[o], it);
-            if (!Is.NullOrEmpty(n)) {
-                try {
-                    var no = (new Function("return new " + n + "();"))();
-                    if (Has.Properties(no, "IsDefault", "Views", "Show",
-                        "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
-                        //dont know the cache strategy
-                        (<IViewContainer>no).Views.forEach(v => v.CacheStrategy != CacheStrategy.None ? v.Cache(v.CacheStrategy) : null);
-                        ViewContainers.Add(<IViewContainer>no);
-                    }
-                }
-                catch (e) {
-                    w.Exception(e);
-                }
-            }
-        }
-    }
+    //function addViewContainers() {
+    //    var it = ignoreTheseNames(),
+    //        w = window,
+    //        r = Reflection;
+    //    for (var o in w) {
+    //        let n = r.GetName(w[o], it);
+    //        if (!Is.NullOrEmpty(n)) {
+    //            try {
+    //                var no = (new Function("return new " + n + "();"))();
+    //                if (Has.Properties(no, "IsDefault", "Views", "Show",
+    //                    "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
+    //                    //dont know the cache strategy
+    //                    (<IViewContainer>no).Views.forEach(v => v.CacheStrategy != CacheStrategy.None ? v.Cache(v.CacheStrategy) : null);
+    //                    ViewContainers.Add(<IViewContainer>no);
+    //                }
+    //            }
+    //            catch (e) {
+    //                w.Exception(e);
+    //            }
+    //        }
+    //    }
+    //}
     function setProgressElement() {
         var pg = document.getElementById("progress");
         if (pg != null) {
@@ -1252,7 +1218,6 @@ module ProgressManager {
         }
     }
 }
-
 interface Array<T> {     
     Add(obj: any);
     Add(...obj: T[]);
@@ -1325,7 +1290,8 @@ Array.prototype.Where = function (func: (obj) => boolean): Array<any> {
 };
 //reviewed and updated NC - 2015-04-02
 interface Date {
-    Add(y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date;            
+    Add(y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date;
+    ToyyyymmddHHMMss();
 }
 Date.prototype.Add = function (y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date {
     y = y ? y : 0;
@@ -1337,6 +1303,18 @@ Date.prototype.Add = function (y?: number, m?: number, d?: number, h?: number, m
     var t = this;
     return new Date(t.getFullYear() + y, t.getMonth() + m, t.getDate() + d, t.getHours() + h,
         t.getMinutes() + mm, t.getSeconds() + s, t.getMilliseconds());
+};
+Date.prototype.ToyyyymmddHHMMss = function () {
+    var f = (v: number) => {
+        return (v <= 9 ? '0' : '') + v.toString();
+    };
+    var d = f(this.getDate()),
+        m = f(this.getMonth() + 1),
+        y = this.getFullYear(),
+        h = f(this.getHours()),
+        M = f(this.getMinutes()),
+        s = f(this.getSeconds());
+    return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };
 
 interface HTMLElement extends Element {
@@ -1350,6 +1328,7 @@ interface HTMLElement extends Element {
     Binder: IBinder;
     DataObject: IObjectState;   
     DeleteFromServer(); 
+    Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
 }
 HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
     var n = nodes == null ? new Array<HTMLElement>() : nodes;
@@ -1456,15 +1435,13 @@ HTMLElement.prototype.DeleteFromServer = function () {
         p.Binder.Delete(this);
     }
 };
-
-
-
-
-
-
-
-
-
+HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean): HTMLElement {
+    var p = this.parentElement;
+    while (!func(p)) {
+        p = p.parentElement;
+    }
+    return p;
+};
 interface HTMLSelectElement {
     AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;    
 }

@@ -11,6 +11,20 @@ abstract class DataObject implements IObjectState {
             }) : null;
         this.objectState = ObjectState.Clean;
     }
+    Container: Array<IObjectState>;
+    private alternatingClass: string;
+    AlternateOnEvens: boolean = true;
+    set AlternatingClass(value: string) {
+        this.alternatingClass = value;
+    }
+    get AlternatingClass() {
+        if (this.alternatingClass != null) {
+            var index = this.Container.indexOf(this) + 1;
+            var isEven = index % 2 == 0;
+            return isEven == this.AlternateOnEvens ? this.alternatingClass : null;
+        }
+        return null;
+    }
     private changeCount: number = 0;
     private changeQueued: boolean = false;
     private eLstenrs = new Array<PropertyListener>();

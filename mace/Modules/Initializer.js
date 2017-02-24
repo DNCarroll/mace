@@ -1,51 +1,24 @@
 var Initializer;
 (function (Initializer) {
-    function WindowLoad(e) {
+    function Execute(e) {
         var w = window;
         if (document.readyState === "complete") {
             windowLoaded();
+            Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
         }
         else {
-            if (w.onload) {
-                var c = w.onload, nl = function () {
-                    c(e);
-                    windowLoaded();
-                };
-                w.onload = nl;
-            }
-            else {
-                w.onload = function () {
-                    windowLoaded();
-                };
-            }
+            w.onload = function () {
+                windowLoaded();
+                Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+            };
         }
     }
-    Initializer.WindowLoad = WindowLoad;
+    Initializer.Execute = Execute;
     function windowLoaded() {
         var w = window;
-        addViewContainers();
         setProgressElement();
         w.ShowByUrl(w.location.pathname.substring(1));
         w.addEventListener("popstate", HistoryManager.BackEvent);
-    }
-    function addViewContainers() {
-        var it = ignoreTheseNames(), w = window, r = Reflection;
-        for (var o in w) {
-            var n = r.GetName(w[o], it);
-            if (!Is.NullOrEmpty(n)) {
-                try {
-                    var no = (new Function("return new " + n + "();"))();
-                    if (Has.Properties(no, "IsDefault", "Views", "Show", "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
-                        //dont know the cache strategy
-                        no.Views.forEach(function (v) { return v.CacheStrategy != CacheStrategy.None ? v.Cache(v.CacheStrategy) : null; });
-                        ViewContainers.Add(no);
-                    }
-                }
-                catch (e) {
-                    w.Exception(e);
-                }
-            }
-        }
     }
     function setProgressElement() {
         var pg = document.getElementById("progress");
@@ -78,5 +51,5 @@ var Reflection;
     }
     Reflection.NewObject = NewObject;
 })(Reflection || (Reflection = {}));
-Initializer.WindowLoad();
+Initializer.Execute();
 //# sourceMappingURL=Initializer.js.map

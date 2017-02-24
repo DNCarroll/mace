@@ -6,7 +6,7 @@
     DisableElement: any = null;
     static Host: string;
     WithProgress = false;
-    UseAsDateUTC = true;
+    UseAsDateUTC = false;
     ContentType = "application/json; charset=utf-8";
     Header: () => any;
     eventHandlers = new Array<Listener<Ajax>>();
