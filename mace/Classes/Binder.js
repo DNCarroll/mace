@@ -38,12 +38,15 @@ var Binder = (function () {
     Binder.prototype.WebApiGetParameters = function (currentParameters) {
         var cp = currentParameters, a = this.Api();
         if (a) {
-            var as = a.split("/");
-            if (cp != null && cp.length > 0 && cp[0] == as[as.length - 1]) {
-                cp = cp.slice(1);
-                if (cp.length == 0) {
-                    return null;
+            var as = a.replace(this.ApiPrefix(), '').split("/");
+            if (cp && as.length > 0 && cp.length > 0) {
+                var np = Array();
+                for (var i = 0; i < cp.length; i++) {
+                    if (i >= as.length || (i < as.length && as[i] != cp[i])) {
+                        np.Add(cp[i]);
+                    }
                 }
+                return np;
             }
         }
         return cp;
@@ -90,7 +93,7 @@ var Binder = (function () {
                     d.forEach(function (d) { return t.Add(t.NewObject(d)); });
                     var tm = t.MoreElement, tms = "none";
                     if (tm) {
-                        tms = t.DataObjects.length % 50 == 0 ? "inline" : "none";
+                        tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : "none";
                         tm ? tm.style.display = tms : null;
                     }
                 }
