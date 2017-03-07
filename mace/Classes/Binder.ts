@@ -27,23 +27,6 @@ class Binder implements IBinder {
     }
     WithProgress: boolean = true;
     DisableElement: any;
-    WebApiGetParameters(currentParameters: any[]): any {
-        var cp = currentParameters,
-            a = this.Api();
-        if (a) {
-            var as = a.replace(this.ApiPrefix(), '').split("/");
-            if (cp && as.length > 0 && cp.length > 0) {
-                var np = Array<any>();
-                for (var i = 0; i < cp.length; i++) {
-                    if (i >= as.length || (i < as.length && as[i] != cp[i])) {
-                        np.Add(cp[i]);
-                    }
-                }
-                return np;
-            }
-        }
-        return cp;
-    }
     Element: HTMLElement;
     private eventHandlers = new Array<Listener<IBinder>>();
     DataObject: IObjectState;
@@ -58,7 +41,7 @@ class Binder implements IBinder {
     MoreElement: HTMLElement;
     StaticProperties: Array<string>;
     NewObject(obj: any): IObjectState {
-        return new DynamicDataObject(obj, this.StaticProperties);
+        return new DataObject(obj, this.StaticProperties);
     }
     Dispose() {
         var t = this, d = t.DataObject;
@@ -74,17 +57,41 @@ class Binder implements IBinder {
         });
         t.RemoveListeners();
     }
+    GetApiForAjax(parameters: any[]): string {
+        var a = this.Api();
+        if (a) {
+            a = a.indexOf("/") == 0 ? a.substring(1) : a
+            var api = a.split("/"),
+                vp = api.Where(part => part.indexOf("?") > -1),
+                p = parameters ? parameters.Where(p => api.First(ap => ap == p) == null) : new Array<string>(),
+                np = new Array<string>();
+            var pos = 0;
+
+            for (var i = 0; i < api.length; i++) {
+                var ta = api[i];
+                if (ta.indexOf("?") > -1) {
+                    if (p.length > pos) {
+                        np.Add(p[pos]);
+                    }
+                    pos++;
+                }
+                else {
+                    np.Add(ta);
+                }
+            }
+        }
+        if (vp && vp.length == 0) {
+            p.forEach(o => np.Add(o));
+        }
+        return "/" + np.join("/");
+    }
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-            var p = t.WebApiGetParameters(viewInstance.Parameters),
-                a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
+            var a = new Ajax(t.WithProgress, t.DisableElement),
+                url = t.GetApiForAjax(viewInstance.Parameters);
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
-            if (p) {
-                u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
-                u += Is.Array(p) ? p.join("/") : p;
-            }
-            a.Get(u);
+            a.Get(url);
         }
         else {
             t.Dispatch(EventType.Completed);
@@ -111,6 +118,9 @@ class Binder implements IBinder {
             }
         }
     }
+    //delete row return a certain type of response?
+    //200, 202?
+    //406 for not accepted
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
         var obj = sender.DataObject, t = this;
         if (!obj) {
@@ -234,8 +244,7 @@ class Binder implements IBinder {
             e.DataObject = o;
             t.setListeners(e, o);
         });
-        o.AllPropertiesChanged();
-        //is there a more element        
+        o.AllPropertiesChanged();              
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;

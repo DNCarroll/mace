@@ -245,20 +245,6 @@ class Binder implements IBinder {
     }
     WithProgress: boolean = true;
     DisableElement: any;
-    WebApiGetParameters(currentParameters: any[]): any {
-        var cp = currentParameters,
-            a = this.Api();
-        if (a) {
-            var as = a.split("/");
-            if (cp != null && cp.length > 0 && cp[0] == as[as.length - 1]) {
-                cp = cp.slice(1);
-                if (cp.length == 0) {
-                    return null;
-                }
-            }
-        }
-        return cp;
-    }
     Element: HTMLElement;
     private eventHandlers = new Array<Listener<IBinder>>();
     DataObject: IObjectState;
@@ -273,7 +259,7 @@ class Binder implements IBinder {
     MoreElement: HTMLElement;
     StaticProperties: Array<string>;
     NewObject(obj: any): IObjectState {
-        return new DynamicDataObject(obj, this.StaticProperties);
+        return new DataObject(obj, this.StaticProperties);
     }
     Dispose() {
         var t = this, d = t.DataObject;
@@ -289,17 +275,41 @@ class Binder implements IBinder {
         });
         t.RemoveListeners();
     }
+    GetApiForAjax(parameters: any[]): string {
+        var a = this.Api();
+        if (a) {
+            a = a.indexOf("/") == 0 ? a.substring(1) : a
+            var api = a.split("/"),
+                vp = api.Where(part => part.indexOf("?") > -1),
+                p = parameters ? parameters.Where(p => api.First(ap => ap == p) == null) : new Array<string>(),
+                np = new Array<string>();
+            var pos = 0;
+
+            for (var i = 0; i < api.length; i++) {
+                var ta = api[i];
+                if (ta.indexOf("?") > -1) {
+                    if (p.length > pos) {
+                        np.Add(p[pos]);
+                    }
+                    pos++;
+                }
+                else {
+                    np.Add(ta);
+                }
+            }
+        }
+        if (vp && vp.length == 0) {
+            p.forEach(o => np.Add(o));
+        }
+        return "/" + np.join("/");
+    }
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-            var p = t.WebApiGetParameters(viewInstance.Parameters),
-                a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
+            var a = new Ajax(t.WithProgress, t.DisableElement),
+                url = t.GetApiForAjax(viewInstance.Parameters);
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
-            if (p) {
-                u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
-                u += Is.Array(p) ? p.join("/") : p;
-            }
-            a.Get(u);
+            a.Get(url);
         }
         else {
             t.Dispatch(EventType.Completed);
@@ -312,10 +322,10 @@ class Binder implements IBinder {
             if (d) {
                 if (Is.Array(d)) {
                     (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
-                    if (t.MoreElement) {
-                        var m = t.DataObjects.length % 50 == 0;
-                        var sd = m ? "inline" : "none";
-                        t.MoreElement.style.display = sd;
+                    var tm = t.MoreElement, tms = "none";
+                    if (tm) {
+                        tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : "none";
+                        tm ? tm.style.display = tms : null;
                     }
                 }
                 else if (d) {
@@ -326,6 +336,9 @@ class Binder implements IBinder {
             }
         }
     }
+    //delete row return a certain type of response?
+    //200, 202?
+    //406 for not accepted
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
         var obj = sender.DataObject, t = this;
         if (!obj) {
@@ -449,8 +462,7 @@ class Binder implements IBinder {
             e.DataObject = o;
             t.setListeners(e, o);
         });
-        o.AllPropertiesChanged();
-        //is there a more element        
+        o.AllPropertiesChanged();              
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -560,7 +572,15 @@ class Binder implements IBinder {
             var nvi = new ViewInstance(new Array<any>(), vi.ViewContainer),
                 o = pbd[pbd.length - 1],
                 p = vi.Parameters;
-            p.forEach(v => nvi.Parameters.Add(v));
+            if (p != null) {
+                for (var i = 0; i < p.length; i++) {
+                    var v = p[i];
+                    if (v == 0 && this._api.indexOf(v) == 0) {
+                        continue;
+                    }
+                    nvi.Parameters.Add(v)
+                }
+            }
             this.MoreKeys.forEach(k => {
                 nvi.Parameters.Add(o[k]);
             });
@@ -569,7 +589,7 @@ class Binder implements IBinder {
     }
 }
 //state management isnt working right yet with regards to the put and the complete of the ajax call
-abstract class DataObject implements IObjectState {    
+class DataObject implements IObjectState {    
     constructor(serverObject: any, staticProperties: Array<string> = null) {
         var so = serverObject;
         this.serverObject = so;
@@ -580,6 +600,16 @@ abstract class DataObject implements IObjectState {
                 }
             }) : null;
         this.objectState = ObjectState.Clean;
+        for (var p in so) { this.setProps(p, so); }
+    }
+    private setProps(p: string, o: any) {
+        var t = this,
+            g = function () { return o[p]; },
+            s = function (v) { t.SetServerProperty(p, v); },
+            odp = Object.defineProperty;
+        if (!t[p]) {
+            odp ? odp(t, p, { 'get': g, 'set': s }) : null;
+        }
     }
     Container: Array<IObjectState>;
     private alternatingClass: string;
@@ -657,21 +687,6 @@ abstract class DataObject implements IObjectState {
         }
     }
 }
-class DynamicDataObject extends DataObject {
-    constructor(serverObject: any, staticProperties:Array<string> = null) {
-        var so = serverObject;
-        super(so, staticProperties);        
-        for (var p in so) { this.setProps(p, so); }
-    }
-    private setProps(p: string, o: any) {
-        var t = this,
-            g = function () { return o[p]; },
-            s = function (v) { t.SetServerProperty(p, v); },
-            odp = Object.defineProperty;
-        odp ? odp(t, p, { 'get': g, 'set': s }) : null;
-    }
-}
-
 enum CacheStrategy {
     None,
     ViewAndPreload,
@@ -1105,55 +1120,26 @@ module HistoryContainer {
 var HistoryManager = new HistoryContainer.History();
 
 module Initializer {
-    export function WindowLoad(e?) {
+    export var WindowLoaded: (e: any) => any;
+    export function Execute(e?) {
         var w = window;
         if (document.readyState === "complete") {
             windowLoaded();
+            Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
         }
         else {
-            if (w.onload) {
-                var c = w.onload,
-                    nl = function () {
-                        c(<Event>e);
-                        windowLoaded();
-                    };
-                w.onload = nl;
-            } else {
-                w.onload = function () {
-                    windowLoaded();
-                };
-            }
+            w.onload = function () {
+                windowLoaded();
+                Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+            };
         }
     }
     function windowLoaded() {
-        var w = window;
-        //addViewContainers();
+        var w = window;        
         setProgressElement();
         w.ShowByUrl(w.location.pathname.substring(1));
         w.addEventListener("popstate", HistoryManager.BackEvent);
     }
-    //function addViewContainers() {
-    //    var it = ignoreTheseNames(),
-    //        w = window,
-    //        r = Reflection;
-    //    for (var o in w) {
-    //        let n = r.GetName(w[o], it);
-    //        if (!Is.NullOrEmpty(n)) {
-    //            try {
-    //                var no = (new Function("return new " + n + "();"))();
-    //                if (Has.Properties(no, "IsDefault", "Views", "Show",
-    //                    "Url", "UrlPattern", "UrlTitle", "IsUrlPatternMatch")) {
-    //                    //dont know the cache strategy
-    //                    (<IViewContainer>no).Views.forEach(v => v.CacheStrategy != CacheStrategy.None ? v.Cache(v.CacheStrategy) : null);
-    //                    ViewContainers.Add(<IViewContainer>no);
-    //                }
-    //            }
-    //            catch (e) {
-    //                w.Exception(e);
-    //            }
-    //        }
-    //    }
-    //}
     function setProgressElement() {
         var pg = document.getElementById("progress");
         if (pg != null) {
@@ -1182,7 +1168,7 @@ module Reflection {
         return new type();
     }
 }
-Initializer.WindowLoad();
+Initializer.Execute();
 
 module Is {
     export function Array(value): boolean {
@@ -1517,10 +1503,10 @@ String.prototype.IsStyle = function () {
     }
     return false;
 };
-interface Window {         
+interface Window {
     Show<T>(type: {
         new (): T;
-    }, parameters?: Array<any>);
+    }, ...parameters: any[]);
     ShowByUrl(url: string);
     Exception(...parameters: any[]);
 }
@@ -1539,13 +1525,13 @@ Window.prototype.Exception = function (...parameters: any[]) {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, parameters?: Array<any>) {    
-    var vc = Reflection.NewObject(type),   
-        vi = new ViewInstance(parameters, vc);    
+Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
+    var vc = Reflection.NewObject(type),
+        vi = new ViewInstance(parameters, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
-Window.prototype.ShowByUrl = function (url: string) {           
+Window.prototype.ShowByUrl = function (url: string) {
     var vc: IViewContainer = ViewContainers.First(d => d.IsUrlPatternMatch(url));
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {
@@ -1555,4 +1541,3 @@ Window.prototype.ShowByUrl = function (url: string) {
         HistoryManager.Add(vi);
     }
 }
-

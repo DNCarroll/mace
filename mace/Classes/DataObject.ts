@@ -1,5 +1,5 @@
 ﻿//state management isnt working right yet with regards to the put and the complete of the ajax call
-abstract class DataObject implements IObjectState {    
+class DataObject implements IObjectState {    
     constructor(serverObject: any, staticProperties: Array<string> = null) {
         var so = serverObject;
         this.serverObject = so;
@@ -10,6 +10,16 @@ abstract class DataObject implements IObjectState {
                 }
             }) : null;
         this.objectState = ObjectState.Clean;
+        for (var p in so) { this.setProps(p, so); }
+    }
+    private setProps(p: string, o: any) {
+        var t = this,
+            g = function () { return o[p]; },
+            s = function (v) { t.SetServerProperty(p, v); },
+            odp = Object.defineProperty;
+        if (!t[p]) {
+            odp ? odp(t, p, { 'get': g, 'set': s }) : null;
+        }
     }
     Container: Array<IObjectState>;
     private alternatingClass: string;
@@ -85,19 +95,5 @@ abstract class DataObject implements IObjectState {
         if (change) {
             this.InstigatePropertyChangedListeners(p, true);
         }
-    }
-}
-class DynamicDataObject extends DataObject {
-    constructor(serverObject: any, staticProperties:Array<string> = null) {
-        var so = serverObject;
-        super(so, staticProperties);        
-        for (var p in so) { this.setProps(p, so); }
-    }
-    private setProps(p: string, o: any) {
-        var t = this,
-            g = function () { return o[p]; },
-            s = function (v) { t.SetServerProperty(p, v); },
-            odp = Object.defineProperty;
-        odp ? odp(t, p, { 'get': g, 'set': s }) : null;
     }
 }

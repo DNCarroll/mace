@@ -35,24 +35,8 @@ var Binder = (function () {
         }
         return this._api;
     };
-    Binder.prototype.WebApiGetParameters = function (currentParameters) {
-        var cp = currentParameters, a = this.Api();
-        if (a) {
-            var as = a.replace(this.ApiPrefix(), '').split("/");
-            if (cp && as.length > 0 && cp.length > 0) {
-                var np = Array();
-                for (var i = 0; i < cp.length; i++) {
-                    if (i >= as.length || (i < as.length && as[i] != cp[i])) {
-                        np.Add(cp[i]);
-                    }
-                }
-                return np;
-            }
-        }
-        return cp;
-    };
     Binder.prototype.NewObject = function (obj) {
-        return new DynamicDataObject(obj, this.StaticProperties);
+        return new DataObject(obj, this.StaticProperties);
     };
     Binder.prototype.Dispose = function () {
         var t = this, d = t.DataObject;
@@ -68,17 +52,37 @@ var Binder = (function () {
         });
         t.RemoveListeners();
     };
+    Binder.prototype.GetApiForAjax = function (parameters) {
+        var a = this.Api();
+        if (a) {
+            a = a.indexOf("/") == 0 ? a.substring(1) : a;
+            var api = a.split("/"), vp = api.Where(function (part) { return part.indexOf("?") > -1; }), p = parameters ? parameters.Where(function (p) { return api.First(function (ap) { return ap == p; }) == null; }) : new Array(), np = new Array();
+            var pos = 0;
+            for (var i = 0; i < api.length; i++) {
+                var ta = api[i];
+                if (ta.indexOf("?") > -1) {
+                    if (p.length > pos) {
+                        np.Add(p[pos]);
+                    }
+                    pos++;
+                }
+                else {
+                    np.Add(ta);
+                }
+            }
+        }
+        if (vp && vp.length == 0) {
+            p.forEach(function (o) { return np.Add(o); });
+        }
+        return "/" + np.join("/");
+    };
     Binder.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-            var p = t.WebApiGetParameters(viewInstance.Parameters), a = new Ajax(t.WithProgress, t.DisableElement), u = t.Api();
+            var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(viewInstance.Parameters);
             a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
-            if (p) {
-                u += (u.lastIndexOf("/") + 1 == u.length ? "" : "/");
-                u += Is.Array(p) ? p.join("/") : p;
-            }
-            a.Get(u);
+            a.Get(url);
         }
         else {
             t.Dispatch(EventType.Completed);
@@ -105,6 +109,9 @@ var Binder = (function () {
             }
         }
     };
+    //delete row return a certain type of response?
+    //200, 202?
+    //406 for not accepted
     Binder.prototype.Delete = function (sender, ajaxDeleteFunction) {
         if (ajaxDeleteFunction === void 0) { ajaxDeleteFunction = null; }
         var obj = sender.DataObject, t = this;
@@ -220,7 +227,6 @@ var Binder = (function () {
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
-        //is there a more element        
     };
     Binder.prototype.setListeners = function (ele, d) {
         var ba = ele.GetDataSetAttributes(), t = this;

@@ -1,7 +1,7 @@
-interface Window {         
+interface Window {
     Show<T>(type: {
         new (): T;
-    }, parameters?: Array<any>);
+    }, ...parameters: any[]);
     ShowByUrl(url: string);
     Exception(...parameters: any[]);
 }
@@ -20,13 +20,13 @@ Window.prototype.Exception = function (...parameters: any[]) {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, parameters?: Array<any>) {    
-    var vc = Reflection.NewObject(type),   
-        vi = new ViewInstance(parameters, vc);    
+Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
+    var vc = Reflection.NewObject(type),
+        vi = new ViewInstance(parameters, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
-Window.prototype.ShowByUrl = function (url: string) {           
+Window.prototype.ShowByUrl = function (url: string) {
     var vc: IViewContainer = ViewContainers.First(d => d.IsUrlPatternMatch(url));
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {

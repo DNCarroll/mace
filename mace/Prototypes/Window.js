@@ -17,7 +17,11 @@ Window.prototype.Exception = function () {
         alert("Unknown error");
     }
 };
-Window.prototype.Show = function (type, parameters) {
+Window.prototype.Show = function (type) {
+    var parameters = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        parameters[_i - 1] = arguments[_i];
+    }
     var vc = Reflection.NewObject(type), vi = new ViewInstance(parameters, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
