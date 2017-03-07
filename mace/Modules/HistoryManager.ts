@@ -3,20 +3,20 @@
         private ViewInstances = new Array<ViewInstance>();
         CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
-            if (vi != null && vi.length > 0) {
-                return vi[vi.length - 1];
-            }
-            return null;
+            return vi != null && vi.length > 0 ? vi[vi.length - 1] : null;
         }
         BackEvent(e) {
             HistoryManager.Back();
         }
         Add(viewInstance: ViewInstance) {
-            this.ViewInstances.Add(viewInstance);
-            this.ManageRouteInfo(viewInstance);
+            var vi = viewInstance,
+                t = this;
+            t.ViewInstances.Add(vi);
+            t.ManageRouteInfo(vi);
         }
         Back() {
-            var vi = this.ViewInstances;
+            var t = this,
+                vi = t.ViewInstances;
             if (vi.length > 1) {
                 vi.splice(vi.length - 1, 1);
             }
@@ -24,7 +24,7 @@
                 var i = vi[vi.length - 1],
                     f = i.ViewContainer;
                 f.Show(i);
-                this.ManageRouteInfo(i);
+                t.ManageRouteInfo(i);
             }
             else {
                 //do nothing?

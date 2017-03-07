@@ -26,11 +26,6 @@ var Initializer;
             ProgressManager.ProgressElement = pg;
         }
     }
-    function ignoreTheseNames() {
-        return ["Ajax", "Binder", "DataObject", "View", "ViewContainer", "ViewContainers",
-            "ViewInstance", "EventType", "CustomEventArg", "Listener", "PropertyListener",
-            "ObjectState", "HistoryManager", "Initializer", "Is", "ProgressManager"];
-    }
 })(Initializer || (Initializer = {}));
 var Reflection;
 (function (Reflection) {

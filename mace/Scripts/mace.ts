@@ -82,9 +82,9 @@ class Ajax implements IEventDispatcher<Ajax>{
         }
     }
     private getParameters(parameters: any): string {
-        var r = "";
-        if (parameters && this.ContentType === "application/json; charset=utf-8") {
-            r = JSON.stringify(parameters).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
+        var r = "", p = parameters;
+        if (p && this.ContentType === "application/json; charset=utf-8") {
+            r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
                 .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
                 .replace(/<script/ig, "")
                 .replace(/script>/ig, "");
@@ -93,8 +93,8 @@ class Ajax implements IEventDispatcher<Ajax>{
     }
 
     GetRequestData(): any {
-        var r = null, t = this, x = this.XHttp;       
-        if (t.isRequestReady() && (x.status == 200 || x.status == 204) &&
+        var r = null, t = this, x = this.XHttp, s = x.status;       
+        if (t.isRequestReady() && (s == 200 || s == 204) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
             try {
@@ -337,8 +337,7 @@ class Binder implements IBinder {
         }
     }
     //delete row return a certain type of response?
-    //200, 202?
-    //406 for not accepted
+    //200, 202, 204
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
         var obj = sender.DataObject, t = this;
         if (!obj) {
@@ -462,7 +461,8 @@ class Binder implements IBinder {
             e.DataObject = o;
             t.setListeners(e, o);
         });
-        o.AllPropertiesChanged();              
+        o.AllPropertiesChanged();
+        //is there a more element        
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -618,10 +618,11 @@ class DataObject implements IObjectState {
         this.alternatingClass = value;
     }
     get AlternatingClass() {
-        if (this.alternatingClass != null) {
-            var index = this.Container.indexOf(this) + 1;
-            var isEven = index % 2 == 0;
-            return isEven == this.AlternateOnEvens ? this.alternatingClass : null;
+        var t = this;
+        if (t.alternatingClass != null) {
+            var i = t.Container.indexOf(this) + 1,
+                ie = i % 2 == 0;
+            return ie == t.AlternateOnEvens ? t.alternatingClass : null;
         }
         return null;
     }
@@ -1057,7 +1058,6 @@ interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
     IsDefault: boolean;
     Show: (route: ViewInstance) => void;
-
     Url: (route: ViewInstance) => string;
     UrlPattern: () => string;
     UrlTitle: (route: ViewInstance) => string;
@@ -1069,20 +1069,20 @@ module HistoryContainer {
         private ViewInstances = new Array<ViewInstance>();
         CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
-            if (vi != null && vi.length > 0) {
-                return vi[vi.length - 1];
-            }
-            return null;
+            return vi != null && vi.length > 0 ? vi[vi.length - 1] : null;
         }
         BackEvent(e) {
             HistoryManager.Back();
         }
         Add(viewInstance: ViewInstance) {
-            this.ViewInstances.Add(viewInstance);
-            this.ManageRouteInfo(viewInstance);
+            var vi = viewInstance,
+                t = this;
+            t.ViewInstances.Add(vi);
+            t.ManageRouteInfo(vi);
         }
         Back() {
-            var vi = this.ViewInstances;
+            var t = this,
+                vi = t.ViewInstances;
             if (vi.length > 1) {
                 vi.splice(vi.length - 1, 1);
             }
@@ -1090,7 +1090,7 @@ module HistoryContainer {
                 var i = vi[vi.length - 1],
                     f = i.ViewContainer;
                 f.Show(i);
-                this.ManageRouteInfo(i);
+                t.ManageRouteInfo(i);
             }
             else {
                 //do nothing?
@@ -1145,11 +1145,6 @@ module Initializer {
         if (pg != null) {
             ProgressManager.ProgressElement = pg;
         }
-    }
-    function ignoreTheseNames(): Array<string> {
-        return ["Ajax", "Binder", "DataObject", "View", "ViewContainer", "ViewContainers",
-            "ViewInstance", "EventType", "CustomEventArg", "Listener", "PropertyListener",
-            "ObjectState", "HistoryManager", "Initializer", "Is", "ProgressManager"];
     }
 }
 module Reflection {
@@ -1497,9 +1492,7 @@ String.prototype.CreateElementFromHtml = function (): HTMLElement {
 };
 String.prototype.IsStyle = function () {
     for (var p in document.body.style) {
-        if (p.toLowerCase() === this.toLowerCase()) {
-            return true;
-        }
+        return p.toLowerCase() === this.toLowerCase()
     }
     return false;
 };

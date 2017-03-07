@@ -86,9 +86,9 @@ var Ajax = (function () {
         }
     };
     Ajax.prototype.getParameters = function (parameters) {
-        var r = "";
-        if (parameters && this.ContentType === "application/json; charset=utf-8") {
-            r = JSON.stringify(parameters).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
+        var r = "", p = parameters;
+        if (p && this.ContentType === "application/json; charset=utf-8") {
+            r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
                 .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
                 .replace(/<script/ig, "")
                 .replace(/script>/ig, "");
@@ -96,8 +96,8 @@ var Ajax = (function () {
         return r;
     };
     Ajax.prototype.GetRequestData = function () {
-        var r = null, t = this, x = this.XHttp;
-        if (t.isRequestReady() && (x.status == 200 || x.status == 204) &&
+        var r = null, t = this, x = this.XHttp, s = x.status;
+        if (t.isRequestReady() && (s == 200 || s == 204) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
             try {

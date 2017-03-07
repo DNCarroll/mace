@@ -110,8 +110,7 @@ var Binder = (function () {
         }
     };
     //delete row return a certain type of response?
-    //200, 202?
-    //406 for not accepted
+    //200, 202, 204
     Binder.prototype.Delete = function (sender, ajaxDeleteFunction) {
         if (ajaxDeleteFunction === void 0) { ajaxDeleteFunction = null; }
         var obj = sender.DataObject, t = this;
@@ -227,6 +226,7 @@ var Binder = (function () {
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
+        //is there a more element        
     };
     Binder.prototype.setListeners = function (ele, d) {
         var ba = ele.GetDataSetAttributes(), t = this;

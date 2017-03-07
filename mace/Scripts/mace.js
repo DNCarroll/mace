@@ -86,9 +86,9 @@ var Ajax = (function () {
         }
     };
     Ajax.prototype.getParameters = function (parameters) {
-        var r = "";
-        if (parameters && this.ContentType === "application/json; charset=utf-8") {
-            r = JSON.stringify(parameters).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
+        var r = "", p = parameters;
+        if (p && this.ContentType === "application/json; charset=utf-8") {
+            r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
                 .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
                 .replace(/<script/ig, "")
                 .replace(/script>/ig, "");
@@ -96,8 +96,8 @@ var Ajax = (function () {
         return r;
     };
     Ajax.prototype.GetRequestData = function () {
-        var r = null, t = this, x = this.XHttp;
-        if (t.isRequestReady() && (x.status == 200 || x.status == 204) &&
+        var r = null, t = this, x = this.XHttp, s = x.status;
+        if (t.isRequestReady() && (s == 200 || s == 204) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
             try {
@@ -341,8 +341,7 @@ var Binder = (function () {
         }
     };
     //delete row return a certain type of response?
-    //200, 202?
-    //406 for not accepted
+    //200, 202, 204
     Binder.prototype.Delete = function (sender, ajaxDeleteFunction) {
         if (ajaxDeleteFunction === void 0) { ajaxDeleteFunction = null; }
         var obj = sender.DataObject, t = this;
@@ -458,6 +457,7 @@ var Binder = (function () {
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
+        //is there a more element        
     };
     Binder.prototype.setListeners = function (ele, d) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -610,10 +610,10 @@ var DataObject = (function () {
     };
     Object.defineProperty(DataObject.prototype, "AlternatingClass", {
         get: function () {
-            if (this.alternatingClass != null) {
-                var index = this.Container.indexOf(this) + 1;
-                var isEven = index % 2 == 0;
-                return isEven == this.AlternateOnEvens ? this.alternatingClass : null;
+            var t = this;
+            if (t.alternatingClass != null) {
+                var i = t.Container.indexOf(this) + 1, ie = i % 2 == 0;
+                return ie == t.AlternateOnEvens ? t.alternatingClass : null;
             }
             return null;
         },
@@ -1030,27 +1030,25 @@ var HistoryContainer;
         }
         History.prototype.CurrentViewInstance = function () {
             var vi = this.ViewInstances;
-            if (vi != null && vi.length > 0) {
-                return vi[vi.length - 1];
-            }
-            return null;
+            return vi != null && vi.length > 0 ? vi[vi.length - 1] : null;
         };
         History.prototype.BackEvent = function (e) {
             HistoryManager.Back();
         };
         History.prototype.Add = function (viewInstance) {
-            this.ViewInstances.Add(viewInstance);
-            this.ManageRouteInfo(viewInstance);
+            var vi = viewInstance, t = this;
+            t.ViewInstances.Add(vi);
+            t.ManageRouteInfo(vi);
         };
         History.prototype.Back = function () {
-            var vi = this.ViewInstances;
+            var t = this, vi = t.ViewInstances;
             if (vi.length > 1) {
                 vi.splice(vi.length - 1, 1);
             }
             if (vi.length > 0) {
                 var i = vi[vi.length - 1], f = i.ViewContainer;
                 f.Show(i);
-                this.ManageRouteInfo(i);
+                t.ManageRouteInfo(i);
             }
             else {
             }
@@ -1374,9 +1372,7 @@ String.prototype.CreateElementFromHtml = function () {
 };
 String.prototype.IsStyle = function () {
     for (var p in document.body.style) {
-        if (p.toLowerCase() === this.toLowerCase()) {
-            return true;
-        }
+        return p.toLowerCase() === this.toLowerCase();
     }
     return false;
 };
@@ -1446,11 +1442,6 @@ var Initializer;
         if (pg != null) {
             ProgressManager.ProgressElement = pg;
         }
-    }
-    function ignoreTheseNames() {
-        return ["Ajax", "Binder", "DataObject", "View", "ViewContainer", "ViewContainers",
-            "ViewInstance", "EventType", "CustomEventArg", "Listener", "PropertyListener",
-            "ObjectState", "HistoryManager", "Initializer", "Is", "ProgressManager"];
     }
 })(Initializer || (Initializer = {}));
 var Reflection;

@@ -29,10 +29,10 @@ var DataObject = (function () {
     };
     Object.defineProperty(DataObject.prototype, "AlternatingClass", {
         get: function () {
-            if (this.alternatingClass != null) {
-                var index = this.Container.indexOf(this) + 1;
-                var isEven = index % 2 == 0;
-                return isEven == this.AlternateOnEvens ? this.alternatingClass : null;
+            var t = this;
+            if (t.alternatingClass != null) {
+                var i = t.Container.indexOf(this) + 1, ie = i % 2 == 0;
+                return ie == t.AlternateOnEvens ? t.alternatingClass : null;
             }
             return null;
         },

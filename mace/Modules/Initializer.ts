@@ -25,11 +25,6 @@
             ProgressManager.ProgressElement = pg;
         }
     }
-    function ignoreTheseNames(): Array<string> {
-        return ["Ajax", "Binder", "DataObject", "View", "ViewContainer", "ViewContainers",
-            "ViewInstance", "EventType", "CustomEventArg", "Listener", "PropertyListener",
-            "ObjectState", "HistoryManager", "Initializer", "Is", "ProgressManager"];
-    }
 }
 module Reflection {
     export function GetName(o: any, ignoreThese: Array<string> = new Array<string>()) {

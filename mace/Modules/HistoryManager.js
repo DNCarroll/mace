@@ -6,27 +6,25 @@ var HistoryContainer;
         }
         History.prototype.CurrentViewInstance = function () {
             var vi = this.ViewInstances;
-            if (vi != null && vi.length > 0) {
-                return vi[vi.length - 1];
-            }
-            return null;
+            return vi != null && vi.length > 0 ? vi[vi.length - 1] : null;
         };
         History.prototype.BackEvent = function (e) {
             HistoryManager.Back();
         };
         History.prototype.Add = function (viewInstance) {
-            this.ViewInstances.Add(viewInstance);
-            this.ManageRouteInfo(viewInstance);
+            var vi = viewInstance, t = this;
+            t.ViewInstances.Add(vi);
+            t.ManageRouteInfo(vi);
         };
         History.prototype.Back = function () {
-            var vi = this.ViewInstances;
+            var t = this, vi = t.ViewInstances;
             if (vi.length > 1) {
                 vi.splice(vi.length - 1, 1);
             }
             if (vi.length > 0) {
                 var i = vi[vi.length - 1], f = i.ViewContainer;
                 f.Show(i);
-                this.ManageRouteInfo(i);
+                t.ManageRouteInfo(i);
             }
             else {
             }

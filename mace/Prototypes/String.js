@@ -20,9 +20,7 @@ String.prototype.CreateElementFromHtml = function () {
 };
 String.prototype.IsStyle = function () {
     for (var p in document.body.style) {
-        if (p.toLowerCase() === this.toLowerCase()) {
-            return true;
-        }
+        return p.toLowerCase() === this.toLowerCase();
     }
     return false;
 };

@@ -119,8 +119,7 @@ class Binder implements IBinder {
         }
     }
     //delete row return a certain type of response?
-    //200, 202?
-    //406 for not accepted
+    //200, 202, 204
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
         var obj = sender.DataObject, t = this;
         if (!obj) {
@@ -244,7 +243,8 @@ class Binder implements IBinder {
             e.DataObject = o;
             t.setListeners(e, o);
         });
-        o.AllPropertiesChanged();              
+        o.AllPropertiesChanged();
+        //is there a more element        
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
