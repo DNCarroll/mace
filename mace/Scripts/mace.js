@@ -328,8 +328,8 @@ var Binder = (function () {
                     d.forEach(function (d) { return t.Add(t.NewObject(d)); });
                     var tm = t.MoreElement, tms = "none";
                     if (tm) {
-                        tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : "none";
-                        tm ? tm.style.display = tms : null;
+                        tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : tms;
+                        tm.style.display = tms;
                     }
                 }
                 else if (d) {
@@ -344,17 +344,17 @@ var Binder = (function () {
     //200, 202, 204
     Binder.prototype.Delete = function (sender, ajaxDeleteFunction) {
         if (ajaxDeleteFunction === void 0) { ajaxDeleteFunction = null; }
-        var obj = sender.DataObject, t = this;
-        if (!obj) {
-            var parent = sender.parentElement;
-            while (!obj || parent !== t.Element) {
-                obj = parent.DataObject;
-                parent = parent.parentElement;
+        var o = sender.DataObject, t = this;
+        if (!o) {
+            var p = sender.parentElement;
+            while (!o || p !== t.Element) {
+                o = p.DataObject;
+                p = p.parentElement;
             }
         }
-        if (obj) {
+        if (o) {
             var a = new Ajax(t.WithProgress, t.DisableElement), f = function () {
-                var es = t.Element.Get(function (e) { return e.DataObject === obj; });
+                var es = t.Element.Get(function (e) { return e.DataObject === o; });
                 es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
             }, afc = function (a) {
                 var err = function () {
@@ -366,7 +366,7 @@ var Binder = (function () {
                 a.EventType === EventType.Completed ? f() : null;
             }, af = function () {
                 a.AddListener(EventType.Any, afc);
-                a.Delete(t.Api(), obj);
+                a.Delete(t.Api(), o);
             };
             t.AutomaticUpdate ? af() : f();
         }
