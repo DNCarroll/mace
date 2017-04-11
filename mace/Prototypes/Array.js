@@ -1,7 +1,7 @@
 Array.prototype.Add = function () {
     var objectOrObjects = [];
     for (var _i = 0; _i < arguments.length; _i++) {
-        objectOrObjects[_i - 0] = arguments[_i];
+        objectOrObjects[_i] = arguments[_i];
     }
     var o = objectOrObjects;
     if (!Is.Array(o)) {

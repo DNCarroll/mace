@@ -8,17 +8,17 @@ var DataObject = (function () {
         this.eLstenrs = new Array();
         this.oLstenrs = new Array();
         this.objectState = ObjectState.Clean;
-        var so = serverObject;
-        this.serverObject = so;
+        var so = serverObject, t = this;
+        t.serverObject = so;
         staticProperties ?
             staticProperties.forEach(function (s) {
                 if (!Has.Properties(so, s)) {
                     so[s] = null;
                 }
             }) : null;
-        this.objectState = ObjectState.Clean;
+        t.objectState = ObjectState.Clean;
         for (var p in so) {
-            this.setProps(p, so);
+            t.setProps(p, so);
         }
     }
     DataObject.prototype.setProps = function (p, o) {
@@ -27,12 +27,12 @@ var DataObject = (function () {
             odp ? odp(t, p, { 'get': g, 'set': s }) : null;
         }
     };
-    Object.defineProperty(DataObject.prototype, "AlternatingClass", {
+    Object.defineProperty(DataObject.prototype, "AlternatingRowClass", {
         get: function () {
-            var t = this;
-            if (t.alternatingClass != null) {
+            var t = this, ac = t.alternatingClass != null ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
+            if (ac != null) {
                 var i = t.Container.indexOf(this) + 1, ie = i % 2 == 0;
-                return ie == t.AlternateOnEvens ? t.alternatingClass : null;
+                return ie == t.AlternateOnEvens ? ac : null;
             }
             return null;
         },
@@ -105,9 +105,10 @@ var DataObject = (function () {
         var t = this, change = v != t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
-            this.InstigatePropertyChangedListeners(p, true);
+            t.InstigatePropertyChangedListeners(p, true);
         }
     };
     return DataObject;
 }());
+DataObject.DefaultAlternatingRowClass = null;
 //# sourceMappingURL=DataObject.js.map

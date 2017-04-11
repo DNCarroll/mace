@@ -176,7 +176,7 @@ var DataLoaders = (function () {
     function DataLoaders() {
         var dataLoaders = [];
         for (var _i = 0; _i < arguments.length; _i++) {
-            dataLoaders[_i - 0] = arguments[_i];
+            dataLoaders[_i] = arguments[_i];
         }
         this.completedCount = 0;
         this._dataLoaders = dataLoaders;

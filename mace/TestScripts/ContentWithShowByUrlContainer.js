@@ -6,14 +6,16 @@ var __extends = (this && this.__extends) || function (d, b) {
 var ContentWithShowByUrlContainer = (function (_super) {
     __extends(ContentWithShowByUrlContainer, _super);
     function ContentWithShowByUrlContainer() {
+        var _this = this;
         if (ContentWithShowByUrlContainer.instance) {
             return ContentWithShowByUrlContainer.instance;
         }
-        _super.call(this);
-        this.Views.push(new ContentWithShowByUrlContent());
-        this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        ContentWithShowByUrlContainer.instance = this;
+        _this = _super.call(this) || this;
+        _this.Views.push(new ContentWithShowByUrlContent());
+        _this.Views.push(new ViewHeader());
+        _this.Views.push(new ViewFooter());
+        ContentWithShowByUrlContainer.instance = _this;
+        return _this;
     }
     ContentWithShowByUrlContainer.prototype.DocumentTitle = function (route) { return this.UrlTitle(route); };
     ContentWithShowByUrlContainer.prototype.Url = function (route) { return "ShowByUrl"; };

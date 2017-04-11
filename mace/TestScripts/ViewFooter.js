@@ -6,7 +6,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var ViewFooter = (function (_super) {
     __extends(ViewFooter, _super);
     function ViewFooter() {
-        _super.call(this);
+        return _super.call(this) || this;
     }
     ViewFooter.prototype.Url = function () { return "/Views/footer.html"; };
     ;

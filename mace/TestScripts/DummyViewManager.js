@@ -6,14 +6,16 @@ var __extends = (this && this.__extends) || function (d, b) {
 var DummyViewManager = (function (_super) {
     __extends(DummyViewManager, _super);
     function DummyViewManager() {
+        var _this = this;
         if (DummyViewManager.instance) {
             return DummyViewManager.instance;
         }
-        _super.call(this);
-        this.Views.push(new DummyContent());
-        this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        DummyViewManager.instance = this;
+        _this = _super.call(this) || this;
+        _this.Views.push(new DummyContent());
+        _this.Views.push(new ViewHeader());
+        _this.Views.push(new ViewFooter());
+        DummyViewManager.instance = _this;
+        return _this;
     }
     DummyViewManager.prototype.DocumentTitle = function (route) { return "Dummy Content"; };
     DummyViewManager.prototype.Url = function (route) { return "DummyView/DummyParameter"; };

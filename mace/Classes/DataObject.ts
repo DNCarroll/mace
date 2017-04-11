@@ -1,16 +1,17 @@
 ﻿//state management isnt working right yet with regards to the put and the complete of the ajax call
-class DataObject implements IObjectState {    
+class DataObject implements IObjectState {   
+    static DefaultAlternatingRowClass: string = null;
     constructor(serverObject: any, staticProperties: Array<string> = null) {
-        var so = serverObject;
-        this.serverObject = so;
+        var so = serverObject, t = this;
+        t.serverObject = so;
         staticProperties ?
             staticProperties.forEach(s => {
                 if (!Has.Properties(so, s)) {
                     so[s] = null;
                 }
             }) : null;
-        this.objectState = ObjectState.Clean;
-        for (var p in so) { this.setProps(p, so); }
+        t.objectState = ObjectState.Clean;
+        for (var p in so) { t.setProps(p, so); }
     }
     private setProps(p: string, o: any) {
         var t = this,
@@ -24,15 +25,15 @@ class DataObject implements IObjectState {
     Container: Array<IObjectState>;
     private alternatingClass: string;
     AlternateOnEvens: boolean = true;
-    set AlternatingClass(value: string) {
+    set AlternatingRowClass(value: string) {
         this.alternatingClass = value;
     }
-    get AlternatingClass() {
-        var t = this;
-        if (t.alternatingClass != null) {
+    get AlternatingRowClass() {
+        var t = this, ac = t.alternatingClass != null ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
+        if (ac != null) {
             var i = t.Container.indexOf(this) + 1,
                 ie = i % 2 == 0;
-            return ie == t.AlternateOnEvens ? t.alternatingClass : null;
+            return ie == t.AlternateOnEvens ? ac : null;
         }
         return null;
     }
@@ -94,7 +95,7 @@ class DataObject implements IObjectState {
             change = v != t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
-            this.InstigatePropertyChangedListeners(p, true);
+            t.InstigatePropertyChangedListeners(p, true);
         }
     }
 }

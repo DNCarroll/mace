@@ -6,8 +6,9 @@ var __extends = (this && this.__extends) || function (d, b) {
 var BinderTestObject = (function (_super) {
     __extends(BinderTestObject, _super);
     function BinderTestObject() {
-        _super.apply(this, arguments);
-        this._makeCheckedChange = "no";
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this._makeCheckedChange = "no";
+        return _this;
     }
     Object.defineProperty(BinderTestObject.prototype, "ID", {
         get: function () {
@@ -125,7 +126,7 @@ var BinderTestObject = (function (_super) {
 var BinderTest = (function (_super) {
     __extends(BinderTest, _super);
     function BinderTest() {
-        _super.call(this);
+        return _super.call(this) || this;
     }
     BinderTest.prototype.NewObject = function (obj) {
         return new BinderTestObject(obj);
@@ -144,7 +145,7 @@ var BinderTest = (function (_super) {
 var BinderTest2 = (function (_super) {
     __extends(BinderTest2, _super);
     function BinderTest2() {
-        _super.call(this);
+        return _super.call(this) || this;
     }
     BinderTest2.prototype.NewObject = function (obj) {
         return new BinderTestObject(obj);
@@ -163,7 +164,7 @@ var BinderTest2 = (function (_super) {
 var BinderView = (function (_super) {
     __extends(BinderView, _super);
     function BinderView() {
-        _super.call(this);
+        return _super.call(this) || this;
     }
     BinderView.prototype.Url = function () { return "/Views/BinderView.html"; };
     ;
@@ -175,14 +176,16 @@ var BinderView = (function (_super) {
 var BinderViewContainer = (function (_super) {
     __extends(BinderViewContainer, _super);
     function BinderViewContainer() {
+        var _this = this;
         if (BinderViewContainer.instance) {
             return BinderViewContainer.instance;
         }
-        _super.call(this);
-        this.Views.push(new BinderView());
-        this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        BinderViewContainer.instance = this;
+        _this = _super.call(this) || this;
+        _this.Views.push(new BinderView());
+        _this.Views.push(new ViewHeader());
+        _this.Views.push(new ViewFooter());
+        BinderViewContainer.instance = _this;
+        return _this;
     }
     BinderViewContainer.prototype.DocumentTitle = function (route) { return "Bound content"; };
     BinderViewContainer.prototype.Url = function (route) { return "Bound"; };
@@ -193,7 +196,7 @@ var BinderViewContainer = (function (_super) {
 var MultipleViewBinder = (function (_super) {
     __extends(MultipleViewBinder, _super);
     function MultipleViewBinder() {
-        _super.call(this);
+        return _super.call(this) || this;
     }
     MultipleViewBinder.prototype.Url = function () { return "/Views/MultipleBindings.html"; };
     ;
@@ -205,14 +208,16 @@ var MultipleViewBinder = (function (_super) {
 var MultipleBindingsContainer = (function (_super) {
     __extends(MultipleBindingsContainer, _super);
     function MultipleBindingsContainer() {
+        var _this = this;
         if (MultipleBindingsContainer.instance) {
             return MultipleBindingsContainer.instance;
         }
-        _super.call(this);
-        this.Views.push(new MultipleViewBinder());
-        this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        MultipleBindingsContainer.instance = this;
+        _this = _super.call(this) || this;
+        _this.Views.push(new MultipleViewBinder());
+        _this.Views.push(new ViewHeader());
+        _this.Views.push(new ViewFooter());
+        MultipleBindingsContainer.instance = _this;
+        return _this;
     }
     MultipleBindingsContainer.prototype.DocumentTitle = function (route) { return "Multiple bindings"; };
     MultipleBindingsContainer.prototype.Url = function (route) { return "multiplebindings"; };
@@ -223,8 +228,9 @@ var MultipleBindingsContainer = (function (_super) {
 var WebApiFormView = (function (_super) {
     __extends(WebApiFormView, _super);
     function WebApiFormView() {
-        _super.call(this, CacheStrategy.ViewAndPreload, "content");
-        this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", this.AjaxLoadCompleted, function () { return !WebApiFormView.GenericSelectData; }));
+        var _this = _super.call(this, CacheStrategy.ViewAndPreload, "content") || this;
+        _this.Preload = new DataLoaders(new DataLoader("/Api/GenericSelectData", _this.AjaxLoadCompleted, function () { return !WebApiFormView.GenericSelectData; }));
+        return _this;
     }
     WebApiFormView.prototype.AjaxLoadCompleted = function (arg) {
         WebApiFormView.GenericSelectData = arg.Sender.GetRequestData();
@@ -234,14 +240,16 @@ var WebApiFormView = (function (_super) {
 var WebApiBindingContainer = (function (_super) {
     __extends(WebApiBindingContainer, _super);
     function WebApiBindingContainer() {
+        var _this = this;
         if (WebApiBindingContainer.instance) {
             return WebApiBindingContainer.instance;
         }
-        _super.call(this);
-        this.Views.push(new WebApiFormView());
-        this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        WebApiBindingContainer.instance = this;
+        _this = _super.call(this) || this;
+        _this.Views.push(new WebApiFormView());
+        _this.Views.push(new ViewHeader());
+        _this.Views.push(new ViewFooter());
+        WebApiBindingContainer.instance = _this;
+        return _this;
     }
     WebApiBindingContainer.prototype.DocumentTitle = function (route) { return "WebApi Data"; };
     WebApiBindingContainer.prototype.Url = function (route) {
@@ -263,35 +271,37 @@ var WebApiBindingContainer = (function (_super) {
 var WebApiBinder = (function (_super) {
     __extends(WebApiBinder, _super);
     function WebApiBinder() {
-        _super.call(this, ["ID"], null, null, BinderTestObject);
+        return _super.call(this, ["ID"], null, null, BinderTestObject) || this;
     }
     return WebApiBinder;
 }(Binder));
 var ListTestData = (function (_super) {
     __extends(ListTestData, _super);
     function ListTestData() {
-        _super.call(this, ["ID"]);
+        return _super.call(this, ["ID"]) || this;
     }
     return ListTestData;
 }(Binder));
 var ListTest = (function (_super) {
     __extends(ListTest, _super);
     function ListTest() {
-        _super.call(this, CacheStrategy.View, "content");
+        return _super.call(this, CacheStrategy.View, "content") || this;
     }
     return ListTest;
 }(View));
 var ListBinderContainer = (function (_super) {
     __extends(ListBinderContainer, _super);
     function ListBinderContainer() {
+        var _this = this;
         if (ListBinderContainer.instance) {
             return ListBinderContainer.instance;
         }
-        _super.call(this);
-        this.Views.push(new View(CacheStrategy.View, "content", "/Views/ListTest.html"));
-        this.Views.push(new View(CacheStrategy.View, "header", "/Views/header.html"));
-        this.Views.push(new View(CacheStrategy.View, "footer", "/Views/footer.html"));
-        ListBinderContainer.instance = this;
+        _this = _super.call(this) || this;
+        _this.Views.push(new View(CacheStrategy.View, "content", "/Views/ListTest.html"));
+        _this.Views.push(new View(CacheStrategy.View, "header", "/Views/header.html"));
+        _this.Views.push(new View(CacheStrategy.View, "footer", "/Views/footer.html"));
+        ListBinderContainer.instance = _this;
+        return _this;
     }
     ListBinderContainer.prototype.DocumentTitle = function (route) { return "Listbinder Data"; };
     ListBinderContainer.prototype.Url = function (route) {

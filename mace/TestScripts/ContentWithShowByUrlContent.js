@@ -6,7 +6,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var ContentWithShowByUrlContent = (function (_super) {
     __extends(ContentWithShowByUrlContent, _super);
     function ContentWithShowByUrlContent() {
-        _super.call(this);
+        return _super.call(this) || this;
     }
     ContentWithShowByUrlContent.prototype.Url = function () { return "/Views/ContentWithShowByUrl.html"; };
     ;

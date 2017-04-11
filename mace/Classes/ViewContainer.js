@@ -17,9 +17,9 @@ var ViewContainer = (function () {
         });
     };
     ViewContainer.prototype.IsUrlPatternMatch = function (url) {
-        var pattern = this.UrlPattern();
-        if (pattern) {
-            var regex = new RegExp(pattern, 'i');
+        var p = this.UrlPattern();
+        if (p) {
+            var regex = new RegExp(p, 'i');
             return url.match(regex) ? true : false;
         }
         return false;
@@ -35,10 +35,10 @@ var ViewContainer = (function () {
     ViewContainer.prototype.Url = function (route) {
         var rp = route.Parameters;
         if (rp) {
-            var part = rp[0] == this.UrlBase ?
+            var p = rp[0] == this.UrlBase ?
                 rp.slice(1).join("/") :
                 rp.join("/");
-            return this.UrlBase + (part.length > 0 ? "/" + part : "");
+            return this.UrlBase + (p.length > 0 ? "/" + p : "");
         }
         return this.UrlBase;
     };

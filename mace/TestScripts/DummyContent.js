@@ -6,7 +6,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var DummyContent = (function (_super) {
     __extends(DummyContent, _super);
     function DummyContent() {
-        _super.call(this);
+        return _super.call(this) || this;
     }
     DummyContent.prototype.Url = function () { return "/Views/DummyContent.html"; };
     ;

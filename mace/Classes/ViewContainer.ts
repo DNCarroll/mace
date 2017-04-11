@@ -18,9 +18,9 @@ abstract class ViewContainer implements IViewContainer {
         });
     }
     IsUrlPatternMatch(url: string) {
-        var pattern = this.UrlPattern();
-        if (pattern) {
-            var regex = new RegExp(pattern, 'i');
+        var p = this.UrlPattern();
+        if (p) {
+            var regex = new RegExp(p, 'i');
             return url.match(regex) ? true : false;
         }
         return false;
@@ -36,10 +36,10 @@ abstract class ViewContainer implements IViewContainer {
     Url(route: ViewInstance): string {
         var rp = route.Parameters;
         if (rp) {
-            var part = rp[0] == this.UrlBase ?
+            var p = rp[0] == this.UrlBase ?
                 rp.slice(1).join("/") :
                 rp.join("/");
-            return this.UrlBase + (part.length > 0 ? "/" + part : "");
+            return this.UrlBase + (p.length > 0 ? "/" + p : "");
         }
         return this.UrlBase;
     }

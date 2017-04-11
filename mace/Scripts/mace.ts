@@ -221,27 +221,28 @@ class Binder implements IBinder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
     constructor(primaryKeys: Array<string> = null, api: string = null, staticProperties: Array<string> = null, TypeObject: { new (obj: any): IObjectState; } = null) {
-        var p = primaryKeys;
-        this.StaticProperties = staticProperties;
-        this.PrimaryKeys = p ? p : this.PrimaryKeys;
+        var p = primaryKeys, t = this;
+        t.StaticProperties = staticProperties;
+        t.PrimaryKeys = p ? p : t.PrimaryKeys;
         if (TypeObject) {
-            this.NewObject = (obj: any) => {
+            t.NewObject = (obj: any) => {
                 return new TypeObject(obj);
             };
         }
-        this._api = api;
+        t._api = api;
     }
     ApiPrefix() {
         return "/Api/";
     }
     Api(): string {
-        if (!this._api) {
+        var t = this;
+        if (!t._api) {
             var r = Reflection,
-                n = r.GetName(this.constructor);
+                n = r.GetName(t.constructor);
             n = n.replace("Binder", "");
-            this._api = this.ApiPrefix() + n;
+            t._api = t.ApiPrefix() + n;
         }
-        return this._api;
+        return t._api;
     }
     WithProgress: boolean = true;
     DisableElement: any;
@@ -505,27 +506,27 @@ class Binder implements IBinder {
                 return a;
         }
     }
-    private setObjPropListener(p: string, a: string, ele: HTMLElement, d: IObjectState) {
+    private setObjPropListener(p: string, a: string, e: HTMLElement, d: IObjectState) {
         var t = this,
             fun = (atr: string, v: any) => {
-                if (Has.Properties(ele, atr)) {
-                    if (ele.tagName === "INPUT" && ele["type"] === "radio") {
-                        var r = ele.parentElement.Get(e2 => e2["name"] === ele["name"] && e2["type"] === "radio");
+                if (Has.Properties(e, atr)) {
+                    if (e.tagName === "INPUT" && e["type"] === "radio") {
+                        var r = e.parentElement.Get(e2 => e2["name"] === e["name"] && e2["type"] === "radio");
                         r.forEach(r => r["checked"] = false);
                         var f = r.First(r => r["value"] === v.toString());
                         f ? f["checked"] = true : null;
                     }
                     else if (atr === "className") {
-                        ele.className = null;
-                        ele.className = v;
+                        e.className = null;
+                        e.className = v;
                     }
                     else {
-                        ele[atr] = v;
+                        e[atr] = v;
                     }
                 }
                 else {
                     var s = t.getStyle(atr);
-                    s ? ele["style"][s] = v : ele[atr] = v;
+                    s ? e["style"][s] = v : e[atr] = v;
                 }
             };
         d.AddPropertyListener(p, a, fun);
@@ -589,18 +590,19 @@ class Binder implements IBinder {
     }
 }
 //state management isnt working right yet with regards to the put and the complete of the ajax call
-class DataObject implements IObjectState {    
+class DataObject implements IObjectState {   
+    static DefaultAlternatingRowClass: string = null;
     constructor(serverObject: any, staticProperties: Array<string> = null) {
-        var so = serverObject;
-        this.serverObject = so;
+        var so = serverObject, t = this;
+        t.serverObject = so;
         staticProperties ?
             staticProperties.forEach(s => {
                 if (!Has.Properties(so, s)) {
                     so[s] = null;
                 }
             }) : null;
-        this.objectState = ObjectState.Clean;
-        for (var p in so) { this.setProps(p, so); }
+        t.objectState = ObjectState.Clean;
+        for (var p in so) { t.setProps(p, so); }
     }
     private setProps(p: string, o: any) {
         var t = this,
@@ -614,15 +616,15 @@ class DataObject implements IObjectState {
     Container: Array<IObjectState>;
     private alternatingClass: string;
     AlternateOnEvens: boolean = true;
-    set AlternatingClass(value: string) {
+    set AlternatingRowClass(value: string) {
         this.alternatingClass = value;
     }
-    get AlternatingClass() {
-        var t = this;
-        if (t.alternatingClass != null) {
+    get AlternatingRowClass() {
+        var t = this, ac = t.alternatingClass != null ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
+        if (ac != null) {
             var i = t.Container.indexOf(this) + 1,
                 ie = i % 2 == 0;
-            return ie == t.AlternateOnEvens ? t.alternatingClass : null;
+            return ie == t.AlternateOnEvens ? ac : null;
         }
         return null;
     }
@@ -684,7 +686,7 @@ class DataObject implements IObjectState {
             change = v != t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
-            this.InstigatePropertyChangedListeners(p, true);
+            t.InstigatePropertyChangedListeners(p, true);
         }
     }
 }
@@ -928,9 +930,9 @@ abstract class ViewContainer implements IViewContainer {
         });
     }
     IsUrlPatternMatch(url: string) {
-        var pattern = this.UrlPattern();
-        if (pattern) {
-            var regex = new RegExp(pattern, 'i');
+        var p = this.UrlPattern();
+        if (p) {
+            var regex = new RegExp(p, 'i');
             return url.match(regex) ? true : false;
         }
         return false;
@@ -946,10 +948,10 @@ abstract class ViewContainer implements IViewContainer {
     Url(route: ViewInstance): string {
         var rp = route.Parameters;
         if (rp) {
-            var part = rp[0] == this.UrlBase ?
+            var p = rp[0] == this.UrlBase ?
                 rp.slice(1).join("/") :
                 rp.join("/");
-            return this.UrlBase + (part.length > 0 ? "/" + part : "");
+            return this.UrlBase + (p.length > 0 ? "/" + p : "");
         }
         return this.UrlBase;
     }
@@ -1125,12 +1127,12 @@ module Initializer {
         var w = window;
         if (document.readyState === "complete") {
             windowLoaded();
-            Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+            WindowLoaded ? WindowLoaded(e) : null;
         }
         else {
             w.onload = function () {
                 windowLoaded();
-                Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+                WindowLoaded ? WindowLoaded(e) : null;
             };
         }
     }

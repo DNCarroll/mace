@@ -6,15 +6,17 @@ var __extends = (this && this.__extends) || function (d, b) {
 var DefaultContentManager = (function (_super) {
     __extends(DefaultContentManager, _super);
     function DefaultContentManager() {
+        var _this = this;
         if (DefaultContentManager.instance) {
             return DefaultContentManager.instance;
         }
-        _super.call(this);
-        this.Views.push(new ViewContent());
-        this.Views.push(new ViewHeader());
-        this.Views.push(new ViewFooter());
-        this.IsDefault = true;
-        DefaultContentManager.instance = this;
+        _this = _super.call(this) || this;
+        _this.Views.push(new ViewContent());
+        _this.Views.push(new ViewHeader());
+        _this.Views.push(new ViewFooter());
+        _this.IsDefault = true;
+        DefaultContentManager.instance = _this;
+        return _this;
     }
     DefaultContentManager.prototype.DocumentTitle = function (route) { return "Default content"; };
     DefaultContentManager.prototype.Url = function (route) { return "Default"; };

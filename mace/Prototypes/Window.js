@@ -1,7 +1,7 @@
 Window.prototype.Exception = function () {
     var parameters = [];
     for (var _i = 0; _i < arguments.length; _i++) {
-        parameters[_i - 0] = arguments[_i];
+        parameters[_i] = arguments[_i];
     }
     if (parameters.length == 1) {
         var o = {};

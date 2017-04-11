@@ -3,27 +3,28 @@ class Binder implements IBinder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
     constructor(primaryKeys: Array<string> = null, api: string = null, staticProperties: Array<string> = null, TypeObject: { new (obj: any): IObjectState; } = null) {
-        var p = primaryKeys;
-        this.StaticProperties = staticProperties;
-        this.PrimaryKeys = p ? p : this.PrimaryKeys;
+        var p = primaryKeys, t = this;
+        t.StaticProperties = staticProperties;
+        t.PrimaryKeys = p ? p : t.PrimaryKeys;
         if (TypeObject) {
-            this.NewObject = (obj: any) => {
+            t.NewObject = (obj: any) => {
                 return new TypeObject(obj);
             };
         }
-        this._api = api;
+        t._api = api;
     }
     ApiPrefix() {
         return "/Api/";
     }
     Api(): string {
-        if (!this._api) {
+        var t = this;
+        if (!t._api) {
             var r = Reflection,
-                n = r.GetName(this.constructor);
+                n = r.GetName(t.constructor);
             n = n.replace("Binder", "");
-            this._api = this.ApiPrefix() + n;
+            t._api = t.ApiPrefix() + n;
         }
-        return this._api;
+        return t._api;
     }
     WithProgress: boolean = true;
     DisableElement: any;
@@ -287,27 +288,27 @@ class Binder implements IBinder {
                 return a;
         }
     }
-    private setObjPropListener(p: string, a: string, ele: HTMLElement, d: IObjectState) {
+    private setObjPropListener(p: string, a: string, e: HTMLElement, d: IObjectState) {
         var t = this,
             fun = (atr: string, v: any) => {
-                if (Has.Properties(ele, atr)) {
-                    if (ele.tagName === "INPUT" && ele["type"] === "radio") {
-                        var r = ele.parentElement.Get(e2 => e2["name"] === ele["name"] && e2["type"] === "radio");
+                if (Has.Properties(e, atr)) {
+                    if (e.tagName === "INPUT" && e["type"] === "radio") {
+                        var r = e.parentElement.Get(e2 => e2["name"] === e["name"] && e2["type"] === "radio");
                         r.forEach(r => r["checked"] = false);
                         var f = r.First(r => r["value"] === v.toString());
                         f ? f["checked"] = true : null;
                     }
                     else if (atr === "className") {
-                        ele.className = null;
-                        ele.className = v;
+                        e.className = null;
+                        e.className = v;
                     }
                     else {
-                        ele[atr] = v;
+                        e[atr] = v;
                     }
                 }
                 else {
                     var s = t.getStyle(atr);
-                    s ? ele["style"][s] = v : ele[atr] = v;
+                    s ? e["style"][s] = v : e[atr] = v;
                 }
             };
         d.AddPropertyListener(p, a, fun);

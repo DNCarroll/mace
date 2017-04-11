@@ -14,26 +14,27 @@ var Binder = (function () {
         this.AutomaticSelect = true;
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
-        var p = primaryKeys;
-        this.StaticProperties = staticProperties;
-        this.PrimaryKeys = p ? p : this.PrimaryKeys;
+        var p = primaryKeys, t = this;
+        t.StaticProperties = staticProperties;
+        t.PrimaryKeys = p ? p : t.PrimaryKeys;
         if (TypeObject) {
-            this.NewObject = function (obj) {
+            t.NewObject = function (obj) {
                 return new TypeObject(obj);
             };
         }
-        this._api = api;
+        t._api = api;
     }
     Binder.prototype.ApiPrefix = function () {
         return "/Api/";
     };
     Binder.prototype.Api = function () {
-        if (!this._api) {
-            var r = Reflection, n = r.GetName(this.constructor);
+        var t = this;
+        if (!t._api) {
+            var r = Reflection, n = r.GetName(t.constructor);
             n = n.replace("Binder", "");
-            this._api = this.ApiPrefix() + n;
+            t._api = t.ApiPrefix() + n;
         }
-        return this._api;
+        return t._api;
     };
     Binder.prototype.NewObject = function (obj) {
         return new DataObject(obj, this.StaticProperties);
@@ -266,26 +267,26 @@ var Binder = (function () {
                 return a;
         }
     };
-    Binder.prototype.setObjPropListener = function (p, a, ele, d) {
+    Binder.prototype.setObjPropListener = function (p, a, e, d) {
         var t = this, fun = function (atr, v) {
-            if (Has.Properties(ele, atr)) {
-                if (ele.tagName === "INPUT" && ele["type"] === "radio") {
-                    var r = ele.parentElement.Get(function (e2) { return e2["name"] === ele["name"] && e2["type"] === "radio"; });
+            if (Has.Properties(e, atr)) {
+                if (e.tagName === "INPUT" && e["type"] === "radio") {
+                    var r = e.parentElement.Get(function (e2) { return e2["name"] === e["name"] && e2["type"] === "radio"; });
                     r.forEach(function (r) { return r["checked"] = false; });
                     var f = r.First(function (r) { return r["value"] === v.toString(); });
                     f ? f["checked"] = true : null;
                 }
                 else if (atr === "className") {
-                    ele.className = null;
-                    ele.className = v;
+                    e.className = null;
+                    e.className = v;
                 }
                 else {
-                    ele[atr] = v;
+                    e[atr] = v;
                 }
             }
             else {
                 var s = t.getStyle(atr);
-                s ? ele["style"][s] = v : ele[atr] = v;
+                s ? e["style"][s] = v : e[atr] = v;
             }
         };
         d.AddPropertyListener(p, a, fun);
