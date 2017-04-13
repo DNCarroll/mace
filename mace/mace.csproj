@@ -49,15 +49,7 @@
     </Content>
     <Content Include="Scripts\macemin.js" />
     <Content Include="Styles\UnorderList.css" />
-    <Content Include="Views\BinderView.html" />
-    <Content Include="Views\ContentWithShowByUrl.html" />
-    <Content Include="Views\DummyContent.html" />
-    <Content Include="Views\footer.html" />
-    <Content Include="Views\header.html" />
-    <Content Include="Views\MultipleBindings.html" />
-    <Content Include="Views\TestContent.html" />
-    <Content Include="Views\ListTest.html" />
-    <Content Include="Views\WebApiFormView.html" />
+    <Content Include="Views\UseOfAllTypeScriptObjects.html" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -80,15 +72,11 @@
     <TypeScriptCompile Include="Prototypes\HTMLSelectElement.ts" />
     <TypeScriptCompile Include="Prototypes\String.ts" />
     <TypeScriptCompile Include="Prototypes\Window.ts" />
-    <TypeScriptCompile Include="TestScripts\BinderTest.ts" />
-    <TypeScriptCompile Include="TestScripts\ContentWithShowByUrlContainer.ts" />
-    <TypeScriptCompile Include="TestScripts\ContentWithShowByUrlContent.ts" />
-    <TypeScriptCompile Include="TestScripts\DummyContent.ts" />
-    <TypeScriptCompile Include="TestScripts\DummyViewManager.ts" />
-    <TypeScriptCompile Include="TestScripts\ViewContent.ts" />
-    <TypeScriptCompile Include="TestScripts\ViewFooter.ts" />
-    <TypeScriptCompile Include="TestScripts\ViewHeader.ts" />
-    <TypeScriptCompile Include="TestScripts\ViewModelTest.ts" />
+    <TypeScriptCompile Include="TestScripts\MaceTestObject.ts" />
+    <TypeScriptCompile Include="TestScripts\Main.ts" />
+    <TypeScriptCompile Include="TestScripts\UseOfAllTypeScriptObjectsBinder.ts" />
+    <TypeScriptCompile Include="TestScripts\UseOfAllTypeScriptObjectsContainer.ts" />
+    <TypeScriptCompile Include="TestScripts\UseOfAllTypeScriptObjectsView.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">
@@ -103,13 +91,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\GenericSelectDataController.cs" />
-    <Compile Include="Api\ListTestController.cs" />
-    <Compile Include="Api\WebApiBinder.cs" />
+    <Compile Include="Api\UseOfAllTypeScriptObjectsController.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="MaceTestObject.cs" />
+    <Compile Include="RouteHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BattleAxe, Version=16.11.3.12, Culture=neutral, processorArchitecture=MSIL">

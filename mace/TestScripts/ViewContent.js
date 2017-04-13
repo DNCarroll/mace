@@ -15,4 +15,3 @@ var ViewContent = (function (_super) {
     };
     return ViewContent;
 }(View));
-//# sourceMappingURL=ViewContent.js.map

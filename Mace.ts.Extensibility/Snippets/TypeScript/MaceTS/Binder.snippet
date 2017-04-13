@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>Extending Binder</Title>
+      <Shortcut></Shortcut>
+      <Description></Description>
+      <Author />
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>type</ID>
+          <ToolTip>
+            The type name of the TypeScript class you are creating.
+            
+            Binders are defaulted to a Web Api path by their name.  
+            This can be overridden by setting the api in the super() constructor.
+            
+            Example of a match            
+            Binder type = OrderBinder
+            WebApi = '/Api/Order'
+          </ToolTip>
+          <Default>DefaultTypeName</Default>
+        </Literal>        
+        <Literal>
+          <ID>PrimaryKey</ID>
+          <ToolTip>
+            The Primary key is an array of keys.  If the data tracks to one key just use one key in the array.
+          </ToolTip>
+          <Default>ID</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="TypeScript">
+        <![CDATA[class $type$Binder extends Binder {
+    constructor() {
+        super(['$PrimaryKey$']);
+    }
+}
+]]></Code>
+    </Snippet>
+  </CodeSnippet> 
+</CodeSnippets>

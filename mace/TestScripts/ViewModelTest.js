@@ -24,4 +24,3 @@ var DefaultContentManager = (function (_super) {
     DefaultContentManager.prototype.UrlTitle = function (route) { return "Default Page"; };
     return DefaultContentManager;
 }(ViewContainer));
-//# sourceMappingURL=ViewModelTest.js.map

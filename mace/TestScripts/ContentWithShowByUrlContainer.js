@@ -23,4 +23,3 @@ var ContentWithShowByUrlContainer = (function (_super) {
     ContentWithShowByUrlContainer.prototype.UrlTitle = function (route) { return "Content with Show By URL"; };
     return ContentWithShowByUrlContainer;
 }(ViewContainer));
-//# sourceMappingURL=ContentWithShowByUrlContainer.js.map

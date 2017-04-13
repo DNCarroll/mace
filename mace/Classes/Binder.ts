@@ -2,7 +2,7 @@
 class Binder implements IBinder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
-    constructor(primaryKeys: Array<string> = null, api: string = null, staticProperties: Array<string> = null, TypeObject: { new (obj: any): IObjectState; } = null) {
+    constructor(primaryKeys: Array<string> = null, api: string = null, TypeObject: { new (obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
         var p = primaryKeys, t = this;
         t.StaticProperties = staticProperties;
         t.PrimaryKeys = p ? p : t.PrimaryKeys;
@@ -132,9 +132,11 @@ class Binder implements IBinder {
         }
         if (o) {
             var a = new Ajax(t.WithProgress, t.DisableElement),
-                f = () => {
-                    var es = t.Element.Get(e => e.DataObject === o);
+                f = () => {                    
+                    var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects, i = td.indexOf(o);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));
+                    td.splice(i);                    
+                    td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
                 },
                 afc = (a: CustomEventArg<Ajax>) => {
                     var err = () => {

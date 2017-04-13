@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>Extending DataObject</Title>
+      <Shortcut></Shortcut>
+      <Description></Description>
+      <Author />
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>type</ID>
+          <ToolTip>
+            The type name of the TypeScript class you are creating.
+
+            Inheriting from DataObject provides custom binding for client side against
+            client specific properties.
+
+            Note that when the super method is called properties for all the super properties
+            are created on the object with in get/set methods.  The set method will cause the kick
+            off of object changed state process leading to WebApi PUT method if the behavior is not
+            overridden by the via the AutomaticUpdate property of the Binder that cause this DataObject
+            to be instantiated or a get/set is manually created (see OrderId from the snippet below).
+            
+          </ToolTip>
+          <Default>DefaultTypeName</Default>
+        </Literal>     
+      </Declarations>
+      <Code Language="TypeScript">
+        <![CDATA[class $type$ extends DataObject {
+    constructor(serverObject) {
+        super(serverObject);           
+    }
+    
+    //example of custom property
+    get SomeCustomProperty() {
+        var d = this["someProperty"];
+        return d != null ? true : false;
+    }    
+    
+    //example of overriding server properties
+    get OrderId(): number {
+        return this.ServerObject["OrderId"];
+    }
+    set OrderId(value: number) {
+        this.SetServerProperty("OrderId", value);
+    }
+}
+]]></Code>
+    </Snippet>
+  </CodeSnippet> 
+</CodeSnippets>

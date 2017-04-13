@@ -15,4 +15,3 @@ var DummyContent = (function (_super) {
     };
     return DummyContent;
 }(View));
-//# sourceMappingURL=DummyContent.js.map

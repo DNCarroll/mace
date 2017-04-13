@@ -1,11 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace", "mace\mace.csproj", "{5E51DCBF-995C-45AE-BCD6-1D4866B912F0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace.Test", "mace.Test\mace.Test.csproj", "{F281D93B-6CD2-481F-8060-C9F371E6E63F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mace.ts.Extensibility", "Mace.ts.Extensibility\Mace.ts.Extensibility.csproj", "{EA7DA481-3D25-45AB-9726-F59CDD27CB69}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{1EA523C0-0B95-4FA7-8F0C-DF4CBE8258C9}"
+	ProjectSection(SolutionItems) = preProject
+		VS Marketplace Extension Description.txt = VS Marketplace Extension Description.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +28,10 @@ Global
 		{F281D93B-6CD2-481F-8060-C9F371E6E63F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F281D93B-6CD2-481F-8060-C9F371E6E63F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F281D93B-6CD2-481F-8060-C9F371E6E63F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

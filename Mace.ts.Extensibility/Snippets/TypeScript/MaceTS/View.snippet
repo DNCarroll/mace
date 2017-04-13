@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">L
+    <Header>
+      <Title>Extending View</Title>
+      <Shortcut></Shortcut>
+      <Description></Description>
+      <Author />
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>type</ID>
+          <ToolTip>
+            The type name of the TypeScript class you are creating.
+  
+            The default pathing for the view is determined by the name of the view minus "View".
+            But you can manually set it in the constructor.
+            
+            Example:
+              View Type = OrderView
+              Server html path = '/Views/Order.html'            
+          </ToolTip>
+          <Default>DefaultTypeName</Default>
+        </Literal>
+        <Literal>
+          <ID>cacheStrategy</ID>
+          <ToolTip>
+            The cache strategy to use for the view.
+            Cache Strategies are
+            None,
+            ViewAndPreload (the html view is cached and preload data is cached also),
+            View (only the view is cached if the view implements preload it is not cached),
+            Preload (only the preload data is cached)
+          </ToolTip>
+          <Default>CacheStrategy.View</Default>
+        </Literal>
+        <Literal>
+          <ID>view</ID>
+          <ToolTip></ToolTip>
+          <Default>NotDesignated</Default>
+        </Literal>
+        <Literal>
+          <ID>htmlContainerId</ID>
+          <ToolTip>This is the id of the html element that will house the View html.</ToolTip>
+          <Default>content</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="TypeScript">
+        <![CDATA[class $type$View extends View {
+    constructor() {
+        super($cacheStrategy$, "$htmlContainerId$");
+    }
+}
+]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

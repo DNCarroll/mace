@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>Extending a Generic View Container</Title>
+      <Shortcut>Mace Generic View Container</Shortcut>
+      <Description></Description>
+      <Author />
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>type</ID>
+          <ToolTip>
+            The type name of the TypeScript class you are creating.
+            
+            ViewContainers are found by using the UrlPattern() method from the extended ViewContainer type.
+            If this method is not overridden the name of the View Container is used for the url pattern match.
+            The pattern match is simple at this point. It matches on the first word in the pathname by '/' split.
+            The 'Container' suffix on the type name will be ignored.
+            
+            Example of a match
+            url = "[/]Order/1234"
+            ViewContainer type = OrderContainer
+          </ToolTip>
+          <Default>DefaultTypeName</Default>
+        </Literal>        
+        <Literal>
+          <ID>cacheStrategy</ID>
+          <ToolTip>
+            The cache strategy to use for the view.  
+            Cache Strategies are 
+              None, 
+              ViewAndPreload (the html view is cached and preload data is cached also), 
+              View (only the view is cached if the view implements preload it is not cached), 
+              Preload (only the preload data is cached)
+          </ToolTip>
+          <Default>CacheStrategy.View</Default>
+        </Literal>
+        <Literal>
+          <ID>htmlContainerId</ID>
+          <ToolTip>This is the id of the html element that will house the View html.</ToolTip>
+          <Default>content</Default>
+        </Literal>
+        <Literal>
+          <ID>viewPath</ID>
+          <ToolTip>This is the path to the html on the server.</ToolTip>
+          <Default>NotDesignated</Default>
+        </Literal>
+        <Literal>
+          <ID>isTheDefaultViewContainer</ID>
+          <ToolTip>Should this be the default view if a View Container is not found for the given URL?</ToolTip>
+          <Default>false</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="TypeScript">
+        <![CDATA[class $type$Container extends ViewContainer {
+    private static instance: $type$Container = new $type$Container();
+    constructor() {
+        if ($type$Container.instance) {
+            return $type$Container.instance;
+        }
+        super();
+        this.Views.push(new View($cacheStrategy$, "$htmlContainerId$", "/Views/$viewPath$.html"));
+        this.IsDefault = $isTheDefaultViewContainer$;
+    }
+}
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>Extending a View Container with static View</Title>
+      <Shortcut></Shortcut>
+      <Description></Description>
+      <Author />
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>type</ID>
+          <ToolTip>
+            The type name of the TypeScript class you are creating.
+
+            ViewContainers are found by using the UrlPattern() method from the extended ViewContainer type.
+            If this method is not overridden the name of the View Container is used for the url pattern match.
+            The pattern match is simple at this point. It matches on the first word in the pathname by '/' split.
+            The 'Container' suffix on the type name will be ignored.
+
+            Example of a match
+            url = "[/]Order/1234"
+            ViewContainer type = OrderContainer
+          </ToolTip>
+          <Default>DefaultTypeName</Default>
+        </Literal>
+        <Literal>
+          <ID>view</ID>
+          <ToolTip></ToolTip>
+          <Default>NotDesignated</Default>
+        </Literal>
+        <Literal>
+          <ID>isTheDefaultViewContainer</ID>
+          <ToolTip>
+            Should this be the default view if a View Container is not found for the given URL?
+          </ToolTip>
+          <Default>false</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="TypeScript">
+        <![CDATA[class $type$Container extends ViewContainer {
+    private static instance: $type$Container = new $type$Container();
+    constructor() {
+        if ($type$Container.instance) {
+            return $type$Container.instance;
+        }
+        super();
+        this.Views.push(new $view$());
+        this.IsDefault = $isTheDefaultViewContainer$;
+    }
+}
+]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>  
+</CodeSnippets>

@@ -15,4 +15,3 @@ var ViewFooter = (function (_super) {
     };
     return ViewFooter;
 }(View));
-//# sourceMappingURL=ViewFooter.js.map

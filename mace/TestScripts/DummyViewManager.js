@@ -23,4 +23,3 @@ var DummyViewManager = (function (_super) {
     DummyViewManager.prototype.UrlTitle = function (route) { return "Dummy Page"; };
     return DummyViewManager;
 }(ViewContainer));
-//# sourceMappingURL=DummyViewManager.js.map

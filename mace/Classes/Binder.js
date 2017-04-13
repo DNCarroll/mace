@@ -1,10 +1,10 @@
 //disable the active context or readonly it while the new stuff is coming in?
 var Binder = (function () {
-    function Binder(primaryKeys, api, staticProperties, TypeObject) {
+    function Binder(primaryKeys, api, TypeObject, staticProperties) {
         if (primaryKeys === void 0) { primaryKeys = null; }
         if (api === void 0) { api = null; }
-        if (staticProperties === void 0) { staticProperties = null; }
         if (TypeObject === void 0) { TypeObject = null; }
+        if (staticProperties === void 0) { staticProperties = null; }
         this._api = null;
         this.PrimaryKeys = new Array();
         this.WithProgress = true;
@@ -124,8 +124,10 @@ var Binder = (function () {
         }
         if (o) {
             var a = new Ajax(t.WithProgress, t.DisableElement), f = function () {
-                var es = t.Element.Get(function (e) { return e.DataObject === o; });
+                var es = t.Element.Get(function (e) { return e.DataObject === o; }), td = t.DataObjects, i = td.indexOf(o);
                 es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
+                td.splice(i);
+                td.forEach(function (o) { return o.InstigatePropertyChangedListeners("AlternatingRowClass", false); });
             }, afc = function (a) {
                 var err = function () {
                     if (a.EventType === EventType.Error) {

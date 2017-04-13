@@ -15,4 +15,3 @@ var ViewHeader = (function (_super) {
     };
     return ViewHeader;
 }(View));
-//# sourceMappingURL=ViewHeader.js.map

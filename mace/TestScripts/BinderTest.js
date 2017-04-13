@@ -271,7 +271,7 @@ var WebApiBindingContainer = (function (_super) {
 var WebApiBinder = (function (_super) {
     __extends(WebApiBinder, _super);
     function WebApiBinder() {
-        return _super.call(this, ["ID"], null, null, BinderTestObject) || this;
+        return _super.call(this, ["ID"], null, BinderTestObject) || this;
     }
     return WebApiBinder;
 }(Binder));
@@ -320,4 +320,3 @@ var ListBinderContainer = (function (_super) {
     ListBinderContainer.prototype.UrlTitle = function (route) { return "ListBinder view"; };
     return ListBinderContainer;
 }(ViewContainer));
-//# sourceMappingURL=BinderTest.js.map

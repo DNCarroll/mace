@@ -1,0 +1,12 @@
+Installs C#, TypeScript, and HTML code snippets for mace.ts. mace.ts is a TypeScript file for binding, routing, and ajax calls. mace.ts can be found on github at https://github.com/DNCarroll/mace.  The C# snippet provides simple routing to just a html page (index, default etc).  The TypeScript snippets include Binder, DataObject, View and ViewContainer snippets.  The HTML snippet includes one snippet for creating mace.ts views.
+
+
+
+
+some links
+
+the new marketplace:
+https://marketplace.visualstudio.com/manage/publishers/nathancarroll
+
+the old extension stuff
+https://social.msdn.microsoft.com/Profile/nathan%20carroll/extensions

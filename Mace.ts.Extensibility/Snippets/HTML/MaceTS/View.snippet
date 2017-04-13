@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>View with standard Binder</Title>
+      <Shortcut></Shortcut>
+      <Description></Description>
+      <Author />
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>PrimaryKey</ID>
+          <ToolTip>
+            The Primary key is an array of keys.  If the data tracks to one key just use one key in the array.
+          </ToolTip>
+          <Default>OrderId</Default>
+        </Literal>
+        <Literal>
+          <ID>WebApi</ID>
+          <ToolTip>
+            The Web api use for the GET.  GET when automatic presume the URL contains parameters that are used to pass to the get.
+          </ToolTip>
+          <Default>Order</Default>
+        </Literal>
+        <Literal>
+          <ID>OrderId</ID>
+          <ToolTip>
+              Binding to html elements can be form of
+                data-[attribute]
+                data-[style] where style is presumed to be abbreviated to data-display for example not data-style-display
+          </ToolTip>
+          <Default>OrderId</Default>
+        </Literal>
+        <Literal>
+          <ID>Column2</ID>
+          <ToolTip>
+            Binding to html elements can be form of
+            data-[attribute]
+            data-[style] where style is presumed to be abbreviated to data-display for example not data-style-display
+          </ToolTip>
+          <Default>Column2</Default>
+        </Literal>
+        <Literal>
+          <ID>Column3</ID>
+          <ToolTip>
+            Binding to html elements can be form of
+            data-[attribute]
+            data-[style] where style is presumed to be abbreviated to data-display for example not data-style-display
+          </ToolTip>
+          <Default>Column3</Default>
+        </Literal>
+        <Literal>
+          <ID>MoreKey</ID>
+          <ToolTip>
+            The more use presumes that you will use the provided Api from the data-binder
+            and append /MoreKey to the end of it for call to the Web Api.
+          </ToolTip>
+          <Default>OrderId</Default>
+        </Literal>
+        <Literal>
+          <ID>MoreThreshold</ID>
+          <ToolTip>
+            The MoreThreshold is the number of records that should be expected as a maximum
+            return from the web api.  When the number is lower than the threshold the more 
+            option is hidden.
+          </ToolTip>
+          <Default>25</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="HTML">
+        <![CDATA[
+<ul data-binder="Binder(['$PrimaryKey$'], '/Api/$WebApi$')">
+    <li>
+        <div>$OrderId$</div>
+        <div>$Column2$</div>
+        <div>$Column3$</div>
+        <div></div>
+    </li>
+    <li data-template="row" data-class="AlternatingRowClass">
+        <div>
+            <a onclick="window.Show(OrderContainer, this.DataObject['$OrderId$']);"
+               href="javascript:" 
+               data-innerhtml="$OrderId$"></a>
+        </div>
+        <div data-innerhtml="$Column2$">
+        </div>
+        <div>
+          <input data-value="$Column3$" />
+        </div>
+    </li>
+    <li>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div>
+            <a href="javascript:" data-morekeys="$MoreKey$" data-morethreshold="$MoreThreshold$">more...</a>
+        </div>
+    </li>
+</ul>
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>View with statically typed binder</Title>
+      <Shortcut></Shortcut>
+      <Description></Description>
+      <Author />
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>        
+        <Literal>
+          <ID>type</ID>
+          <ToolTip>
+            The Primary key is an array of keys.  If the data tracks to one key just use one key in the array.
+          </ToolTip>
+          <Default>NotDesignated</Default>
+        </Literal>
+        <Literal>
+          <ID>PrimaryKey</ID>
+          <ToolTip>
+            The Primary key is an array of keys.  If the data tracks to one key just use one key in the array.
+          </ToolTip>
+          <Default>OrderId</Default>
+        </Literal>
+        <Literal>
+          <ID>WebApi</ID>
+          <ToolTip>
+            The Web api use for the GET.  GET when automatic presume the URL contains parameters that are used to pass to the get.
+          </ToolTip>
+          <Default>Order</Default>
+        </Literal>
+        <Literal>
+          <ID>OrderId</ID>
+          <ToolTip>
+            Binding to html elements can be form of
+            data-[attribute]
+            data-[style] where style is presumed to be abbreviated to data-display for example not data-style-display
+          </ToolTip>
+          <Default>OrderId</Default>
+        </Literal>
+        <Literal>
+          <ID>Column2</ID>
+          <ToolTip>
+            Binding to html elements can be form of
+            data-[attribute]
+            data-[style] where style is presumed to be abbreviated to data-display for example not data-style-display
+          </ToolTip>
+          <Default>Column2</Default>
+        </Literal>
+        <Literal>
+          <ID>Column3</ID>
+          <ToolTip>
+            Binding to html elements can be form of
+            data-[attribute]
+            data-[style] where style is presumed to be abbreviated to data-display for example not data-style-display
+          </ToolTip>
+          <Default>Column3</Default>
+        </Literal>
+        <Literal>
+          <ID>MoreKey</ID>
+          <ToolTip>
+            The more use presumes that you will use the provided Api from the data-binder
+            and append /MoreKey to the end of it for call to the Web Api.
+          </ToolTip>
+          <Default>OrderId</Default>
+        </Literal>
+        <Literal>
+          <ID>MoreThreshold</ID>
+          <ToolTip>
+            The MoreThreshold is the number of records that should be expected as a maximum
+            return from the web api.  When the number is lower than the threshold the more
+            option is hidden.
+          </ToolTip>
+          <Default>25</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="HTML">
+        <![CDATA[
+<ul data-binder="$type$">
+    <li>
+        <div>$OrderId$</div>
+        <div>$Column2$</div>
+        <div>$Column3$</div>
+        <div></div>
+    </li>
+    <li data-template="row" data-class="AlternatingRowClass">
+        <div>
+            <a onclick="window.Show(OrderContainer, this.DataObject['$OrderId$']);"
+               href="javascript:" 
+               data-innerhtml="$OrderId$"></a>
+        </div>
+        <div data-innerhtml="$Column2$">
+        </div>
+        <div>
+          <input data-value="$Column3$" />
+        </div>
+    </li>
+    <li>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div>
+            <a href="javascript:" data-morekeys="$MoreKey$" data-morethreshold="$MoreThreshold$">more...</a>
+        </div>
+    </li>
+</ul>
+]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

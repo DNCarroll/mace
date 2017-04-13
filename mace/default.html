@@ -6,81 +6,42 @@
     <!--<script type="text/javascript">
         window["IsDebug"] = true;
     </script>-->
-    <link href="Styles/UnorderList.css" rel="stylesheet" />
-    <!--<script src="Scripts/macemin.js"></script>-->
-    <script src="Classes/Ajax.js"></script>
-    <script src="Classes/Binder.js"></script>
-    <script src="Classes/DataObject.js"></script>    
-    <script src="Classes/View.js"></script>
-    <script src="Classes/ViewContainer.js"></script>
-    <script src="Classes/ViewInstance.js"></script>
-
-    <script src="Interfaces/CustomEvent.js"></script>
-    <script src="Interfaces/IView.js"></script>
-    <script src="Interfaces/IViewContainer.js"></script>    
+    <link href="/Styles/UnorderList.css" rel="stylesheet" />
     
-    <script src="Modules/HistoryManager.js"></script>
-    <script src="Modules/Initializer.js"></script>
-    <script src="Modules/Is.js"></script>
-    <script src="Modules/ProgressManager.js"></script>    
+    <script src="/Classes/Ajax.js"></script>
+    <script src="/Classes/Binder.js"></script>
+    <script src="/Classes/DataObject.js"></script>    
+    <script src="/Classes/View.js"></script>
+    <script src="/Classes/ViewContainer.js"></script>
+    <script src="/Classes/ViewInstance.js"></script>
 
-    <script src="Prototypes/Array.js"></script>
-    <script src="Prototypes/Date.js"></script>
-    <script src="Prototypes/HTMLElement.js"></script>
-    <script src="Prototypes/HTMLSelectElement.js"></script>
-    <script src="Prototypes/String.js"></script>
-    <script src="Prototypes/Window.js"></script>
+    <script src="/Interfaces/CustomEvent.js"></script>
+    <script src="/Interfaces/IView.js"></script>
+    <script src="/Interfaces/IViewContainer.js"></script>    
+    
+    <script src="/Modules/HistoryManager.js"></script>
+    <script src="/Modules/Initializer.js"></script>
+    <script src="/Modules/Is.js"></script>
+    <script src="/Modules/ProgressManager.js"></script>    
 
-    <script src="TestScripts/ContentWithShowByUrlContainer.js"></script>
-    <script src="TestScripts/ViewModelTest.js"></script>
-    <script src="TestScripts/DummyViewManager.js"></script>
+    <script src="/Prototypes/Array.js"></script>
+    <script src="/Prototypes/Date.js"></script>
+    <script src="/Prototypes/HTMLElement.js"></script>
+    <script src="/Prototypes/HTMLSelectElement.js"></script>
+    <script src="/Prototypes/String.js"></script>
+    <script src="/Prototypes/Window.js"></script>
 
-    <script src="TestScripts/ContentWithShowByUrlContent.js"></script>
-    <script src="TestScripts/DummyContent.js"></script>
-    <script src="TestScripts/ViewContent.js"></script>
-    <script src="TestScripts/ViewHeader.js"></script>
-    <script src="TestScripts/ViewFooter.js"></script>    
-    <script src="TestScripts/BinderTest.js"></script>
 
+    <script src="/TestScripts/MaceTestObject.js"></script>
+    <script src="/TestScripts/UseOfAllTypeScriptObjectsView.js"></script>
+    <script src="/TestScripts/UseOfAllTypeScriptObjectsBinder.js"></script>
+    <script src="/TestScripts/UseOfAllTypeScriptObjectsContainer.js"></script>
+    <script src="TestScripts/Main.js"></script>
+
+    
 </head>
 <body>
-    <div id="progress" style="display:none;">something is going on </div>
-    <div id="header">Didnt get what it was suppose to</div>
+    <div id="progress" style="display:none;">something is going on </div>    
     <div id="content">Didnt get what it was suppose to</div>
-    <div id="footer">Didnt get what it was suppose to</div>
-    <div>
-        <h1>Steps for constructing with ULFBERHT</h1>
-        <sub>not in any particular order</sub>
-        <blockquote>
-            <ol>
-                <li>
-                    build any html views that will be used by a ViewContainer
-                </li>
-                <li>
-                    build View or classes inheriting from IView
-                </li>
-                <li>
-                    build the View container using the views above
-                    <blockquote>
-                        <ol>
-                            <li>
-                                make sure that in the constructor you add them to the Array&lt;View&gt;, 'Views'
-                            </li>
-                            <li>
-                                add the ViewContainer to the ViewContainers eg ViewContainers.push(new DefaultContentManager());
-                            </li>
-                            <li>
-                                insure that one ViewContainer is the Default (IsDefault)
-                            </li>
-                        </ol>
-                    </blockquote>
-                </li>
-                <li>
-                    if testing and adding each js file individually make sure to add the View.js's first then the Containers
-                </li>
-            </ol>
-        </blockquote>
-
-    </div>
 </body>
 </html>

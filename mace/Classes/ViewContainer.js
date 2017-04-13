@@ -17,10 +17,12 @@ var ViewContainer = (function () {
         });
     };
     ViewContainer.prototype.IsUrlPatternMatch = function (url) {
-        var p = this.UrlPattern();
-        if (p) {
-            var regex = new RegExp(p, 'i');
-            return url.match(regex) ? true : false;
+        if (!Is.NullOrEmpty(url)) {
+            var p = this.UrlPattern(), up = (url.indexOf("/") == 0 ? url.substr(1) : url).split("/")[0];
+            if (p) {
+                var regex = new RegExp(p, 'i');
+                return up.match(regex) ? true : false;
+            }
         }
         return false;
     };
