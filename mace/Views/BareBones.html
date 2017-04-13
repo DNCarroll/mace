@@ -1,7 +1,7 @@
 ﻿<ul class="table">
     <li>
         <div style="vertical-align:top;">
-            <ul data-binder="UseOfAllTypeScriptObjectsBinder" class="smallTable">
+            <ul data-binder="Binder(['ID'], '/Api/BareBones')" class="smallTable">
                 <li>
                     <div>ID</div>
                     <div>Name</div>
@@ -29,7 +29,7 @@
             </ul>
         </div>
         <div style="width:20em; vertical-align:top;">
-            <div>How to make the grid to left from zero with all the custom classes instantiated.  To just do bare bones approach go <a href="BareBones">here</a></div>
+            <div>How to make the grid to left from zero with none of custom classes instantiated.  To just do customized approach go <a href="UseOfAllTypeScriptObjects">here</a>. If you already did the customization you can skip down to step that Adds the Web api Controller and go from there</div>
             <ul style="list-style-type:none">
                 <li style="margin-bottom:1em;">
                     <input type="checkbox" />
@@ -64,23 +64,12 @@
                     <input type="checkbox" />
                     Create an Controller in the Api folder.  I use the Route Attributes so need to make sure have [RoutePrefix("Api/UseOfAllTypeScriptObjects")] and Route... on the methods. Also make sure to have Controller on suffix of the Controller.
                     <a href="https://docs.microsoft.com/en-us/aspnet/web-api/overview/web-api-routing-and-actions/attribute-routing-in-web-api-2">Web Api Attributes</a>
-                </li>
-                <li style="margin-bottom:1em;">
-                    <input type="checkbox" />
-                    Create a DataObject TypeScript file in Scripts Folder.  Use the MaceTS snippet Extending DataObject to create it.
-                </li>
-                <li style="margin-bottom:1em;">
-                    <input type="checkbox" />
-                    Create a Binder TypesScript file in the Scripts folder.  The name of this binder should follow naming convention from the WebApi eg WebApi named UseOfAllTypeScriptObjectsController; the Binder should be named UseOfAllTypeScriptObjectsBinder.  Use the MaceTS snippet Extending Binder.  You need to add to the super constructor the object just created in step above super should look like super(['ID'], null, MaceTestObject);
-                </li>
+                </li>             
                 <li style="margin-bottom:1em;">
                     <input type="checkbox" />
                     Create a html View in the Views folder.  To run the example name it by same convention as above should end up with UseOfAllTypeScriptObjects.html in the Views Folder.  Delete everything from the html create.  Use MaceTS snippet "Extending View".  Change the header data-binder to the Name of the binder from previous step eg data-binder="UseOfAllTypeScriptObjectsBinder".  Add any customizations you want for styling to the ul or whatever your repeater is.  Note that the repeater is desingated by data-template="row"<br />
                     Also note that the alternating class and the more items.
-                </li>
-                <li style="margin-bottom:1em;">
-                    <input type="checkbox" />Create a View TypeScript file in the Scripts folder.  Give it name by same convention as the html view eg UseOfAllTypeScriptObjects.html:UseOfAllTypeScriptObjectsView.  Stub this out with the MaceTS snippet "Extending View"
-                </li>
+                </li>                
                 <li style="margin-bottom:1em;">
                     <input type="checkbox" />
                     Global alternating rows can be achieved by using the Initializer like:<br />Initializer.WindowLoaded = (e) => {
@@ -94,8 +83,9 @@
                 </li>
                 <li style="margin-bottom:1em;">
                     <input type="checkbox" />
-                    Add all the script links to the default.html page.  The order is important as the ViewContainer will be referencing the View TS.  So the script files for safety can be added in order of Object, Binder, View, ViewContainer.  Put mace.ts above them all.
-                    Add the Main.ts if it was created. It should be below the mace.ts.
+                    Add scripts to default.html: 
+                    main.ts, BareBonesContainer.ts, Main.ts
+                    main.ts should be first script on page.
                 </li>
             </ul>
         </div>
