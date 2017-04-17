@@ -12,7 +12,6 @@ var UseOfAllTypeScriptObjectsContainer = (function (_super) {
         }
         _this = _super.call(this) || this;
         _this.Views.push(new UseOfAllTypeScriptObjectsView());
-        _this.IsDefault = true;
         return _this;
     }
     return UseOfAllTypeScriptObjectsContainer;

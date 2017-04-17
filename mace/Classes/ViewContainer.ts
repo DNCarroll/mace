@@ -2,7 +2,8 @@
 abstract class ViewContainer implements IViewContainer {
     constructor() {
         var n = Reflection.GetName(this.constructor);
-        this.UrlBase = n.replace("Container", "");
+        this.UrlBase = n.replace("ViewContainer", "");
+        this.UrlBase = this.UrlBase.replace("Container", "");
         ViewContainers.push(this);
     }
     UrlBase: string;
@@ -53,5 +54,13 @@ abstract class ViewContainer implements IViewContainer {
     }
     UrlTitle(route: ViewInstance): string {
         return this.UrlBase;
+    }
+}
+class SingleViewContainer extends ViewContainer {
+    constructor(cacheStrategy: CacheStrategy = CacheStrategy.View,  containerId: string = "content",  isDefault: boolean = false) {
+        super();
+        var t = this;
+        t.IsDefault = isDefault;
+        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.UrlBase + ".html"));
     }
 }

@@ -1,0 +1,27 @@
+﻿.extendTableFormatting {
+    margin: 0 3em;
+}
+.extendTableFormatting > li > div {
+    padding-bottom: .75em;
+    padding-left: 1em;
+}
+.extendTableFormatting > li > div:nth-child(1){
+    vertical-align:top;
+}
+.extendTableFormatting label{
+    font-size: 1.2em;
+}
+.extendTableFormatting input[type="checkbox"]{
+    margin-top:.35em;
+}
+h1 {
+    margin: 1em;
+}
+blockquote{
+    padding-left: 1.5em;
+}
+#documentContainer {
+    margin: 0 auto;
+    width: 60em;
+    margin-top: 1em;
+}

@@ -5,7 +5,6 @@
             return UseOfAllTypeScriptObjectsContainer.instance;
         }
         super();
-        this.Views.push(new UseOfAllTypeScriptObjectsView());
-        this.IsDefault = true;
+        this.Views.push(new UseOfAllTypeScriptObjectsView());        
     }
 }

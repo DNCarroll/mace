@@ -1,10 +1,16 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var ViewContainers = new Array();
 var ViewContainer = (function () {
     function ViewContainer() {
         this.Views = new Array();
         this.IsDefault = false;
         var n = Reflection.GetName(this.constructor);
-        this.UrlBase = n.replace("Container", "");
+        this.UrlBase = n.replace("ViewContainer", "");
+        this.UrlBase = this.UrlBase.replace("Container", "");
         ViewContainers.push(this);
     }
     ViewContainer.prototype.Show = function (route) {
@@ -55,4 +61,18 @@ var ViewContainer = (function () {
     };
     return ViewContainer;
 }());
+var SingleViewContainer = (function (_super) {
+    __extends(SingleViewContainer, _super);
+    function SingleViewContainer(cacheStrategy, containerId, isDefault) {
+        if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.View; }
+        if (containerId === void 0) { containerId = "content"; }
+        if (isDefault === void 0) { isDefault = false; }
+        var _this = _super.call(this) || this;
+        var t = _this;
+        t.IsDefault = isDefault;
+        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.UrlBase + ".html"));
+        return _this;
+    }
+    return SingleViewContainer;
+}(ViewContainer));
 //# sourceMappingURL=ViewContainer.js.map

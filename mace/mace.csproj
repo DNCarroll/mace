@@ -48,8 +48,10 @@
       <DependentUpon>mace.js</DependentUpon>
     </Content>
     <Content Include="Scripts\macemin.js" />
+    <Content Include="Styles\DocumentationStyleSheet.css" />
     <Content Include="Styles\UnorderList.css" />
     <Content Include="Views\BareBones.html" />
+    <Content Include="Views\Documentation.html" />
     <Content Include="Views\UseOfAllTypeScriptObjects.html" />
     <Content Include="web.config" />
   </ItemGroup>
@@ -74,6 +76,7 @@
     <TypeScriptCompile Include="Prototypes\String.ts" />
     <TypeScriptCompile Include="Prototypes\Window.ts" />
     <TypeScriptCompile Include="TestScripts\BareBonesContainer.ts" />
+    <TypeScriptCompile Include="TestScripts\DocumentationViewController.ts" />
     <TypeScriptCompile Include="TestScripts\MaceTestObject.ts" />
     <TypeScriptCompile Include="TestScripts\Main.ts" />
     <TypeScriptCompile Include="TestScripts\UseOfAllTypeScriptObjectsBinder.ts" />

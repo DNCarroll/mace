@@ -1,0 +1,222 @@
+﻿<link href="/Styles/DocumentationStyleSheet.css" rel="stylesheet" />
+<div id="documentContainer">
+    <h1>Environmental Configuration</h1>
+    <ul class="extendTableFormatting table">
+        <li>
+            <div>
+                <input type="checkbox" id="ec1" />
+            </div>
+            <div>
+                <label for="ec1">
+                    Create new ASP.NET Web Application(.NET Framework) with WebApi project at least 4.5.2.
+                </label>
+            </div>
+        </li>
+        <li>
+            <div>
+                <input type="checkbox" id="ec2" />
+            </div>
+            <div>
+                <label for="ec2">
+                    Set the Web Project specific page to blank. View Containers and Views will figure out what html should be used by the url pattern and IsDefault property.
+                </label>
+            </div>
+        </li>
+        <li>
+            <div>
+                <input type="checkbox" id="ec3" />
+            </div>
+            <div>
+                <label for="ec3">
+                    Add folders Api, Scripts, Styles, and Views to the web app.
+                </label>
+            </div>
+        </li>
+        <li>
+            <div>
+                <input type="checkbox" id="ec4" />
+            </div>
+            <div>
+                <label for="ec4">
+                    Add <a href="http://www.nuget.org/packages/mace.ts/" target="_blank">mace.ts</a> Nuget package
+                </label>
+            </div>
+        </li>
+        <li>
+            <div>
+                <input type="checkbox" id="ec5" />
+            </div>
+            <div>
+                <label for="ec5">
+                    Add addin Mace.ts.Extensibility from Tools | Extensions and Updates
+                </label>
+            </div>
+        </li>
+    </ul>
+    <h1>Web App Code</h1>
+    <ul class="extendTableFormatting table">
+        <li>
+            <div>
+                <input type="checkbox" id="wp1" />
+            </div>
+            <div>
+                <label for="wp1">
+                    Create RouteHandler C# file in the web app project.
+                </label>
+            </div>
+        </li>
+        <li>
+            <div>
+                <input type="checkbox" id="wp2" />
+            </div>
+            <div>
+                <label for="wp2">
+                    Add some routes to the Global.asax Application_Start method.  Can use the MaceTS snippet "Add Some Routes"
+                </label>
+            </div>
+        </li>
+        <li>
+            <div>
+                <input type="checkbox" id="wp3" />
+            </div>
+            <div>
+                <label for="wp3">
+                    Create a Web Api Controller in the Api Folder.  Remember if using Route Prefixes to form up the RoutePrefix Attribute and Route Attribute (<a href="https://docs.microsoft.com/en-us/aspnet/web-api/overview/web-api-routing-and-actions/attribute-routing-in-web-api-2">attribute guidance</a>).  Route Prefix should look like [RoutePrefix("Api/{NameOfApi}")].  Naming is important if not overriding the behavior of mace.ts objects.  mace.ts objects use convention to figure out what they are suppose to be doing.   Also make sure Controller has "Controller" in the suffix of the class name.
+                </label>
+            </div>
+        </li>
+        <li>
+            <div>
+                <input type="checkbox" id="wp4" />
+            </div>
+            <div>
+                <label for="wp4">
+                    need to talk about parameters for PUT, DELETE, POST
+                </label>
+            </div>
+        </li>
+    </ul>
+    <h1>mace.ts - ViewContainer (required)</h1>
+    <blockquote>
+        To create ViewContainer extend from ViewContainer or SingleViewContainer.<br /><br />
+        If not suppling a custom url pattern to look for the ViewContainer name will be used to determine correct ViewContainer for the browser url.<br /><br />
+        If mace.ts cannot determine the appropriate ViewContainer it will find the first default ViewContainer.<br /><br />
+        Use MaceTS snippet "Extending a Generic View Container", "Extending a View Container with static View", or "Extending s SingleViewContainer" for quick start<br /><br />
+        ViewContainers are singletons.  They are housed in the ViewContainers array upon instantiation.  This makes the order of script files in the html &lt;header&gt; important.  The order should be mace.ts, DataObjects, Binders, Views, then ViewContainers if more than one file.  mace.ts should always be first.<br /><br />
+        <h4>Adding Views to the constructor</h4>
+        <blockquote>
+            If using the snippet note that only thing need to be sure on is what Views are added into the constructor. 1-? Views can be added.
+            example of generic and custom view addition
+            this.Views.push(new View(CacheStrategy.View, "content", "/Views/Orders.html"));
+            this.Views.push(new OrdersView());
+        </blockquote>
+        <h4>SingleViewContainer</h4>
+        <blockquote>
+            Has only one view associated with it.<br /><br />
+            Requires no View 'adds'.  It will use the naming of the ViewContainer to determine the html View for the content.  The content is defaulted to "content".  The CacheStrategy is defaulted to CacheStrategy.View.<br /><br />
+            <h4>Example</h4>
+            <blockquote>
+                For this page the ViewContainer is "class DocumentationContainer extends SingleViewContainer"<br /><br />
+                The only modification to code in the construtor was setting of the IsDefault property to true.
+            </blockquote>
+        </blockquote>
+        <h4>Overridable Methods</h4>
+        <blockquote>
+            <span style="font-weight:bold">UrlPattern()</span> - override this method if urls are more complex than just looking at the first word in window.location.pathname.  Or if the first word is variable.  ViewContainers are found by regular expressions so pattern return can be a regular expression.<br /><br />
+            <span style="font-weight:bold">DocumentTitle(route: ViewInstance)</span> - if want to give a custom value for document.title.<br /><br />
+            <span style="font-weight:bold">UrlPattern(route: ViewInstance)</span> - if want to give a custom value to browser url title.
+        </blockquote>
+    </blockquote>
+    <h1>Html Views</h1>
+    <blockquote>
+        If using plumbing by naming convention mace.ts will look to /View folder for the .html file.  Its name should mirror the custom mace.ts View name, be supplied to the ViewContainer or mirror the SingleViewContainer name.  Read the about ViewContainer for more on this.<br /><br />
+        <span style="font-weight:bold">Bound Object with Generic Binder: </span>data-binder="Binder(['OrderId'], '/Api/Api')".  This is attached at a top level element. mace.ts will expect data-{bind} attributes within it.<br /><br />
+        <span style="font-weight:bold">Bound Object with strongly typed Binder: </span>data-binder="{BinderClassName}".  Same as above.  It expects data-{bind} attributes within it.  There can be multiple row repeaters.  They will be added in order they occur.<br /><br />
+        <span style="font-weight:bold">Repeater designation: </span>data-template="row".   If not supplied mace.ts assumes this is a form type binding element.  It will occur within the parent.  It can have other sibling elements before and after it.  When new template items are added the addition of them will always occur relative to those elements (after:header or before:footer)<br /><br />
+        <span style="font-weight:bold">Element Binding: </span>data-{attribute | styleProperty}="{DataObject.Field}".  If attribute is two way (data-value) the change event of the element will cause PUT method to be called.  Binding to style elements assumes you have supplied data-display or data-readonly for example.<br /><br />
+        <span style="font-weight:bold">Alternating Row: </span>data-class="AlternatingRowClass".  If this is supplied the binding will look to the object to determine the class for the row. <br /><br />
+        <span style="font-weight:bold">More Rows: </span>data-morekeys="{[Keys]}".  Keys is 1-? if supplied.  Points to a property on the object that will tell the WebApi GET how to get more data.  These should follow the order of the WebApi parameter ie if WebApi method are ordered (CustomerID, OrderID) then the binding would look like data-morekeys="CustomerID;OrderId"<br /><br />
+        <span style="font-weight:bold">More Threshold: </span>data-morethreshold="{Count}".  This is the maximum number of rows expected from the WebApi.<br /><br />
+        <span style="font-weight:bold">Deleting Rows: </span>need markup for this<br /><br />
+        <span style="font-weight:bold">Adding New Rows: </span>need markup for this<br /><br />
+    </blockquote>
+    <h1>mace.ts - View (optional)</h1>
+    <blockquote>
+        To create custom View extend from View from mace.ts<br /><br />
+        Use MaceTS snippet "Extending View" for quick start<br /><br />
+        <h4>super(...) parameters</h4>
+        <blockquote>
+            <span style="font-weight:bold">cacheStrategy: CacheStrategy</span> - nullable, defautl value is View.  Strategies are ViewAndPreload, View, Preload and None.<br /><br />
+            <span style="font-weight:bold">containerId: string</span> - the element id that will house the html that is returned from this view.  Default value: content<br /><br />
+            <span style="font-weight:bold">viewPath: string</span> - the path to the html view on the server.  If null then defaults to use the name of the mace.ts View (-"View" suffix)
+        </blockquote>
+        <h4>Overridable Method</h4>
+        <blockquote>
+            <span style="font-weight:bold">Prefix()</span> - returns "/Views/" by default.
+        </blockquote>
+    </blockquote>
+    <h1>mace.ts - Binder (optional)</h1>
+    <blockquote>
+        To create custom Binder extend Binder from mace.ts<br /><br />
+        Use MaceTS snippet "Extending Binder" for quick start<br />
+        <h4>super(...) parameters</h4>
+        <blockquote>
+            <span style="font-weight:bold">primaryKeys?: string[]</span> - nullable string array but at least one should be supplied so the returns from PUT and DELETE methods know what object to operate on.
+            <br /><br />
+            <span style="font-weight:bold">api:string</span> - nullable,  if using plumbing by naming convention then leave this as null (eg [RoutePrefix("Api/Orders")], then Binder should be class name OrdersBinder). Alternatively set it(when pathing doesn't follow "/Api/{NamedWebApi}" pattern).
+            <br /><br />
+            <span style="font-weight:bold">TypeObject: { new (obj: any): IObjectState</span>
+            - nullable.  Set when using custom class that extends from DataObject.
+        </blockquote>
+        <h4>Overridable Method</h4>
+        <blockquote>
+            <span style="font-weight:bold">ApiPrefix()</span> - Default prefix for a binder is Api.  If you have your Web Api in some other Route then should override this method.<br /><br />
+        </blockquote>
+        <h4>Properties</h4>
+        <blockquote>
+            <span style="font-weight:bold">WithProgress</span> - defaults to true.  Means if a progress element has been designated then it will activate on WebApi calls.<br /><br />
+            <span style="font-weight:bold">DisableElement</span> - if provided HTMLElement(s) that should be disabled when WebApi calls occur.<br /><br />
+            <span style="font-weight:bold">AutomaticUpdate</span> - defaults to true.  Any updates to 2 way bound elements (inputs, selects) will cause the PUT method to be called on the WebApi.<br /><br />
+            <span style="font-weight:bold">AutomaticSelect</span> - defaults to true.  When a view is loaded and a binder is found the url is used for parameters to the WebApi. eg if you are getting Customer Orders Browser url ~ /Orders/{CustomerId} then the GET method called will be 'Api/Orders/{CustomerId}.
+        </blockquote>
+    </blockquote>
+    <h1>mace.ts - DataObject (optional)</h1>
+    <blockquote>
+        To create custom DataObject extend the DataObject from mace.ts.<br /><br />
+        Use MaceTS snippet "Extending DataObject" for quick start<br /><br />
+        When you add properties that exist on the object sent by the server you should form them up such that they set/get the value from the server object.
+        <h4>Example of Getter/Setter on properties that flow from the Web Api Controller</h4>
+        <blockquote>
+            get OrderId(): number {<br />
+            &nbsp;&nbsp;&nbsp;return this.ServerObject["OrderId"];<br />
+            }<br />
+            set OrderId(value: number) {<br />
+            &nbsp;&nbsp;&nbsp;this.SetServerProperty("OrderId", value);<br />
+            }
+        </blockquote>
+        <h4>Example of Getter/Setter on properties that don't flow from Web Api Controller and are Client side only.</h4>
+        <blockquote>
+            someClientProperty: string;<br />
+            get SomeClientProperty(): string {<br />
+            &nbsp;&nbsp;&nbsp;return this.someClientProperty;<br />
+            }<br />
+            set SomeClientProperty(value: string) {<br />
+            &nbsp;&nbsp;&nbsp;this.someClientProperty = value;<br />
+            &nbsp;&nbsp;&nbsp;this.InstigatePropertyChangedListeners("SomeClientProperty", false);<br />
+            }
+        </blockquote>
+        Note "InstigatePropertyChangedListeners" call.  This is important because it kicks off events that html elements are hooked into.  For example this property changes the backgroundColor.
+    </blockquote>
+    <h1>mace.ts - execute Initializer.WindowLoaded method (optional)</h1>
+    <blockquote>
+        Any client side prep work that needs to happen before displaying client views.
+        <h4>Example of Use</h4>
+        <blockquote>
+            You want to deginate a global alternating class on the DataObject.<br /><br />
+            Initializer.WindowLoaded = (e) => {<br />
+            &nbsp;&nbsp;&nbsp;DataObject.DefaultAlternatingRowClass = "{alternatingRowClassName}";<br />
+            };<br />
+        </blockquote>
+    </blockquote>
+</div>
+<br /><br />

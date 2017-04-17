@@ -12,7 +12,6 @@ var BareBonesContainer = (function (_super) {
         }
         _this = _super.call(this) || this;
         _this.Views.push(new View(CacheStrategy.View, "content", "/Views/BareBones.html"));
-        _this.IsDefault = false;
         return _this;
     }
     return BareBonesContainer;

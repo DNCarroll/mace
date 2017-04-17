@@ -5,7 +5,6 @@
             return BareBonesContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "/Views/BareBones.html"));
-        this.IsDefault = false;
+        this.Views.push(new View(CacheStrategy.View, "content", "/Views/BareBones.html"));        
     }
 }
