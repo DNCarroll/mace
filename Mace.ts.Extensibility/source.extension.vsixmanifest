@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="MaceTS" Version="17.04.12.11" Language="en-US" Publisher="nathancarroll"/>
+    <Identity Id="MaceTS" Version="17.04.21.13" Language="en-US" Publisher="nathancarroll"/>
     <DisplayName>Mace.ts.Extensibility</DisplayName>
     <Description xml:space="preserve">Installs C#, TypeScript, and HTML code snippets for mace.ts.  </Description>
   </Metadata>

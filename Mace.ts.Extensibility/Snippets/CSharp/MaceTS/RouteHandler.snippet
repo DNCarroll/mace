@@ -76,4 +76,78 @@ namespace $namespace$ {
       </Code>
     </Snippet>
   </CodeSnippet>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>Web Api with Route Prefixes</Title>
+      <Shortcut></Shortcut>
+      <Description></Description>
+      <Author />
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>namespace</ID>
+          <ToolTip></ToolTip>
+          <Default>Namespace</Default>
+        </Literal>
+        <Literal>
+          <ID>ApiName</ID>
+          <ToolTip></ToolTip>
+          <Default>ApiName</Default>
+        </Literal>
+        <Literal>
+          <ID>ObjectType</ID>
+          <ToolTip></ToolTip>
+          <Default>ObjectType</Default>
+        </Literal>
+        <Literal>
+          <ID>Id</ID>
+          <ToolTip></ToolTip>
+          <Default>Id</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="CSharp">
+        <![CDATA[
+using System.Collections.Generic;
+using System.Web.Http;
+
+namespace $namespace$.Api {
+
+    [RoutePrefix("Api/$ApiName$")]
+    public class $ApiName$Controller : ApiController {
+        
+        [Route]
+        public List<$ObjectType$> Get() => Get(0);
+
+        //this is the more method
+        [Route("{$Id$:int}")]
+        public List<$ObjectType$> Get(int $Id$) {
+            var list = new List<$ObjectType$>();
+    
+            return list;
+        }
+
+        [Route]
+        public void Post([FromBody]$ObjectType$ obj) {
+
+        }
+
+        [Route]
+        public void Put([FromBody]$ObjectType$ obj) {
+
+        }
+
+        [Route]
+        public void Delete([FromBody]$ObjectType$ obj) {
+
+        }
+    }
+}
+]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
 </CodeSnippets>

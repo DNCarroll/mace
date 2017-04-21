@@ -350,9 +350,11 @@ class Binder implements IBinder {
         }
         if (o) {
             var a = new Ajax(t.WithProgress, t.DisableElement),
-                f = () => {
-                    var es = t.Element.Get(e => e.DataObject === o);
+                f = () => {                    
+                    var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects, i = td.indexOf(o);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));
+                    td.splice(i);                    
+                    td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
                 },
                 afc = (a: CustomEventArg<Ajax>) => {
                     var err = () => {
@@ -914,7 +916,8 @@ var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
 abstract class ViewContainer implements IViewContainer {
     constructor() {
         var n = Reflection.GetName(this.constructor);
-        this.UrlBase = n.replace("Container", "");
+        this.UrlBase = n.replace("ViewContainer", "");
+        this.UrlBase = this.UrlBase.replace("Container", "");
         ViewContainers.push(this);
     }
     UrlBase: string;
@@ -965,6 +968,14 @@ abstract class ViewContainer implements IViewContainer {
     }
     UrlTitle(route: ViewInstance): string {
         return this.UrlBase;
+    }
+}
+class SingleViewContainer extends ViewContainer {
+    constructor(cacheStrategy: CacheStrategy = CacheStrategy.View,  containerId: string = "content",  isDefault: boolean = false) {
+        super();
+        var t = this;
+        t.IsDefault = isDefault;
+        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.UrlBase + ".html"));
     }
 }
 class ViewInstance {    
@@ -1039,6 +1050,7 @@ interface IObjectState extends IPropertyChangedDispatcher {
     ServerObject: any;
     SetServerProperty(propertyName: string, value: any);
     Container: Array<IObjectState>;
+    InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean);
 }
 enum ObjectState {
     Dirty,
