@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="mace.ts.Web.VSIX.Nathan Carroll.b8b46ee3-4851-4353-aeb0-27935a64b8e7" Version="1.0" Language="en-US" Publisher="Nathan Carroll" />
-    <DisplayName>mace.ts.Web.VSIX</DisplayName>
-    <Description>Empty VSIX Project.</Description>
+    <Identity Id="maceWebProject" Version="17.04.25.11" Language="en-US" Publisher="Nathan Carroll" />
+    <DisplayName>mace.ts WebProject</DisplayName>
+    <Description xml:space="preserve">Base project template for creating mace.ts web site.  Includes all references needed and examples for Api, View, and Script.</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0]" />

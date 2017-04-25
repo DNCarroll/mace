@@ -12,8 +12,8 @@
     <ProjectGuid>{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>mace.ts.NetFrameworkWebApp</RootNamespace>
-    <AssemblyName>mace.ts.NetFrameworkWebApp</AssemblyName>
+    <RootNamespace>maceWebProject</RootNamespace>
+    <AssemblyName>maceWebProject</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
@@ -90,10 +90,10 @@
     <None Include="ProjectTemplate.csproj">
       <SubType>Designer</SubType>
     </None>
-    <None Include="mace.ts.NetFrameworkWebApp.ico" />
+    <None Include="maceWebProject.ico" />
   </ItemGroup>
   <ItemGroup>
-    <VSTemplate Include="mace.ts.NetFrameworkWebApp.vstemplate">
+    <VSTemplate Include="maceWebProject.vstemplate">
       <SubType>Designer</SubType>
     </VSTemplate>
   </ItemGroup>
