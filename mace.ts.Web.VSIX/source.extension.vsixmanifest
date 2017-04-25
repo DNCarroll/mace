@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="mace.ts.Web.VSIX.Nathan Carroll.b8b46ee3-4851-4353-aeb0-27935a64b8e7" Version="1.0" Language="en-US" Publisher="Nathan Carroll" />
+    <DisplayName>mace.ts.Web.VSIX</DisplayName>
+    <Description>Empty VSIX Project.</Description>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0]" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+  </Dependencies>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:ProjectName="mace.ts.NetFrameworkWebApp" d:TargetPath="|mace.ts.NetFrameworkWebApp;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" />
+    <Asset Type="mace.ts.17.04.25.10.nupkg" d:Source="File" Path="packages\mace.ts.17.04.25.10.nupkg" d:VsixSubPath="Packages" />
+    <Asset Type="Microsoft.AspNet.WebApi.5.2.3.nupkg" d:Source="File" Path="packages\Microsoft.AspNet.WebApi.5.2.3.nupkg" d:VsixSubPath="Packages" />
+    <Asset Type="Microsoft.AspNet.WebApi.Client.5.2.3.nupkg" d:Source="File" Path="packages\Microsoft.AspNet.WebApi.Client.5.2.3.nupkg" d:VsixSubPath="Packages" />
+    <Asset Type="Microsoft.AspNet.WebApi.Core.5.2.3.nupkg" d:Source="File" Path="Microsoft.AspNet.WebApi.Core.5.2.3.nupkg" d:VsixSubPath="Packages" />
+    <Asset Type="Microsoft.AspNet.WebApi.WebHost.5.2.3.nupkg" d:Source="File" Path="packages\Microsoft.AspNet.WebApi.WebHost.5.2.3.nupkg" d:VsixSubPath="Packages" />
+    <Asset Type="Newtonsoft.Json.10.0.2.nupkg" d:Source="File" Path="Newtonsoft.Json.10.0.2.nupkg" d:VsixSubPath="Packages" />
+  </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+  <References>
+    <Reference Id="NuPackToolsVsix.Microsoft.67e54e40-0ae3-42c5-a949-fddf5739e7a5" MinVersion="1.5.20902.9026">
+      <Name>NuGet Package Manager</Name>
+      <MoreInfoUrl>http://docs.nuget.org/</MoreInfoUrl>
+    </Reference>
+  </References>
+</PackageManifest>

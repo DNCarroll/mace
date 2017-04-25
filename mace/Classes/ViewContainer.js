@@ -14,11 +14,14 @@ var ViewContainer = (function () {
         ViewContainers.push(this);
     }
     ViewContainer.prototype.Show = function (route) {
-        var _this = this;
-        this.NumberViewsShown = 0;
+        var rp = route.Parameters, t = this;
+        if (rp.length == 1 && t.IsDefault) {
+            route.Parameters = new Array();
+        }
+        t.NumberViewsShown = 0;
         ProgressManager.Show();
-        this.Views.forEach(function (s) {
-            s.AddListener(EventType.Completed, _this.ViewLoadCompleted.bind(_this));
+        t.Views.forEach(function (s) {
+            s.AddListener(EventType.Completed, t.ViewLoadCompleted.bind(t));
             s.Show(route);
         });
     };
@@ -41,14 +44,19 @@ var ViewContainer = (function () {
         }
     };
     ViewContainer.prototype.Url = function (route) {
-        var rp = route.Parameters;
+        var rp = route.Parameters, t = this;
         if (rp) {
-            var p = rp[0] == this.UrlBase ?
-                rp.slice(1).join("/") :
-                rp.join("/");
-            return this.UrlBase + (p.length > 0 ? "/" + p : "");
+            if (rp.length == 1 && t.IsDefault) {
+                rp = new Array();
+            }
+            if (rp.length > 0) {
+                var p = rp[0] == t.UrlBase ?
+                    rp.slice(1).join("/") :
+                    rp.join("/");
+                return t.UrlBase + (p.length > 0 ? "/" + p : "");
+            }
         }
-        return this.UrlBase;
+        return t.UrlBase;
     };
     ViewContainer.prototype.DocumentTitle = function (route) {
         return this.UrlBase;
@@ -75,4 +83,3 @@ var SingleViewContainer = (function (_super) {
     }
     return SingleViewContainer;
 }(ViewContainer));
-//# sourceMappingURL=ViewContainer.js.map

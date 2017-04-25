@@ -1,4 +1,3 @@
-//state management isnt working right yet with regards to the put and the complete of the ajax call
 var DataObject = (function () {
     function DataObject(serverObject, staticProperties) {
         if (staticProperties === void 0) { staticProperties = null; }
@@ -111,4 +110,3 @@ var DataObject = (function () {
     return DataObject;
 }());
 DataObject.DefaultAlternatingRowClass = null;
-//# sourceMappingURL=DataObject.js.map

@@ -17,4 +17,3 @@ var UseOfAllTypeScriptObjectsContainer = (function (_super) {
     return UseOfAllTypeScriptObjectsContainer;
 }(ViewContainer));
 UseOfAllTypeScriptObjectsContainer.instance = new UseOfAllTypeScriptObjectsContainer();
-//# sourceMappingURL=UseOfAllTypeScriptObjectsContainer.js.map

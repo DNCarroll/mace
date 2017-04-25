@@ -35,4 +35,3 @@ Window.prototype.ShowByUrl = function (url) {
         HistoryManager.Add(vi);
     }
 };
-//# sourceMappingURL=Window.js.map

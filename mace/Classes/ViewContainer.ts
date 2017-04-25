@@ -11,10 +11,14 @@ abstract class ViewContainer implements IViewContainer {
     IsDefault: boolean = false;
     NumberViewsShown: number;
     Show(route: ViewInstance) {
-        this.NumberViewsShown = 0;
+        var rp = route.Parameters, t = this;
+        if (rp.length == 1 && t.IsDefault) {
+            route.Parameters = new Array();
+        }
+        t.NumberViewsShown = 0;
         ProgressManager.Show();
-        this.Views.forEach(s => {
-            s.AddListener(EventType.Completed, this.ViewLoadCompleted.bind(this));
+        t.Views.forEach(s => {
+            s.AddListener(EventType.Completed, t.ViewLoadCompleted.bind(t));
             s.Show(route)
         });
     }
@@ -37,14 +41,19 @@ abstract class ViewContainer implements IViewContainer {
         }
     }
     Url(route: ViewInstance): string {
-        var rp = route.Parameters;
-        if (rp) {
-            var p = rp[0] == this.UrlBase ?
-                rp.slice(1).join("/") :
-                rp.join("/");
-            return this.UrlBase + (p.length > 0 ? "/" + p : "");
+        var rp = route.Parameters, t = this;
+        if (rp) {            
+            if (rp.length == 1 && t.IsDefault) {
+                rp = new Array();
+            }
+            if (rp.length > 0) {
+                var p = rp[0] == t.UrlBase ?
+                    rp.slice(1).join("/") :
+                    rp.join("/");
+                return t.UrlBase + (p.length > 0 ? "/" + p : "");
+            }
         }
-        return this.UrlBase;
+        return t.UrlBase;
     }
     DocumentTitle(route: ViewInstance): string {
         return this.UrlBase;

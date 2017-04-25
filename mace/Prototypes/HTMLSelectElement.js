@@ -28,4 +28,3 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty,
     }
     return s;
 };
-//# sourceMappingURL=HTMLSelectElement.js.map

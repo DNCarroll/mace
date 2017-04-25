@@ -10,4 +10,3 @@ var MaceTestObject = (function (_super) {
     }
     return MaceTestObject;
 }(DataObject));
-//# sourceMappingURL=MaceTestObject.js.map

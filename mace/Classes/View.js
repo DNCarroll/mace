@@ -225,4 +225,3 @@ var DataLoader = (function () {
     };
     return DataLoader;
 }());
-//# sourceMappingURL=View.js.map

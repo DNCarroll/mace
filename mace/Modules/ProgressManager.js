@@ -16,4 +16,3 @@ var ProgressManager;
     }
     ProgressManager.Hide = Hide;
 })(ProgressManager || (ProgressManager = {}));
-//# sourceMappingURL=ProgressManager.js.map

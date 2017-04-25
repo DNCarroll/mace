@@ -35,4 +35,3 @@ var ObjectState;
     ObjectState[ObjectState["Cleaning"] = 1] = "Cleaning";
     ObjectState[ObjectState["Clean"] = 2] = "Clean";
 })(ObjectState || (ObjectState = {}));
-//# sourceMappingURL=CustomEvent.js.map

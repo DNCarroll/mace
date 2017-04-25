@@ -17,4 +17,3 @@ var BareBonesContainer = (function (_super) {
     return BareBonesContainer;
 }(ViewContainer));
 BareBonesContainer.instance = new BareBonesContainer();
-//# sourceMappingURL=BareBonesContainer.js.map

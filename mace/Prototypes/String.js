@@ -24,4 +24,3 @@ String.prototype.IsStyle = function () {
     }
     return false;
 };
-//# sourceMappingURL=String.js.map

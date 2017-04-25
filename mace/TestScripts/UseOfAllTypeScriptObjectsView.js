@@ -10,4 +10,3 @@ var UseOfAllTypeScriptObjectsView = (function (_super) {
     }
     return UseOfAllTypeScriptObjectsView;
 }(View));
-//# sourceMappingURL=UseOfAllTypeScriptObjectsView.js.map

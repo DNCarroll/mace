@@ -10,4 +10,3 @@ var UseOfAllTypeScriptObjectsBinder = (function (_super) {
     }
     return UseOfAllTypeScriptObjectsBinder;
 }(Binder));
-//# sourceMappingURL=UseOfAllTypeScriptObjectsBinder.js.map

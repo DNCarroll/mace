@@ -17,4 +17,3 @@ var DocumentationContainer = (function (_super) {
     return DocumentationContainer;
 }(SingleViewContainer));
 DocumentationContainer.instance = new DocumentationContainer();
-//# sourceMappingURL=DocumentationViewController.js.map

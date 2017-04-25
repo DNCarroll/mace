@@ -48,4 +48,3 @@ var HistoryContainer;
     HistoryContainer.History = History;
 })(HistoryContainer || (HistoryContainer = {}));
 var HistoryManager = new HistoryContainer.History();
-//# sourceMappingURL=HistoryManager.js.map
