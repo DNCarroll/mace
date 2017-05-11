@@ -28,7 +28,7 @@ namespace $safeprojectname$
             return list;
         }
 
-    [Route]
+        [Route]
         public void Post([FromBody]Order obj) {
 
         }

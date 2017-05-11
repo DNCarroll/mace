@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>mace Add Web View</Name>
+    <Description>Mace.ApiViewViewContainer</Description>
+    <Icon>Mace.ApiViewViewContainer.ico</Icon>
+    <TemplateID>3001b0c5-a000-4c5b-b8a3-e329dde5c1f7</TemplateID>
+    <ProjectType>CSharp</ProjectType>        
+    <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+    <DefaultName>ThisNameValueDoesntMatter</DefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>System</Assembly>
+      </Reference>
+    </References>
+    <ProjectItem ReplaceParameters="true" TargetFileName="Api\$ApiViewControllerName$Controller.cs">Class.cs</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="Views\$ApiViewControllerName$.html">View.html</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="Scripts\$ApiViewControllerName$Container.ts">ViewContainer.ts</ProjectItem>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>maceAddWebView.WindowsForms, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=03c987f43df54d40</Assembly>
+    <FullClassName>maceAddWebView.WindowsForms.Wizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

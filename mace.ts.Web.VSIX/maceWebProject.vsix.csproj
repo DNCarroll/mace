@@ -44,7 +44,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <Content Include="packages\Microsoft.AspNet.WebApi.5.2.3.nupkg">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -76,9 +78,9 @@
     <Content Include="stylesheet.css" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\mace.ts.NetFrameworkWebApp\mace.ts.NetFrameworkWebApp.csproj">
+    <ProjectReference Include="..\mace.ts.NetFrameworkWebApp\maceWebProject.csproj">
       <Project>{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}</Project>
-      <Name>mace.ts.NetFrameworkWebApp</Name>
+      <Name>maceWebProject</Name>
       <VSIXSubPath>ProjectTemplates</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>

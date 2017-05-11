@@ -1,12 +1,12 @@
 ﻿// C# snippets
 [$RootKey$\Languages\CodeExpansions\CSharp\Paths]
-"MaceTS"="$PackageFolder$\Snippets\CSharp\MaceTS"
+"maceSnippets"="$PackageFolder$\Snippets\CSharp\MaceTS"
 
 //TypeScript snippets
 [$RootKey$\Languages\CodeExpansions\TypeScript\Paths]
-"MaceTS"="$PackageFolder$\Snippets\TypeScript\MaceTS"
+"maceSnippets"="$PackageFolder$\Snippets\TypeScript\MaceTS"
 
 
 //HTML snippets
 [$RootKey$\Languages\CodeExpansions\HTML\Paths]
-"MaceTS"="$PackageFolder$\Snippets\HTML\MaceTS"
+"maceSnippets"="$PackageFolder$\Snippets\HTML\MaceTS"

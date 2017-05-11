@@ -7,16 +7,22 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace", "mace\mace.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace.Test", "mace.Test\mace.Test.csproj", "{F281D93B-6CD2-481F-8060-C9F371E6E63F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mace.ts.Extensibility", "Mace.ts.Extensibility\Mace.ts.Extensibility.csproj", "{EA7DA481-3D25-45AB-9726-F59CDD27CB69}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceSnippets", "Mace.ts.Extensibility\maceSnippets.csproj", "{EA7DA481-3D25-45AB-9726-F59CDD27CB69}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{1EA523C0-0B95-4FA7-8F0C-DF4CBE8258C9}"
 	ProjectSection(SolutionItems) = preProject
 		VS Marketplace Extension Description.txt = VS Marketplace Extension Description.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace.ts.NetFrameworkWebApp", "mace.ts.NetFrameworkWebApp\mace.ts.NetFrameworkWebApp.csproj", "{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceWebProject.vsix", "mace.ts.Web.VSIX\maceWebProject.vsix.csproj", "{B958D083-F547-4410-9777-EE6B813984E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace.ts.Web.VSIX", "mace.ts.Web.VSIX\mace.ts.Web.VSIX.csproj", "{B958D083-F547-4410-9777-EE6B813984E3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceAddWebView.vsix", "Mace.ApiViewViewContainer.VSIX\maceAddWebView.vsix.csproj", "{20083C8D-E2AF-4E06-BF21-8E037FCCF992}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceAddWebView", "Mace.ApiViewViewContainer\maceAddWebView.csproj", "{C6B6300F-B639-4FBE-A726-241C5FABBB86}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceAddWebView.WindowsForms", "mace.ApiViewViewContainer.Wizard\maceAddWebView.WindowsForms.csproj", "{2C39FD9E-EDC1-4F1A-8FCD-9E3A539C24DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceWebProject", "mace.ts.NetFrameworkWebApp\maceWebProject.csproj", "{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,14 +42,26 @@ Global
 		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B958D083-F547-4410-9777-EE6B813984E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B958D083-F547-4410-9777-EE6B813984E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B958D083-F547-4410-9777-EE6B813984E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B958D083-F547-4410-9777-EE6B813984E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20083C8D-E2AF-4E06-BF21-8E037FCCF992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20083C8D-E2AF-4E06-BF21-8E037FCCF992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20083C8D-E2AF-4E06-BF21-8E037FCCF992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20083C8D-E2AF-4E06-BF21-8E037FCCF992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6B6300F-B639-4FBE-A726-241C5FABBB86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6B6300F-B639-4FBE-A726-241C5FABBB86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6B6300F-B639-4FBE-A726-241C5FABBB86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6B6300F-B639-4FBE-A726-241C5FABBB86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C39FD9E-EDC1-4F1A-8FCD-9E3A539C24DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C39FD9E-EDC1-4F1A-8FCD-9E3A539C24DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C39FD9E-EDC1-4F1A-8FCD-9E3A539C24DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C39FD9E-EDC1-4F1A-8FCD-9E3A539C24DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

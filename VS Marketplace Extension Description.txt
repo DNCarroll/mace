@@ -4,9 +4,35 @@ Installs C#, TypeScript, and HTML code snippets for mace.ts. mace.ts is a TypeSc
 
 
 some links
+https://visualstudiogallery.msdn.microsoft.com/
+
 
 the new marketplace:
 https://marketplace.visualstudio.com/manage/publishers/nathancarroll
 
 the old extension stuff
 https://social.msdn.microsoft.com/Profile/nathan%20carroll/extensions
+
+
+guidance docs
+https://docs.microsoft.com/en-us/visualstudio/extensibility/creating-custom-project-and-item-templates 
+
+
+
+doing custom parameter replacement in a ItemTemplate or ProjectTemplate
+1. define the custom parameters in the the Item|ProjectTemplate
+2. Create a win form control project
+3. add a wizard class (IWizard implementation) requires couple ref libraries for VS Extensions EnvDTE and Microsoft.VisualStudio.TemplateWizardInterface
+4. add a form with dialog functionality and controls for parameters from 1.
+5. fix up the  public void RunStarted with parameters replacement from the equivalent form controls
+6. sign the win form control project with key.snk (not passworded)
+7. get the key value - open cmd prompt go to key folder location then run  
+	a) "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\sn.exe" -p key.snk outfile.key
+	b) "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\sn.exe" -t outfile.key 
+	c) b) gives key value save that for next step
+8. modify the vstemplate in the Item|ProjectTemplate adding pointer to the assembly for #7
+	eg   <WizardExtension>
+			<Assembly>{AssemblyName}, Version=1.0.0.0, Culture=Neutral, PublicKeyToken={keyvaluegoeshere}</Assembly>
+			<FullClassName>{namespace}.{wizardClass}</FullClassName>
+		</WizardExtension>
+9. add asset to the vsix manifest of the vsix extension project to the win form control project

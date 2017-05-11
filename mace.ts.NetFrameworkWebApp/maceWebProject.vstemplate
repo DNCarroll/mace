@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">  
   <TemplateData>
-    <Name>maceWebProject</Name>
+    <Name>mace WebProject</Name>
     <Description>mace.ts.NetFrameworkWebApp</Description>
     <Icon>maceWebProject.ico</Icon>
     <ProjectType>CSharp</ProjectType>
@@ -9,7 +9,7 @@
     <SortOrder>1000</SortOrder>
     <TemplateID>209e2d69-4bef-486e-b615-89f00e8e5f35</TemplateID>
     <CreateNewFolder>true</CreateNewFolder>
-    <DefaultName>mace.ts WebProject</DefaultName>
+    <DefaultName>maceWebProject</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>
     <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
   </TemplateData>
@@ -19,7 +19,7 @@
       <ProjectItem ReplaceParameters="false" OpenInEditor="true">default.html</ProjectItem>      
       <ProjectItem ReplaceParameters="true" OpenInEditor="true">Global.asax</ProjectItem>
       <ProjectItem ReplaceParameters="true" OpenInEditor="false">Global.asax.cs</ProjectItem>
-      <!--<ProjectItem ReplaceParameters="false" OpenInEditor="true">packages.config</ProjectItem>-->
+      
       <ProjectItem ReplaceParameters="true" OpenInEditor="true">RouteHandler.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true" OpenInEditor="true">web.config</ProjectItem>
       <ProjectItem ReplaceParameters="true" OpenInEditor="false">web.Debug.config</ProjectItem>
