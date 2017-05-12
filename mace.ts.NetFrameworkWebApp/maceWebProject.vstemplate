@@ -2,7 +2,7 @@
 <VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">  
   <TemplateData>
     <Name>mace WebProject</Name>
-    <Description>mace.ts.NetFrameworkWebApp</Description>
+    <Description>Base project template for creating mace.ts web site.  Includes all references needed and examples for Api, View, and Script.</Description>
     <Icon>maceWebProject.ico</Icon>
     <ProjectType>CSharp</ProjectType>
     <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>

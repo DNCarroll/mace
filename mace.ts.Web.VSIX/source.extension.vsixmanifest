@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="maceWebProject" Version="17.05.08.18" Language="en-US" Publisher="Nathan Carroll" />
+    <Identity Id="maceWebProject" Version="17.05.12.05" Language="en-US" Publisher="Nathan Carroll" />
     <DisplayName>mace WebProject</DisplayName>
     <Description xml:space="preserve">Base project template for creating mace.ts web site.  Includes all references needed and examples for Api, View, and Script.</Description>
   </Metadata>
