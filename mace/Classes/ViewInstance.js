@@ -5,3 +5,4 @@ var ViewInstance = (function () {
     }
     return ViewInstance;
 }());
+//# sourceMappingURL=ViewInstance.js.map

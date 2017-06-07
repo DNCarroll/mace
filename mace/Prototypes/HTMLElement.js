@@ -110,3 +110,4 @@ HTMLElement.prototype.Ancestor = function (func) {
     }
     return p;
 };
+//# sourceMappingURL=HTMLElement.js.map

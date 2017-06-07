@@ -10,7 +10,7 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <TypeScriptToolsVersion>2.1</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.3</TypeScriptToolsVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -52,6 +52,7 @@
     <Content Include="Styles\UnorderList.css" />
     <Content Include="Views\BareBones.html" />
     <Content Include="Views\Documentation.html" />
+    <Content Include="Views\NotAllowed.html" />
     <Content Include="Views\UseOfAllTypeScriptObjects.html" />
     <Content Include="web.config" />
   </ItemGroup>
@@ -79,6 +80,7 @@
     <TypeScriptCompile Include="TestScripts\DocumentationViewController.ts" />
     <TypeScriptCompile Include="TestScripts\MaceTestObject.ts" />
     <TypeScriptCompile Include="TestScripts\Main.ts" />
+    <TypeScriptCompile Include="TestScripts\NotAllowed.ts" />
     <TypeScriptCompile Include="TestScripts\UseOfAllTypeScriptObjectsBinder.ts" />
     <TypeScriptCompile Include="TestScripts\UseOfAllTypeScriptObjectsContainer.ts" />
     <TypeScriptCompile Include="TestScripts\UseOfAllTypeScriptObjectsView.ts" />

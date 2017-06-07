@@ -91,7 +91,7 @@ class Binder implements IBinder {
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
             var a = new Ajax(t.WithProgress, t.DisableElement),
                 url = t.GetApiForAjax(viewInstance.Parameters);
-            a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
+            a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
             a.Get(url);
         }
         else {
@@ -99,28 +99,32 @@ class Binder implements IBinder {
         }
     }
     OnAjaxComplete(arg: CustomEventArg<Ajax>) {
-        var t = this;
-        if (arg.EventType === EventType.Completed) {
-            var d = arg.Sender.GetRequestData();
-            if (d) {
-                if (Is.Array(d)) {
-                    (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
-                    var tm = t.MoreElement, tms = "none";
-                    if (tm) {
-                        tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : tms;
-                        tm.style.display = tms;
+        var t = this, x = arg.Sender.XHttp, s = x.status;
+        
+        if (!t.isRedirecting(x)) {
+            if (s === 200) {
+                var d = arg.Sender.GetRequestData();
+                if (d) {
+                    if (Is.Array(d)) {
+                        (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
+                        var tm = t.MoreElement, tms = "none";
+                        if (tm) {
+                            tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : tms;
+                            tm.style.display = tms;
+                        }
                     }
+                    else if (d) {
+                        t.IsFormBinding = true;
+                        t.Bind(t.NewObject(d));
+                    }
+                    t.Dispatch(EventType.Completed);
                 }
-                else if (d) {
-                    t.IsFormBinding = true;
-                    t.Bind(t.NewObject(d));
-                }
-                t.Dispatch(EventType.Completed);
+            }
+            else {
+                alert("Failed to retrieve data from web site.");
             }
         }
     }
-    //delete row return a certain type of response?
-    //200, 202, 204
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
         var o = sender.DataObject, t = this;
         if (!o) {
@@ -140,8 +144,15 @@ class Binder implements IBinder {
                 },
                 afc = (a: CustomEventArg<Ajax>) => {
                     var err = () => {
-                        if (a.EventType === EventType.Error) {
-                            throw "Failed to delete row.";
+                        //needs testing
+                        var x = a.Sender.XHttp, s = x.status;
+                        if (!t.isRedirecting(x)) {
+                            if (s === 500) {
+                                alert("Server error contact web site administrators.");
+                            }
+                            else if (s !== 204) {
+                                alert("Failed to delete row.");
+                            }
                         }
                     };
                     ajaxDeleteFunction ? ajaxDeleteFunction(a) : err();
@@ -205,16 +216,31 @@ class Binder implements IBinder {
         var t = this;
         if (t.AutomaticUpdate && t.Api) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
-            a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             a.Put(t.Api(), o.ServerObject);
             o.ObjectState = ObjectState.Clean;
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
-        var t = this,
+        var t = this, x = a.Sender.XHttp,
             i = <any>a.Sender.GetRequestData(),
             o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.isPKMatch(d, i));
-        o ? t.SetServerObjectValue(o, i) : null;
+        if (!t.isRedirecting(x)) {
+            if (x.status === 200) {
+                o ? t.SetServerObjectValue(o, i) : null;
+            }
+            else {
+                alert("Failed to update record.");
+            }
+        }
+    }
+    private isRedirecting(x: XMLHttpRequest) {        
+        var s = x.status, r = x.getResponseHeader('Location');
+        if ((s === 401 || s === 407) && r) {
+            window.location.href = r;
+            return true;
+        }
+        return false;
     }
     SetServerObjectValue(d: IObjectState, i: any) {
         for (var p in i) {
@@ -264,14 +290,17 @@ class Binder implements IBinder {
         var nba = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(b => {
             if (!nba.First(v => v === b.Attribute)) {
-                let a = t.getAttribute(b.Attribute);
+                let a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
-                let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
-                if (ea) {
-                    let fun = (evt) => {
-                        d.OnElementChanged.bind(d)(ele[ea], b.Property)
-                    };
-                    ele.addEventListener("change", fun);
+                if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
+                    //tn == "INPUT" || tn == "SELECT" || tn == "TEXTAREA") {
+                    let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute;
+                    if (ea) {
+                        let fun = (evt) => {
+                            d.OnElementChanged.bind(d)(ele[ea], b.Property)
+                        };
+                        ele.addEventListener("change", fun);
+                    }
                 }
             }
         });

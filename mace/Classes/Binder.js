@@ -1,3 +1,4 @@
+//disable the active context or readonly it while the new stuff is coming in?
 var Binder = (function () {
     function Binder(primaryKeys, api, TypeObject, staticProperties) {
         if (primaryKeys === void 0) { primaryKeys = null; }
@@ -81,7 +82,7 @@ var Binder = (function () {
         var t = this;
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
             var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(viewInstance.Parameters);
-            a.AddListener(EventType.Completed, t.OnAjaxComplete.bind(this));
+            a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
             a.Get(url);
         }
         else {
@@ -89,23 +90,28 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnAjaxComplete = function (arg) {
-        var t = this;
-        if (arg.EventType === EventType.Completed) {
-            var d = arg.Sender.GetRequestData();
-            if (d) {
-                if (Is.Array(d)) {
-                    d.forEach(function (d) { return t.Add(t.NewObject(d)); });
-                    var tm = t.MoreElement, tms = "none";
-                    if (tm) {
-                        tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : tms;
-                        tm.style.display = tms;
+        var t = this, x = arg.Sender.XHttp, s = x.status;
+        if (!t.isRedirecting(x)) {
+            if (s === 200) {
+                var d = arg.Sender.GetRequestData();
+                if (d) {
+                    if (Is.Array(d)) {
+                        d.forEach(function (d) { return t.Add(t.NewObject(d)); });
+                        var tm = t.MoreElement, tms = "none";
+                        if (tm) {
+                            tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : tms;
+                            tm.style.display = tms;
+                        }
                     }
+                    else if (d) {
+                        t.IsFormBinding = true;
+                        t.Bind(t.NewObject(d));
+                    }
+                    t.Dispatch(EventType.Completed);
                 }
-                else if (d) {
-                    t.IsFormBinding = true;
-                    t.Bind(t.NewObject(d));
-                }
-                t.Dispatch(EventType.Completed);
+            }
+            else {
+                alert("Failed to retrieve data from web site.");
             }
         }
     };
@@ -127,8 +133,15 @@ var Binder = (function () {
                 td.forEach(function (o) { return o.InstigatePropertyChangedListeners("AlternatingRowClass", false); });
             }, afc = function (a) {
                 var err = function () {
-                    if (a.EventType === EventType.Error) {
-                        throw "Failed to delete row.";
+                    //needs testing
+                    var x = a.Sender.XHttp, s = x.status;
+                    if (!t.isRedirecting(x)) {
+                        if (s === 500) {
+                            alert("Server error contact web site administrators.");
+                        }
+                        else if (s !== 204) {
+                            alert("Failed to delete row.");
+                        }
                     }
                 };
                 ajaxDeleteFunction ? ajaxDeleteFunction(a) : err();
@@ -185,14 +198,29 @@ var Binder = (function () {
         var t = this;
         if (t.AutomaticUpdate && t.Api) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
-            a.AddListener(EventType.Completed, t.OnUpdateComplete.bind(this));
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             a.Put(t.Api(), o.ServerObject);
             o.ObjectState = ObjectState.Clean;
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
-        var t = this, i = a.Sender.GetRequestData(), o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.isPKMatch(d, i); });
-        o ? t.SetServerObjectValue(o, i) : null;
+        var t = this, x = a.Sender.XHttp, i = a.Sender.GetRequestData(), o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.isPKMatch(d, i); });
+        if (!t.isRedirecting(x)) {
+            if (x.status === 200) {
+                o ? t.SetServerObjectValue(o, i) : null;
+            }
+            else {
+                alert("Failed to update record.");
+            }
+        }
+    };
+    Binder.prototype.isRedirecting = function (x) {
+        var s = x.status, r = x.getResponseHeader('Location');
+        if ((s === 401 || s === 407) && r) {
+            window.location.href = r;
+            return true;
+        }
+        return false;
     };
     Binder.prototype.SetServerObjectValue = function (d, i) {
         for (var p in i) {
@@ -226,6 +254,7 @@ var Binder = (function () {
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
+        //is there a more element        
     };
     Binder.prototype.setListeners = function (ele, d) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -239,14 +268,17 @@ var Binder = (function () {
         var nba = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(function (b) {
             if (!nba.First(function (v) { return v === b.Attribute; })) {
-                var a = t.getAttribute(b.Attribute);
+                var a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
-                var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute === "value" ? "value" : null;
-                if (ea_1) {
-                    var fun_1 = function (evt) {
-                        d.OnElementChanged.bind(d)(ele[ea_1], b.Property);
-                    };
-                    ele.addEventListener("change", fun_1);
+                if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
+                    //tn == "INPUT" || tn == "SELECT" || tn == "TEXTAREA") {
+                    var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute;
+                    if (ea_1) {
+                        var fun_1 = function (evt) {
+                            d.OnElementChanged.bind(d)(ele[ea_1], b.Property);
+                        };
+                        ele.addEventListener("change", fun_1);
+                    }
                 }
             }
         });
@@ -346,3 +378,4 @@ var Binder = (function () {
     };
     return Binder;
 }());
+//# sourceMappingURL=Binder.js.map

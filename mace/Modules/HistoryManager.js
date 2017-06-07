@@ -27,6 +27,7 @@ var HistoryContainer;
                 t.ManageRouteInfo(i);
             }
             else {
+                //do nothing?
             }
         };
         History.prototype.ManageRouteInfo = function (viewInstance) {
@@ -48,3 +49,4 @@ var HistoryContainer;
     HistoryContainer.History = History;
 })(HistoryContainer || (HistoryContainer = {}));
 var HistoryManager = new HistoryContainer.History();
+//# sourceMappingURL=HistoryManager.js.map

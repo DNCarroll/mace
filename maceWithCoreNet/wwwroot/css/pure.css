@@ -1,0 +1,128 @@
+﻿.home-menu {
+    padding: 0.5em;
+    text-align: left;
+    box-shadow: 0 1px 1px rgba(0,0,0, 0.10);
+}
+
+.home-menu {
+    background: #2d3e50;
+}
+
+    .home-menu .pure-menu-heading {
+        color: white;
+        font-weight: 400;
+        font-size: 120%;
+    }
+
+    .home-menu .pure-menu-selected a {
+        color: white;
+    }
+
+    .home-menu a {
+        color: #6FBEF3;
+    }
+
+    .home-menu li a:hover,
+    .home-menu li a:focus {
+        background: none;
+        border: none;
+        color: #AECFE5;
+    }
+
+
+.menu-icon {
+    user-select: none;
+    height: 2em;
+    float: right;
+    cursor: pointer;
+    margin-top: .75em;
+    margin-right: .5em;
+}
+
+.navicon {
+    background: #fff;
+    display: block;
+    height: 2px;
+    position: relative;
+    top: .5em;
+    transition: background .2s ease-out;
+    width: 2em;
+}
+
+    .navicon:before,
+    .navicon:after {
+        background: #fff;
+        content: '';
+        display: block;
+        height: 100%;
+        position: absolute;
+        transition: all .2s ease-out;
+        width: 100%;
+    }
+
+    .navicon:before {
+        top: 8px;
+    }
+
+    .navicon:after {
+        top: -8px;
+    }
+
+.menu-btn {
+    opacity: 0;
+}
+
+    .menu-btn:checked ~ .menu-icon .navicon {
+        background: transparent;
+    }
+
+        .menu-btn:checked ~ .menu-icon .navicon:before {
+            transform: rotate(-45deg);
+        }
+
+        .menu-btn:checked ~ .menu-icon .navicon:after {
+            transform: rotate(45deg);
+        }
+
+    .menu-btn:checked ~ .menu-icon:not(.steps) .navicon:before,
+    .menu-btn:checked ~ .menu-icon:not(.steps) .navicon:after {
+        top: 0;
+    }
+
+@media screen and (max-width:47.999em) {
+    .menu-icon {
+        display: inline-block;
+    }
+
+    .pure-menu-list {
+        display: block;
+        max-height: 0px;
+        overflow: hidden;
+        transition: all .25s ease-in-out;
+    }
+
+    .menu-btn:checked ~ .pure-menu-list {
+        max-height: 9000px;
+        transition: all 1s ease-in-out;
+    }
+
+        .menu-btn:checked ~ .pure-menu-list li, .menu-btn:not(checked) ~ .pure-menu-list li {
+            padding-left: 1em;
+            display: block;
+            text-align: left;
+        }
+}
+
+@media screen and (min-width:48em) {
+    .menu-icon {
+        display: none;
+    }
+
+    .pure-menu-list, .pure-menu-list li {
+        display: inline-block;
+    }
+
+    .home-menu ul {
+        float: right;
+    }
+}

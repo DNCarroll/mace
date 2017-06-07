@@ -47,3 +47,4 @@ var Reflection;
     Reflection.NewObject = NewObject;
 })(Reflection || (Reflection = {}));
 Initializer.Execute();
+//# sourceMappingURL=Initializer.js.map

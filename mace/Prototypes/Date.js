@@ -15,3 +15,4 @@ Date.prototype.ToyyyymmddHHMMss = function () {
     var d = f(this.getDate()), m = f(this.getMonth() + 1), y = this.getFullYear(), h = f(this.getHours()), M = f(this.getMinutes()), s = f(this.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };
+//# sourceMappingURL=Date.js.map

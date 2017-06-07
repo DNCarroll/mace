@@ -1,0 +1,117 @@
+﻿#header {
+    background: #2d3e50;  
+    position:fixed;
+    top:0px;
+    left:0px;
+    width:100%;
+    z-index:999;
+}
+#site {
+    color:#fff;
+    font-size:150%;
+    font-weight:400;
+    vertical-align:middle;    
+    text-transform:uppercase;
+    text-decoration:none;
+    padding-left:1rem;
+}
+#menu-icon {
+    user-select: none;
+    height: 1.75rem;
+    float: right;
+    cursor: pointer;
+    margin-top: 1rem;
+    margin-right: 1rem;
+}
+#menu-icon span {
+        background: #fff;
+        display: block;
+        height: .22rem;
+        position: relative;
+        top: .5rem;
+        transition: background .2s ease-out;
+        width: 2rem;
+        line-height: .8rem;
+}
+
+#menu-icon span:before,
+#menu-icon span:after {
+    background: #fff;
+    content: '';
+    display: block;
+    height: 100%;
+    position: absolute;
+    transition: all .2s ease-out;
+    width: 100%;
+}
+
+#menu-icon span:before {
+    top: .8rem;
+}
+
+#menu-icon span:after {
+    top: -.8rem;
+}
+
+#menu-toggle {    
+    opacity:0;    
+}
+
+#menu-toggle:checked ~ #menu-icon span {
+    background: transparent;
+}
+
+#menu-toggle:checked ~ #menu-icon span:before {
+        transform: rotate(-45deg);
+}
+
+#menu-toggle:checked ~ #menu-icon span:after {
+        transform: rotate(45deg);
+}
+
+#menu-toggle:checked ~ #menu-icon:not(.steps) span:before,
+#menu-toggle:checked ~ #menu-icon:not(.steps) span:after {
+    top: 0;
+}
+
+@media screen and (max-width:47.999rem) {
+    #menu-icon {
+        display: inline-block;
+    }
+    #menu-items {
+        display: block;
+        margin-bottom: 0px;
+        max-height: 0px;
+        overflow: hidden;
+        transition: all .25s ease-in-out;
+    }
+    #menu-toggle:checked ~ #menu-items {
+        max-height: 9000px;
+        transition: all 1s ease-in-out;        
+    }
+        #menu-toggle:checked ~ #menu-items li:last-child, #menu-toggle:not(checked) ~ #menu-items li:last-child {
+            margin-bottom: 1rem;
+        }
+    #menu-toggle:checked ~ #menu-items li, #menu-toggle:not(checked) ~ #menu-items li {
+        padding-left: 2rem;
+        display: block;
+        text-align: left;
+        margin-bottom: .25rem;
+    }
+    
+}
+
+@media screen and (min-width:48rem) {
+    #menu-icon {
+        display: none;
+    }
+    #menu-items {
+        float:right;
+        margin-top:.5rem;           
+    }
+    #menu-items, #menu-items li {
+        display: inline-block;        
+        margin-bottom: 0rem;
+        margin-right:1rem;
+    }    
+}

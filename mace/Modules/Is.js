@@ -26,3 +26,4 @@ var Has;
     }
     Has.Properties = Properties;
 })(Has || (Has = {}));
+//# sourceMappingURL=Is.js.map
