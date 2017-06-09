@@ -1,23 +1,35 @@
-﻿<div data-binder="Binder(['Id'], '/Api/Orders')">
-    <div class="row hidden-xs">
-        <div class="col-sm-4 hidden-xs ">OrderId</div>
-        <div class="col-sm-4 hidden-xs">CustomerId</div>
-        <div class="col-sm-4 hidden-xs">Amount</div>
-    </div>
-    <div class="row" data-template="row">
-        <div data-class="AlternatingRowClass">
-            <div class="col-xs-6 hidden-sm hidden-md hidden-lg">Order Id</div>
-            <div data-innerhtml="Id" class="col-sm-4 col-xs-6">
-            </div>
-            <div class="col-xs-6 hidden-sm hidden-md hidden-lg">CustomerId</div>
-            <div data-innerhtml="CustomerId"  class="col-sm-4 col-xs-6">
-            </div>
-            <div class="col-xs-6 hidden-sm hidden-md hidden-lg">Amount</div>
-            <input data-value="OrderAmount"  class="col-sm-4 col-xs-6"/>            
-        </div>
-    </div>
-    <div class="row">
-        <a class="col-sm-offset-11 col-sm-1"
-           href="javascript:" data-morekeys="Id" data-morethreshold="25">more...</a>
+﻿<div class="col-lg-10 col-lg-offset-1">
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover table-condensed" data-binder="Binder(['Id'], '/Api/Orders')">
+            <thead>
+                <tr>
+                    <td>
+                        Order Id
+                    </td>
+                    <td>
+                        CustomerId
+                    </td>
+                    <td>
+                        Amount
+                    </td>
+                </tr>
+            </thead>
+            <tr data-template="row">
+                <td data-innerhtml="Id"></td>
+                <td data-innerhtml="CustomerId"></td>
+                <td>
+                    <input data-value="OrderAmount" />
+                </td>
+            </tr>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <a href="javascript:" data-morekeys="Id" data-morethreshold="25">more...</a>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
 </div>

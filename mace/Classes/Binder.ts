@@ -34,7 +34,7 @@ class Binder implements IBinder {
     DataObjects: Array<IObjectState> = new Array<IObjectState>();
     AutomaticUpdate: boolean = true;
     AutomaticSelect: boolean = true;
-    DataRowTemplates = new Array<string>();
+    DataRowTemplates = new Array<HTMLElement>();
     DataRowFooter: HTMLElement;
     IsFormBinding: boolean = false;
     MoreKeys: string[];
@@ -169,11 +169,13 @@ class Binder implements IBinder {
         var t = this;
         t.prepTemplates();
         t.DataRowTemplates.forEach(d => {
-            let ne = d.CreateElementFromHtml(),
+            //casting here may be an issue
+            let ne = <HTMLElement>d.cloneNode(true),
                 be = ne.Get(e => e.HasDataSet()),
-                drf = t.DataRowFooter;
+                drf = t.DataRowFooter,
+                pe = t.Element.tagName == "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
             be.Add(ne);
-            drf ? t.Element.insertBefore(ne, drf) : t.Element.appendChild(ne);
+            drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
             t.DataObjects.Add(obj);
             obj.Container = t.DataObjects;
             t.Bind(obj, be);
@@ -182,7 +184,7 @@ class Binder implements IBinder {
     private prepTemplates() {
         var t = this;
         if (t.DataRowTemplates.length == 0) {
-            var e = t.Element.children,
+            var e = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0].children : t.Element.children,
                 r = new Array<HTMLElement>(),
                 li = 0;
             for (var i = 0; i < e.length; i++) {
@@ -195,7 +197,7 @@ class Binder implements IBinder {
                 t.DataRowFooter = <HTMLElement>e[e.length - 1];
             }
             r.forEach(r => {
-                t.DataRowTemplates.Add(r.outerHTML);
+                t.DataRowTemplates.Add(r);
                 r.parentElement.removeChild(r);
             });
             var dmk = "data-morekeys",

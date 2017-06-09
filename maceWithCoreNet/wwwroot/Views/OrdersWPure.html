@@ -1,0 +1,25 @@
+﻿<ul data-binder="Binder(['Id'], '/Api/Orders')" class="smallTable">
+    <li>
+        <div>OrderId</div>
+        <div>CustomerId</div>
+        <div>Amount</div>
+        <div></div>
+    </li>
+    <li data-template="row" data-class="AlternatingRowClass">
+        <div data-innerhtml="Id">
+        </div>
+        <div data-innerhtml="CustomerId">
+        </div>
+        <div>
+            <input data-value="OrderAmount" />
+        </div>
+    </li>
+    <li>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div class="more">
+            <a href="javascript:" data-morekeys="Id" data-morethreshold="25">more...</a>
+        </div>
+    </li>
+</ul>

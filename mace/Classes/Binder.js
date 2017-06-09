@@ -157,9 +157,10 @@ var Binder = (function () {
         var t = this;
         t.prepTemplates();
         t.DataRowTemplates.forEach(function (d) {
-            var ne = d.CreateElementFromHtml(), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter;
+            //casting here may be an issue
+            var ne = d.cloneNode(true), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter, pe = t.Element.tagName == "TABLE" ? t.Element.tBodies[0] : t.Element;
             be.Add(ne);
-            drf ? t.Element.insertBefore(ne, drf) : t.Element.appendChild(ne);
+            drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
             t.DataObjects.Add(obj);
             obj.Container = t.DataObjects;
             t.Bind(obj, be);
@@ -168,7 +169,7 @@ var Binder = (function () {
     Binder.prototype.prepTemplates = function () {
         var t = this;
         if (t.DataRowTemplates.length == 0) {
-            var e = t.Element.children, r = new Array(), li = 0;
+            var e = t.Element.tagName === "TABLE" ? t.Element.tBodies[0].children : t.Element.children, r = new Array(), li = 0;
             for (var i = 0; i < e.length; i++) {
                 if (e[i].getAttribute("data-template") != null) {
                     r.Add(e[i]);
@@ -179,7 +180,7 @@ var Binder = (function () {
                 t.DataRowFooter = e[e.length - 1];
             }
             r.forEach(function (r) {
-                t.DataRowTemplates.Add(r.outerHTML);
+                t.DataRowTemplates.Add(r);
                 r.parentElement.removeChild(r);
             });
             var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(function (m) { return m.HasDataSet() && m.getAttribute(dmk) != null &&

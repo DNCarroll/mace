@@ -19,10 +19,37 @@ var OrdersContainer = (function (_super) {
             return OrdersContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.IsDefault = true;
         return _this;
     }
     return OrdersContainer;
 }(SingleViewContainer));
 OrdersContainer.instance = new OrdersContainer();
+var LandingContainer = (function (_super) {
+    __extends(LandingContainer, _super);
+    function LandingContainer() {
+        var _this = this;
+        if (LandingContainer.instance) {
+            return LandingContainer.instance;
+        }
+        _this = _super.call(this) || this;
+        _this.IsDefault = true;
+        return _this;
+    }
+    return LandingContainer;
+}(SingleViewContainer));
+LandingContainer.instance = new LandingContainer();
+var OrderContainer = (function (_super) {
+    __extends(OrderContainer, _super);
+    function OrderContainer() {
+        var _this = this;
+        if (OrderContainer.instance) {
+            return OrderContainer.instance;
+        }
+        _this = _super.call(this) || this;
+        _this.IsDefault = false;
+        return _this;
+    }
+    return OrderContainer;
+}(SingleViewContainer));
+OrderContainer.instance = new OrderContainer();
 //# sourceMappingURL=Containers.js.map

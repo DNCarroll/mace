@@ -1,0 +1,49 @@
+﻿<div data-binder="Binder(['Id'], '/Api/Orders')" class="table">
+    <div class="row hidden-xs">
+        <div class="col-sm-4 hidden-xs ">OrderId</div>
+        <div class="col-sm-4 hidden-xs">CustomerId</div>
+        <div class="col-sm-4 hidden-xs">Amount</div>
+    </div>
+    <div class="row" data-template="row">
+        <div data-class="" class="table-striped">
+            <div class="col-xs-6 hidden-sm hidden-md hidden-lg">Order Id</div>
+            <div data-innerhtml="Id" class="col-sm-4 col-xs-6">
+            </div>
+            <div class="col-xs-6 hidden-sm hidden-md hidden-lg">CustomerId</div>
+            <div data-innerhtml="CustomerId"  class="col-sm-4 col-xs-6">
+            </div>
+            <div class="col-xs-6 hidden-sm hidden-md hidden-lg">Amount</div>
+            <input data-value="OrderAmount"  class="col-sm-4 col-xs-6"/>            
+        </div>
+    </div>
+    <div class="row">
+        <a class="col-sm-offset-11 col-sm-1"
+           href="javascript:" data-morekeys="Id" data-morethreshold="25">more...</a>
+    </div>
+</div>
+<!--
+    this doesnt work because table is expected to get the new row by Add row
+    also doesnt account for delete of row not sure it works for the 
+    <table class="table" data-binder="Binder(['Id'], '/Api/Orders')">
+    <thead>
+        <tr>
+            <td>
+                Order Id
+            </td>
+            <td>
+                CustomerId
+            </td>
+            <td>
+                Amount
+            </td>
+        </tr>
+    </thead>
+    <tr data-template="row">
+        <td data-innerhtml="Id">
+        </td>
+        <td data-innerhtml="CustomerId"></td>
+        <td>
+            <input data-value="OrderAmount"/> 
+        </td>
+    </tr>
+</table>-->

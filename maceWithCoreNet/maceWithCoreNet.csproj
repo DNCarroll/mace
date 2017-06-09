@@ -10,12 +10,26 @@
     <Content Include="wwwroot\css\menu.css" />
     <Content Include="wwwroot\css\normalize.css" />
     <Content Include="wwwroot\css\pure.css" />
+    <Content Include="wwwroot\css\site.css" />
     <Content Include="wwwroot\css\skeleton.css" />
     <Content Include="wwwroot\default.html" />
     <Content Include="wwwroot\js\jquery-3.2.1.min.js" />
     <Content Include="wwwroot\Scripts\Containers.ts" />
     <Content Include="wwwroot\Scripts\mace.ts" />
+    <Content Include="wwwroot\StyleTesting\BootstrapWoJQuery.html">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\StyleTesting\BootstrapWJQuery.html">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\StyleTesting\PureIODefault.html">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\Views\Landing.html" />
+    <Content Include="wwwroot\Views\Order.html" />
     <Content Include="wwwroot\Views\Orders.html" />
+    <Content Include="wwwroot\Views\OrdersWBoostrap.html" />
+    <Content Include="wwwroot\Views\OrdersWPure.html" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="mace.ts" Version="17.4.25.10" />
