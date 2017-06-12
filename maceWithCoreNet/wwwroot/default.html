@@ -22,13 +22,17 @@
         <header class="container">
             <div id="menu" class="navbar navbar-default navbar-fixed-top">
                 <div class="navbar-header">                    
-                    <button class="btn btn-success btn-sm navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"><span class="glyphicon glyphicon-chevron-down"></span></button>
+                    <button class="btn btn-success btn-sm navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"><span class="glyphicon glyphicon-chevron-down"></span></button>                    
+                    <img id="progress" src="/images/progress.gif" style="display:none; float:right;" />
                     <a id="site" href=""><h3>mace.ts</h3></a>
+                    
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul id="menu-items" class="nav navbar-nav navbar-right">                        
-                        <li><a href="/Order/1" class="nav" style="margin-right:2em;">Order 1</a></li>
-                        <li><a href="javascript" onclick="Window.Show(OrdersContainer)" class="nav" style="margin-right:2em;">Orders</a></li>
+                        <li><a href="javascript:" 
+                               onclick="window.Show(OrderContainer, 1)"
+                               class="nav" style="margin-right:2em;">Order 1</a></li>
+                        <li><a href="javascript:" onclick="window.Show(OrdersContainer)" class="nav" style="margin-right:2em;">Orders</a></li>
                     </ul>
                 </div>
             </div>
@@ -36,9 +40,8 @@
         <div class="container">
             <div class="col-md-8
                  col-sm-10
-                 col-xs-12">
-                <div id="progress" style="display:none;">something is going on </div><br />
-                <div id="content">Didnt get what it was suppose to</div>                
+                 col-xs-12">                
+                <div id="content">Didnt get what it was suppose to</div>     
             </div>
             <div class="col-md-4
                  col-sm-2

@@ -12,6 +12,7 @@
     <Content Include="wwwroot\css\pure.css" />
     <Content Include="wwwroot\css\site.css" />
     <Content Include="wwwroot\css\skeleton.css" />
+    <Content Include="wwwroot\css\testmenu.css" />
     <Content Include="wwwroot\default.html" />
     <Content Include="wwwroot\js\jquery-3.2.1.min.js" />
     <Content Include="wwwroot\Scripts\Containers.ts" />
@@ -25,6 +26,7 @@
     <Content Include="wwwroot\StyleTesting\PureIODefault.html">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+    <Content Include="wwwroot\testmenu.html" />
     <Content Include="wwwroot\Views\Landing.html" />
     <Content Include="wwwroot\Views\Order.html" />
     <Content Include="wwwroot\Views\Orders.html" />
@@ -44,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\fonts\" />
+    <Folder Include="wwwroot\images\" />
   </ItemGroup>
 
 </Project>

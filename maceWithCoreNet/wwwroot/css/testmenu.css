@@ -1,0 +1,132 @@
+﻿html{
+    overflow-y:scroll;
+}
+body {
+    margin: 0;
+}
+.navbar-header {
+    height: 3em;
+}
+.navbar-header a {
+    display: block;
+    height: 3em;
+    font-size:1.25em;
+    text-decoration:none;
+    width:10em;
+}
+.navbar-header a span {
+    position: relative;
+    top: .75em;
+    left: .75em;
+}
+#progress {
+    display:none;
+    width: 2em;
+    position: fixed;
+    top: .75em;
+    right: 0px;
+}
+.navbar-nav{
+    margin:0px;
+}
+.menu-icon {    
+    height: 2em;
+    cursor: pointer;    
+    top: 1.25em;    
+    right: 1.5em;
+    display:none;
+    opacity:0;
+}
+
+.navicon {
+    background: #fff;
+    display: block;
+    height: 2px;
+    position: relative;
+    top: .5em;
+    transition: background .2s ease-out;
+    width: 1.75em;
+}
+
+.navicon:before,
+.navicon:after {
+    background: #fff;
+    content: '';
+    display: block;
+    height: 100%;
+    position: absolute;
+    transition: all .2s ease-out;
+    width: 100%;
+}
+
+.navicon:before {
+    top: 8px;
+}
+
+.navicon:after {
+    top: -8px;
+}
+.menu-btn {
+    opacity: 0;
+    position:fixed;
+    top:-20px;
+}
+.menu-btn:checked ~ .menu-icon .navicon {
+    background: transparent;
+}
+
+.menu-btn:checked ~ .menu-icon .navicon:before {
+    transform: rotate(-45deg);
+}
+
+.menu-btn:checked ~ .menu-icon .navicon:after {
+    transform: rotate(45deg);
+}
+
+.menu-btn:checked ~ .menu-icon:not(.steps) .navicon:before,
+.menu-btn:checked ~ .menu-icon:not(.steps) .navicon:after {
+    top: 0;
+}
+
+
+@media screen and (min-width:48em) {
+    .navbar-nav{
+        position:fixed;
+        right:3.5em;
+    }
+    .navbar-nav li{
+        display:inline-block;
+    }
+    .menu-icon {
+        display: none;
+        opacity: 0;
+    } 
+}
+@media screen and (max-width:47.999em) {
+    .menu-icon {
+        display:inline-block;
+        position: fixed;
+        opacity: 100;
+    }
+
+    .navbar-nav {
+        display: block;
+        max-height: 0px;
+        overflow: hidden;
+        transition: all .25s ease-in-out;
+    }
+
+    .menu-btn:checked ~ .navbar-nav {
+        max-height: 9000px;
+        transition: all 1s ease-in-out;
+    }
+
+    .menu-btn:checked ~ .navbar-nav li, .menu-btn:not(checked) ~ .navbar-nav li {
+        padding-left: 1em;
+        display: block;
+        text-align: left;
+    }
+    #progress {
+        right:4em;
+    }
+}

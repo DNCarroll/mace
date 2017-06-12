@@ -8,9 +8,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-Initializer.WindowLoaded = function (e) {
-    DataObject.DefaultAlternatingRowClass = "formattedTableHighlight";
-};
 var OrdersContainer = (function (_super) {
     __extends(OrdersContainer, _super);
     function OrdersContainer() {

@@ -1,2 +1,27 @@
-﻿An Order
-should be expecting a parameter for this one from the url
+﻿<div class="col-md-10" data-binder="Binder(['Id'], '/Api/Order')">
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label for="IdSpan" class="control-label col-md-4">Id</label>
+            <div class="col-md-8">
+                <span data-innerhtml="Id" id="IdSpan" class="form-control">1</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="CustomerIdSpan" class="control-label col-md-4">CustomerId</label>
+            <div class="col-md-8">
+                <span data-innerhtml="CustomerId" id="CustomerIdSpan" class="form-control">2</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="OrderAmountInput" class="control-label col-md-4">Amount</label>
+            <div class="col-md-8">
+                <input type="text" data-value="OrderAmount" id="OrderAmountInput" class="form-control" placeholder="e.g. 1,2,3, etc" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-2 col-md-offset-10">
+                <input type="submit" value="Save" class="btn btn-success right" />
+            </div>
+        </div>
+    </form>
+</div>

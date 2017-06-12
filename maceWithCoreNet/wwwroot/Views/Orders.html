@@ -3,7 +3,7 @@
         <table class="table table-striped table-bordered table-hover table-condensed" data-binder="Binder(['Id'], '/Api/Orders')">
             <thead>
                 <tr>
-                    <td>
+                    <td>                        
                         Order Id
                     </td>
                     <td>
@@ -15,7 +15,9 @@
                 </tr>
             </thead>
             <tr data-template="row">
-                <td data-innerhtml="Id"></td>
+                <td>
+                    <a href="javascript:" onclick="window.Show(OrderContainer, this.DataObject.Id)" data-innerhtml="Id"></a>
+                </td>
                 <td data-innerhtml="CustomerId"></td>
                 <td>
                     <input data-value="OrderAmount" />
