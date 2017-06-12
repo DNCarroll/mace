@@ -1,3 +1,15 @@
+HTMLElement.prototype.Save = function () {
+    var t = this, p = t.parentElement;
+    while (!p.Binder) {
+        p = p.parentElement;
+        if (p === document.body) {
+            break;
+        }
+    }
+    if (p && p.Binder) {
+        p.Binder.Save(t.DataObject);
+    }
+};
 HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
     var n = nodes == null ? new Array() : nodes;
     var chs = this.children;

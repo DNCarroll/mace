@@ -48,9 +48,9 @@ class DataObject implements IObjectState {
     set ObjectState(value: ObjectState) {
         var t = this;
         t.objectState = value;
-        if (value === ObjectState.Dirty) {
+        //if (value === ObjectState.Dirty) {
             t.OnObjectStateChanged();
-        }
+        //}
     }
     AddPropertyListener(p: string, a: string, h: (attribute: string, value: any) => void) {
         this.eLstenrs.Add(new PropertyListener(p, a, h));

@@ -49,9 +49,9 @@ var DataObject = (function () {
         set: function (value) {
             var t = this;
             t.objectState = value;
-            if (value === ObjectState.Dirty) {
-                t.OnObjectStateChanged();
-            }
+            //if (value === ObjectState.Dirty) {
+            t.OnObjectStateChanged();
+            //}
         },
         enumerable: true,
         configurable: true

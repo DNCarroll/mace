@@ -227,10 +227,11 @@
 class Binder implements IBinder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
-    constructor(primaryKeys: Array<string> = null, api: string = null, TypeObject: { new (obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
+    constructor(primaryKeys: Array<string> = null, api: string = null, autoUpdate: boolean = false, TypeObject: { new (obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
         var p = primaryKeys, t = this;
         t.StaticProperties = staticProperties;
         t.PrimaryKeys = p ? p : t.PrimaryKeys;
+        t.AutomaticUpdate = autoUpdate;
         if (TypeObject) {
             t.NewObject = (obj: any) => {
                 return new TypeObject(obj);
@@ -441,10 +442,14 @@ class Binder implements IBinder {
     }
     private objStateChanged(o: IObjectState) {
         var t = this;
-        if (t.AutomaticUpdate && t.Api) {
+        t.AutomaticUpdate ? t.Save(o) : null;
+    }
+    Save(obj: IObjectState) {
+        var t = this, o = obj, api = t.Api();
+        if (api && o.ObjectState === ObjectState.Dirty) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            a.Put(t.Api(), o.ServerObject);
+            a.Put(api, o.ServerObject);
             o.ObjectState = ObjectState.Clean;
         }
     }
@@ -679,9 +684,9 @@ class DataObject implements IObjectState {
     set ObjectState(value: ObjectState) {
         var t = this;
         t.objectState = value;
-        if (value === ObjectState.Dirty) {
-            t.OnObjectStateChanged();
-        }
+        //if (value === ObjectState.Dirty) {
+        t.OnObjectStateChanged();
+        //}
     }
     AddPropertyListener(p: string, a: string, h: (attribute: string, value: any) => void) {
         this.eLstenrs.Add(new PropertyListener(p, a, h));
@@ -1116,6 +1121,7 @@ interface IBinder extends IEventDispatcher<IBinder> {
     Dispose: () => void;
     Element: HTMLElement;
     DataObjects: Array<IObjectState>;
+    Save(obj: IObjectState);
 }
 interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
@@ -1372,8 +1378,21 @@ interface HTMLElement extends Element {
     Binder: IBinder;
     DataObject: IObjectState;
     DeleteFromServer();
+    Save();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
 }
+HTMLElement.prototype.Save = function () {
+    var t = <HTMLElement>this, p = t.parentElement;
+    while (!p.Binder) {
+        p = p.parentElement;
+        if (p === document.body) {
+            break;
+        }
+    }
+    if (p && p.Binder) {
+        p.Binder.Save(t.DataObject);
+    }
+};
 HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
     var n = nodes == null ? new Array<HTMLElement>() : nodes;
     var chs = (<HTMLElement>this).children;

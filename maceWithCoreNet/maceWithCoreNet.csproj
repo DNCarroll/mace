@@ -14,8 +14,15 @@
     <Content Include="wwwroot\css\skeleton.css" />
     <Content Include="wwwroot\css\testmenu.css" />
     <Content Include="wwwroot\default.html" />
+    <Content Include="wwwroot\Documentation\Binder.html" />
+    <Content Include="wwwroot\Documentation\DataObject.html" />
+    <Content Include="wwwroot\Documentation\default.html" />
+    <Content Include="wwwroot\Documentation\HighLevel.html" />
+    <Content Include="wwwroot\Documentation\View.html" />
+    <Content Include="wwwroot\Documentation\ViewContainer.html" />
     <Content Include="wwwroot\js\jquery-3.2.1.min.js" />
     <Content Include="wwwroot\Scripts\Containers.ts" />
+    <Content Include="wwwroot\Scripts\documentation.ts" />
     <Content Include="wwwroot\Scripts\mace.ts" />
     <Content Include="wwwroot\StyleTesting\BootstrapWoJQuery.html">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

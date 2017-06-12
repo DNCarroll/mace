@@ -247,9 +247,10 @@ var Ajax = (function () {
 }());
 //disable the active context or readonly it while the new stuff is coming in?
 var Binder = (function () {
-    function Binder(primaryKeys, api, TypeObject, staticProperties) {
+    function Binder(primaryKeys, api, autoUpdate, TypeObject, staticProperties) {
         if (primaryKeys === void 0) { primaryKeys = null; }
         if (api === void 0) { api = null; }
+        if (autoUpdate === void 0) { autoUpdate = false; }
         if (TypeObject === void 0) { TypeObject = null; }
         if (staticProperties === void 0) { staticProperties = null; }
         this._api = null;
@@ -264,6 +265,7 @@ var Binder = (function () {
         var p = primaryKeys, t = this;
         t.StaticProperties = staticProperties;
         t.PrimaryKeys = p ? p : t.PrimaryKeys;
+        t.AutomaticUpdate = autoUpdate;
         if (TypeObject) {
             t.NewObject = function (obj) {
                 return new TypeObject(obj);
@@ -444,10 +446,14 @@ var Binder = (function () {
     };
     Binder.prototype.objStateChanged = function (o) {
         var t = this;
-        if (t.AutomaticUpdate && t.Api) {
+        t.AutomaticUpdate ? t.Save(o) : null;
+    };
+    Binder.prototype.Save = function (obj) {
+        var t = this, o = obj, api = t.Api();
+        if (api && o.ObjectState === ObjectState.Dirty) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            a.Put(t.Api(), o.ServerObject);
+            a.Put(api, o.ServerObject);
             o.ObjectState = ObjectState.Clean;
         }
     };
@@ -677,9 +683,9 @@ var DataObject = (function () {
         set: function (value) {
             var t = this;
             t.objectState = value;
-            if (value === ObjectState.Dirty) {
-                t.OnObjectStateChanged();
-            }
+            //if (value === ObjectState.Dirty) {
+            t.OnObjectStateChanged();
+            //}
         },
         enumerable: true,
         configurable: true
@@ -1318,6 +1324,18 @@ Date.prototype.ToyyyymmddHHMMss = function () {
     };
     var d = f(this.getDate()), m = f(this.getMonth() + 1), y = this.getFullYear(), h = f(this.getHours()), M = f(this.getMinutes()), s = f(this.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
+};
+HTMLElement.prototype.Save = function () {
+    var t = this, p = t.parentElement;
+    while (!p.Binder) {
+        p = p.parentElement;
+        if (p === document.body) {
+            break;
+        }
+    }
+    if (p && p.Binder) {
+        p.Binder.Save(t.DataObject);
+    }
 };
 HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
     var n = nodes == null ? new Array() : nodes;

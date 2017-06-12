@@ -2,10 +2,11 @@
 class Binder implements IBinder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
-    constructor(primaryKeys: Array<string> = null, api: string = null, TypeObject: { new (obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
+    constructor(primaryKeys: Array<string> = null, api: string = null, autoUpdate:boolean = false, TypeObject: { new (obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
         var p = primaryKeys, t = this;
         t.StaticProperties = staticProperties;
         t.PrimaryKeys = p ? p : t.PrimaryKeys;
+        t.AutomaticUpdate = autoUpdate;
         if (TypeObject) {
             t.NewObject = (obj: any) => {
                 return new TypeObject(obj);
@@ -214,12 +215,16 @@ class Binder implements IBinder {
             }
         }
     }
-    private objStateChanged(o: IObjectState) {
+    private objStateChanged(o: IObjectState) {        
         var t = this;
-        if (t.AutomaticUpdate && t.Api) {
+        t.AutomaticUpdate ? t.Save(o) : null;
+    }
+    Save(obj: IObjectState) {
+        var t = this, o = obj, api = t.Api();
+        if (api && o.ObjectState === ObjectState.Dirty) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            a.Put(t.Api(), o.ServerObject);
+            a.Put(api, o.ServerObject);
             o.ObjectState = ObjectState.Clean;
         }
     }

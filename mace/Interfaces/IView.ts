@@ -10,4 +10,5 @@ interface IBinder extends IEventDispatcher<IBinder> {
     Dispose: () => void;
     Element: HTMLElement;
     DataObjects: Array<IObjectState>;
+    Save(obj: IObjectState);
 }

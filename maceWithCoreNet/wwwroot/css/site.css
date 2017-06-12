@@ -1,18 +1,6 @@
 ﻿body {
-    margin-top:70px;    
+    margin-top:6em;
 }
 html{
     overflow-y:scroll;
-}
-#progress {
-    position: relative;
-    float: right;
-    margin-top: 1.25em;
-    margin-right: .75em;
-}
-@media screen and (min-width:48em) {
-    
-}
-@media screen and (max-width:47.999em) {
-   
 }

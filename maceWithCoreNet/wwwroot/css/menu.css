@@ -1,42 +1,41 @@
-﻿.home-menu {
-    padding: 0.5em;
-    text-align: left;
-    box-shadow: 0 1px 1px rgba(0,0,0, 0.10);
+﻿.navbar-header {
+    height: 3em;
 }
 
-.home-menu {
-    background: #2d3e50;
+.navbar-header a {
+    display: block;
+    height: 3em;
+    font-size: 1.25em;
+    text-decoration: none;
+    width: 10em;
 }
 
-    .home-menu .pure-menu-heading {
-        color: white;
-        font-weight: 400;
-        font-size: 120%;
-    }
+.navbar-header a span {
+    position: relative;
+    top: .75em;
+    left: .75em;
+}
 
-    .home-menu .pure-menu-selected a {
-        color: white;
-    }
+#progress {
+    display: none;
+    width: 2em;
+    position: fixed;
+    top: 1em;
+    right: 1.5em;
+    height:2em;
+}
 
-    .home-menu a {
-        color: #6FBEF3;
-    }
-
-    .home-menu li a:hover,
-    .home-menu li a:focus {
-        background: none;
-        border: none;
-        color: #AECFE5;
-    }
-
+.navbar-nav {
+    margin: 0px;
+}
 
 .menu-icon {
-    user-select: none;
     height: 2em;
-    float: right;
     cursor: pointer;
-    margin-top: .75em;
-    margin-right: .5em;
+    top: 1.25em;
+    right: 1.5em;
+    display: none;
+    opacity: 0;
 }
 
 .navicon {
@@ -46,7 +45,7 @@
     position: relative;
     top: .5em;
     transition: background .2s ease-out;
-    width: 2em;
+    width: 1.75em;
 }
 
     .navicon:before,
@@ -70,6 +69,8 @@
 
 .menu-btn {
     opacity: 0;
+    position: fixed;
+    top: -20px;
 }
 
     .menu-btn:checked ~ .menu-icon .navicon {
@@ -89,40 +90,49 @@
         top: 0;
     }
 
+
+@media screen and (min-width:48em) {
+    .navbar-nav {
+        position: fixed;
+        right: 3.5em;
+    }
+
+        .navbar-nav li {
+            display: inline-block;
+        }
+
+    .menu-icon {
+        display: none;
+        opacity: 0;
+    }
+}
+
 @media screen and (max-width:47.999em) {
     .menu-icon {
         display: inline-block;
+        position: fixed;
+        opacity: 100;
     }
 
-    .pure-menu-list {
+    .navbar-nav {
         display: block;
         max-height: 0px;
         overflow: hidden;
         transition: all .25s ease-in-out;
     }
 
-    .menu-btn:checked ~ .pure-menu-list {
+    .menu-btn:checked ~ .navbar-nav {
         max-height: 9000px;
         transition: all 1s ease-in-out;
     }
 
-        .menu-btn:checked ~ .pure-menu-list li, .menu-btn:not(checked) ~ .pure-menu-list li {
+        .menu-btn:checked ~ .navbar-nav li, .menu-btn:not(checked) ~ .navbar-nav li {
             padding-left: 1em;
             display: block;
             text-align: left;
         }
-}
 
-@media screen and (min-width:48em) {
-    .menu-icon {
-        display: none;
-    }
-
-    .pure-menu-list, .pure-menu-list li {
-        display: inline-block;
-    }
-
-    .home-menu ul {
-        float: right;
+    #progress {
+        right: 4em;
     }
 }

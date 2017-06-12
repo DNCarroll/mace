@@ -9,8 +9,21 @@ interface HTMLElement extends Element {
     Binder: IBinder;
     DataObject: IObjectState;   
     DeleteFromServer(); 
+    Save();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
 }
+HTMLElement.prototype.Save = function () {
+    var t = <HTMLElement>this, p = t.parentElement;
+    while (!p.Binder) {
+        p = p.parentElement;
+        if (p === document.body) {
+            break;
+        }
+    }
+    if (p && p.Binder) {
+        p.Binder.Save(t.DataObject);
+    }
+};
 HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
     var n = nodes == null ? new Array<HTMLElement>() : nodes;
     var chs = (<HTMLElement>this).children;
