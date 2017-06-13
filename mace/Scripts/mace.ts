@@ -455,15 +455,29 @@ class Binder implements IBinder {
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
         var t = this, x = a.Sender.XHttp,
-            i = <any>a.Sender.GetRequestData(),
-            o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.isPKMatch(d, i));
+            rd = [<any>a.Sender.GetRequestData()];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
-                o ? t.SetServerObjectValue(o, i) : null;
+                for (var i = 0; i < rd.length; i++) {
+                    let o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.isPKMatch(d, rd[i]));
+                    o ? t.SetServerObjectValue(o, rd[i]) : null;
+                }
             }
             else {
                 alert("Failed to update record.");
             }
+        }
+    }
+    SaveChanges() {
+        var t = this,
+            a = t.Api(),
+            d = t.DataObjects ? t.DataObjects : [t.DataObject];
+        if (a && d && d.length > 0) {
+            var c = d.Where(o => o.ObjectState === ObjectState.Dirty).Select(o => o.ServerObject),
+                aj = new Ajax(t.WithProgress, t.DisableElement);
+            aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            aj.Put(a, c);
+            d.forEach(o => o.ObjectState === ObjectState.Clean);
         }
     }
     private isRedirecting(x: XMLHttpRequest) {        
@@ -1122,6 +1136,28 @@ interface IBinder extends IEventDispatcher<IBinder> {
     Element: HTMLElement;
     DataObjects: Array<IObjectState>;
     Save(obj: IObjectState);
+    //indicates that we will have delete and updates
+    //SaveChanges();
+    //put method doesnt know about deletes or inserts (presume inserts are granular, presume deletes are granular also?)
+    //so would have to remove deletes to a cached location
+    //then gather those up for the delete too
+    //SaveChanges is any insert, updates or deletes
+    //deletes are cached, how do you know about inserts, and updates
+    //all this is getting complicated and indicates that something
+    //might could happen and a user loses their work
+    //which wouldnt be cool
+    //if something is gone wrong then we shouldnt be attempting to save all changes
+    //dont waste users time on bulking up changes when they have an issue saving 
+    //just fail on the granular record level
+    //what this all points to is doing this bulk savechanges is it something that is just fancy
+    //its worth is not that great?
+    //alternatively it saves a bunch of talking to server about chnages
+    //say you are in a tabular view and are working way through the records
+    //we may not want it talking back to server alot
+    //alternatively what kinda volume are we talking about
+    //but consider that we might be talking about thousands of users
+    //do we want all of them doing this granular action all the time?
+    SaveChanges();
 }
 interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
@@ -1275,7 +1311,15 @@ interface Array<T> {
     Last(func: (obj: T) => boolean): T;
     Remove(func: (obj: T) => boolean): T[];
     Where(func: (obj: T) => boolean): T[];    
+    Select<U>(keySelector: (element: T) => U): Array<U>;
 }
+Array.prototype.Select = function (keySelector: (element: any) => any): Array<any> {
+    var r = new Array<any>(), t = this;
+    for (var i = 0; i < t.length; i++) {
+        r.push(keySelector(t[i]));
+    }
+    return r;
+};
 Array.prototype.Add = function (...objectOrObjects: Array<any>) {
     var o = objectOrObjects;
     if (!Is.Array(o)) {

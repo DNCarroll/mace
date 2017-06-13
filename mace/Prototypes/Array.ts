@@ -5,7 +5,15 @@
     Last(func: (obj: T) => boolean): T;
     Remove(func: (obj: T) => boolean): T[];
     Where(func: (obj: T) => boolean): T[];    
+    Select<U>(keySelector: (element: T) => U): Array<U>;
 }
+Array.prototype.Select = function (keySelector: (element: any) => any): Array<any> {
+    var r = new Array<any>(), t = this;
+    for (var i = 0; i < t.length; i++) {
+        r.push(keySelector(t[i]));
+    }
+    return r;
+};
 Array.prototype.Add = function (...objectOrObjects: Array<any>) {
     var o = objectOrObjects;
     if (!Is.Array(o)) {

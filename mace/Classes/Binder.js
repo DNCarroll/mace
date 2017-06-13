@@ -211,14 +211,26 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
-        var t = this, x = a.Sender.XHttp, i = a.Sender.GetRequestData(), o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.isPKMatch(d, i); });
+        var t = this, x = a.Sender.XHttp, rd = [a.Sender.GetRequestData()];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
-                o ? t.SetServerObjectValue(o, i) : null;
+                for (var i = 0; i < rd.length; i++) {
+                    var o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.isPKMatch(d, rd[i]); });
+                    o ? t.SetServerObjectValue(o, rd[i]) : null;
+                }
             }
             else {
                 alert("Failed to update record.");
             }
+        }
+    };
+    Binder.prototype.SaveChanges = function () {
+        var t = this, a = t.Api(), d = t.DataObjects ? t.DataObjects : [t.DataObject];
+        if (a && d && d.length > 0) {
+            var c = d.Where(function (o) { return o.ObjectState === ObjectState.Dirty; }).Select(function (o) { return o.ServerObject; }), aj = new Ajax(t.WithProgress, t.DisableElement);
+            aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            aj.Put(a, c);
+            d.forEach(function (o) { return o.ObjectState = ObjectState.Clean; });
         }
     };
     Binder.prototype.isRedirecting = function (x) {
@@ -231,9 +243,7 @@ var Binder = (function () {
     };
     Binder.prototype.SetServerObjectValue = function (d, i) {
         for (var p in i) {
-            if (!this.PrimaryKeys.First(function (k) { return k === p; })) {
-                d.SetServerProperty(p, i[p]);
-            }
+            !this.PrimaryKeys.First(function (k) { return k === p; }) ? d.SetServerProperty(p, i[p]) : null;
         }
     };
     Binder.prototype.isPKMatch = function (d, incoming) {

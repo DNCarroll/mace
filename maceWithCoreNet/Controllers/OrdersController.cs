@@ -37,6 +37,11 @@ namespace maceWithCoreNet.Controllers {
             return Ok(obj);
         }
 
+        [HttpPut]
+        public IActionResult Put([FromBody]IList<Order> obj) {
+            return Ok(obj);
+        }
+
         [HttpDelete]
         public IActionResult Delete([FromBody]Order obj) {
             return NoContent();

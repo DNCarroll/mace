@@ -23,7 +23,6 @@
     <Content Include="wwwroot\js\jquery-3.2.1.min.js" />
     <Content Include="wwwroot\Scripts\Containers.ts" />
     <Content Include="wwwroot\Scripts\documentation.ts" />
-    <Content Include="wwwroot\Scripts\mace.ts" />
     <Content Include="wwwroot\StyleTesting\BootstrapWoJQuery.html">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
@@ -54,6 +53,11 @@
   <ItemGroup>
     <Folder Include="wwwroot\fonts\" />
     <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\mace\Scripts\mace.js" Link="wwwroot\Scripts\mace.js" />
+    <None Include="..\mace\Scripts\mace.min.js" Link="wwwroot\Scripts\mace.min.js" />
+    <None Include="..\mace\Scripts\mace.ts" Link="wwwroot\Scripts\mace.ts" />
   </ItemGroup>
 
 </Project>

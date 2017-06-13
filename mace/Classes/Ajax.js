@@ -36,15 +36,8 @@ var Ajax = (function () {
             window.Exception(e);
         }
     };
-    //acceptable states
-    //200, 204, 201
-    //401 NotAuthorized does it have a rediricet
-    //407 Authentication issue does it have a redirect
-    //409 Conflict on the call
-    //304 Not modified so no changes were saved
-    //500 Internal Server Error
     Ajax.prototype.xStateChanged = function (e) {
-        var t = this, x = t.XHttp, s = x.status, cds = [200, 204, 201, 401, 407, 409, 500];
+        var t = this, x = t.XHttp, s = x.status;
         if (t.isRequestReady()) {
             t.Progress(false);
             t.Dispatch(s === 200 || s === 204 || s === 201 ? EventType.Completed : EventType.Any);

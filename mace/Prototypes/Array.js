@@ -1,3 +1,10 @@
+Array.prototype.Select = function (keySelector) {
+    var r = new Array(), t = this;
+    for (var i = 0; i < t.length; i++) {
+        r.push(keySelector(t[i]));
+    }
+    return r;
+};
 Array.prototype.Add = function () {
     var objectOrObjects = [];
     for (var _i = 0; _i < arguments.length; _i++) {
