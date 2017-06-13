@@ -37,7 +37,7 @@ namespace maceWithCoreNet.Controllers {
             return Ok(obj);
         }
 
-        [HttpPut]
+        [HttpPut("SaveDirty")]
         public IActionResult Put([FromBody]IList<Order> obj) {
             return Ok(obj);
         }

@@ -1,6 +1,7 @@
 //state management isnt working right yet with regards to the put and the complete of the ajax call
 var DataObject = (function () {
-    function DataObject(serverObject, staticProperties) {
+    function DataObject(serverObject, propertiesThatShouldSubscribeToObjectStateChanged, staticProperties) {
+        if (propertiesThatShouldSubscribeToObjectStateChanged === void 0) { propertiesThatShouldSubscribeToObjectStateChanged = null; }
         if (staticProperties === void 0) { staticProperties = null; }
         this.AlternateOnEvens = true;
         this.changeCount = 0;
@@ -10,6 +11,7 @@ var DataObject = (function () {
         this.objectState = ObjectState.Clean;
         var so = serverObject, t = this;
         t.serverObject = so;
+        t.SubscribeToObjectStateChange = propertiesThatShouldSubscribeToObjectStateChanged;
         staticProperties ?
             staticProperties.forEach(function (s) {
                 if (!Has.Properties(so, s)) {
@@ -49,9 +51,7 @@ var DataObject = (function () {
         set: function (value) {
             var t = this;
             t.objectState = value;
-            //if (value === ObjectState.Dirty) {
             t.OnObjectStateChanged();
-            //}
         },
         enumerable: true,
         configurable: true
@@ -85,8 +85,9 @@ var DataObject = (function () {
         this.oLstenrs.Remove(function (o) { return true; });
     };
     DataObject.prototype.OnObjectStateChanged = function () {
-        var _this = this;
-        this.oLstenrs.forEach(function (o) { return o(_this); });
+        var t = this, subs = t.SubscribeToObjectStateChange;
+        subs ? subs.forEach(function (s) { return t.InstigatePropertyChangedListeners(s, false); }) : null;
+        t.oLstenrs.forEach(function (o) { return o(t); });
     };
     DataObject.prototype.OnElementChanged = function (v, p) {
         this[p] = v;

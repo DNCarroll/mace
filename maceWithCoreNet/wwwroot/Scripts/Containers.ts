@@ -1,21 +1,29 @@
-﻿class Order extends DataObject {
+﻿window["IsDebug"] = true;
+class Order extends DataObject {
     constructor(serverObject) {
-        super(serverObject);
-        this.AddObjectStateListener(this.objectStateChanged.bind(this));
-    }
-    objectStateChanged(obj: ObjectState) {
-        this.InstigatePropertyChangedListeners("SaveButtonClass", false);
+        super(serverObject, ["SaveButtonClass"]);
     }
     get SaveButtonClass(): string {
         return this.ObjectState === ObjectState.Dirty ? "btn btn-warning right" : "btn btn-success right disabled";
     }
 }
-class OrderView extends View {
+class OrdersBinder extends Binder {
     constructor() {
-        super(CacheStrategy.View, "content");
+        super(['Id'], '/Api/Orders');
+        this.RunWhenObjectsChange = () => {
+            var e = "SaveOrders".Element();
+            e.className = this.DataObjects.First(o => o.ObjectState === ObjectState.Dirty) != null ? "btn btn-warning right" : "btn btn-success right disabled";
+        };
     }
-    static Save(sender: HTMLElement) {
-        //kick off the binder for the save?
+}
+class AutoOrdersContainer extends SingleViewContainer {
+    private static instance: AutoOrdersContainer = new AutoOrdersContainer();
+    constructor() {
+        if (AutoOrdersContainer.instance) {
+            return AutoOrdersContainer.instance;
+        }
+        super();
+        this.IsDefault = false;
     }
 }
 class OrdersContainer extends SingleViewContainer {
@@ -37,14 +45,13 @@ class LandingContainer extends SingleViewContainer {
         this.IsDefault = true;
     }
 }
-class OrderContainer extends ViewContainer {
+class OrderContainer extends SingleViewContainer {
     private static instance: OrderContainer = new OrderContainer();
     constructor() {
         if (OrderContainer.instance) {
             return OrderContainer.instance;
         }
         super();
-        this.Views.push(new OrderView());
         this.IsDefault = false;
     }
 }

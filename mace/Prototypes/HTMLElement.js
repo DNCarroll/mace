@@ -1,11 +1,11 @@
-HTMLElement.prototype.Save = function () {
-    var t = this, p = t.parentElement;
-    while (!p.Binder) {
-        p = p.parentElement;
-        if (p === document.body) {
-            break;
-        }
+HTMLElement.prototype.SaveDirty = function () {
+    var t = this, p = t.Ancestor(function (p) { return p.Binder != null; });
+    if (p && p.Binder) {
+        p.Binder.SaveDirty();
     }
+};
+HTMLElement.prototype.Save = function () {
+    var t = this, p = t.Ancestor(function (p) { return p.Binder != null; });
     if (p && p.Binder) {
         p.Binder.Save(t.DataObject);
     }
@@ -104,15 +104,9 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     return r;
 };
 HTMLElement.prototype.DeleteFromServer = function () {
-    var p = this.parentElement;
-    while (!p.Binder) {
-        p = p.parentElement;
-        if (p === document.body) {
-            break;
-        }
-    }
+    var t = this, p = t.Ancestor(function (p) { return p.Binder != null; });
     if (p && p.Binder) {
-        p.Binder.Delete(this);
+        p.Binder.Delete(this, null);
     }
 };
 HTMLElement.prototype.Ancestor = function (func) {

@@ -43,12 +43,12 @@ class Binder implements IBinder {
     MoreElement: HTMLElement;
     StaticProperties: Array<string>;
     NewObject(obj: any): IObjectState {
-        return new DataObject(obj, this.StaticProperties);
+        return new DataObject(obj, null, this.StaticProperties);
     }
     Dispose() {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
-        t.Api = null;
+        t.Api = null;        
         if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
@@ -62,13 +62,12 @@ class Binder implements IBinder {
     GetApiForAjax(parameters: any[]): string {
         var a = this.Api();
         if (a) {
-            a = a.indexOf("/") == 0 ? a.substring(1) : a
+            a = a.indexOf("/") === 0 ? a.substring(1) : a
             var api = a.split("/"),
                 vp = api.Where(part => part.indexOf("?") > -1),
-                p = parameters ? parameters.Where(p => api.First(ap => ap == p) == null) : new Array<string>(),
+                p = parameters ? parameters.Where(p => api.First(ap => ap === p) === null) : new Array<string>(),
                 np = new Array<string>();
             var pos = 0;
-
             for (var i = 0; i < api.length; i++) {
                 var ta = api[i];
                 if (ta.indexOf("?") > -1) {
@@ -82,9 +81,7 @@ class Binder implements IBinder {
                 }
             }
         }
-        if (vp && vp.length == 0) {
-            p.forEach(o => np.Add(o));
-        }
+        vp && vp.length === 0 ? p.forEach(o => np.Add(o)) : null;
         return "/" + np.join("/");
     }
     Execute(viewInstance: ViewInstance = null) {
@@ -100,8 +97,7 @@ class Binder implements IBinder {
         }
     }
     OnAjaxComplete(arg: CustomEventArg<Ajax>) {
-        var t = this, x = arg.Sender.XHttp, s = x.status;
-        
+        var t = this, x = arg.Sender.XHttp, s = x.status;        
         if (!t.isRedirecting(x)) {
             if (s === 200) {
                 var d = arg.Sender.GetRequestData();
@@ -110,7 +106,7 @@ class Binder implements IBinder {
                         (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
                         var tm = t.MoreElement, tms = "none";
                         if (tm) {
-                            tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : tms;
+                            tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
                             tm.style.display = tms;
                         }
                     }
@@ -148,12 +144,10 @@ class Binder implements IBinder {
                         //needs testing
                         var x = a.Sender.XHttp, s = x.status;
                         if (!t.isRedirecting(x)) {
-                            if (s === 500) {
-                                alert("Server error contact web site administrators.");
-                            }
-                            else if (s !== 204) {
-                                alert("Failed to delete row.");
-                            }
+                            s === 500 ?
+                                alert("Server error contact web site administrators.") :
+                                s !== 204 ?
+                                alert("Failed to delete row.") : null;
                         }
                     };
                     ajaxDeleteFunction ? ajaxDeleteFunction(a) : err();
@@ -174,7 +168,7 @@ class Binder implements IBinder {
             let ne = <HTMLElement>d.cloneNode(true),
                 be = ne.Get(e => e.HasDataSet()),
                 drf = t.DataRowFooter,
-                pe = t.Element.tagName == "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
+                pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
             be.Add(ne);
             drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
             t.DataObjects.Add(obj);
@@ -184,7 +178,7 @@ class Binder implements IBinder {
     }
     private prepTemplates() {
         var t = this;
-        if (t.DataRowTemplates.length == 0) {
+        if (t.DataRowTemplates.length === 0) {
             var e = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0].children : t.Element.children,
                 r = new Array<HTMLElement>(),
                 li = 0;
@@ -194,9 +188,8 @@ class Binder implements IBinder {
                     li = i;
                 }
             }
-            if (e[e.length - 1] != r[r.length - 1]) {
-                t.DataRowFooter = <HTMLElement>e[e.length - 1];
-            }
+            t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
+                              <HTMLElement>e[e.length - 1] : null;
             r.forEach(r => {
                 t.DataRowTemplates.Add(r);
                 r.parentElement.removeChild(r);
@@ -215,9 +208,11 @@ class Binder implements IBinder {
             }
         }
     }
-    private objStateChanged(o: IObjectState) {        
-        var t = this;
-        t.AutomaticUpdate ? t.Save(o) : null;
+    RunWhenObjectsChange: () => void = null;
+    private objStateChanged(o: IObjectState) {
+        var t = this, r = t.RunWhenObjectsChange;
+        r ? r() : null;
+        this.AutomaticUpdate ? this.Save(o) : null;
     }
     Save(obj: IObjectState) {
         var t = this, o = obj, api = t.Api();
@@ -243,7 +238,7 @@ class Binder implements IBinder {
             }
         }
     }
-    SaveChanges() {
+    SaveDirty() {
         var t = this,
             a = t.Api(),
             d = t.DataObjects ? t.DataObjects : [t.DataObject];
@@ -251,7 +246,7 @@ class Binder implements IBinder {
             var c = d.Where(o => o.ObjectState === ObjectState.Dirty).Select(o => o.ServerObject),
                 aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            aj.Put(a, c);
+            aj.Submit("PUT", t.Api() + "/SaveDirty", c);      
             d.forEach(o => o.ObjectState = ObjectState.Clean);
         }
     }
@@ -297,9 +292,9 @@ class Binder implements IBinder {
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
         if (ele.tagName === "SELECT") {
-            var ds = ba.First(f => f.Attribute == "datasource"),
-                dm = ba.First(f => f.Attribute == "displaymember"),
-                vm = ba.First(f => f.Attribute == "valuemember");
+            var ds = ba.First(f => f.Attribute === "datasource"),
+                dm = ba.First(f => f.Attribute === "displaymember"),
+                vm = ba.First(f => f.Attribute === "valuemember");
             if (ds) {
                 var fun = new Function("return " + ds.Property),
                     data = fun();
@@ -311,8 +306,7 @@ class Binder implements IBinder {
             if (!nba.First(v => v === b.Attribute)) {
                 let a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
-                if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
-                    //tn == "INPUT" || tn == "SELECT" || tn == "TEXTAREA") {
+                if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {                    
                     let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute;
                     if (ea) {
                         let fun = (evt) => {
@@ -408,7 +402,7 @@ class Binder implements IBinder {
             if (p != null) {
                 for (var i = 0; i < p.length; i++) {
                     var v = p[i];
-                    if (v == 0 && this._api.indexOf(v) == 0) {
+                    if (v === 0 && this._api.indexOf(v) === 0) {
                         continue;
                     }
                     nvi.Parameters.Add(v)

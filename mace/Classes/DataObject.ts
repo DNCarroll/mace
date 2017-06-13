@@ -1,9 +1,12 @@
 ﻿//state management isnt working right yet with regards to the put and the complete of the ajax call
 class DataObject implements IObjectState {   
     static DefaultAlternatingRowClass: string = null;
-    constructor(serverObject: any, staticProperties: Array<string> = null) {
+    constructor(serverObject: any,
+        propertiesThatShouldSubscribeToObjectStateChanged:Array<string>= null,
+        staticProperties: Array<string> = null) {
         var so = serverObject, t = this;
         t.serverObject = so;
+        t.SubscribeToObjectStateChange = propertiesThatShouldSubscribeToObjectStateChanged;
         staticProperties ?
             staticProperties.forEach(s => {
                 if (!Has.Properties(so, s)) {
@@ -22,6 +25,7 @@ class DataObject implements IObjectState {
             odp ? odp(t, p, { 'get': g, 'set': s }) : null;
         }
     }
+    SubscribeToObjectStateChange: Array<string>;
     Container: Array<IObjectState>;
     private alternatingClass: string;
     AlternateOnEvens: boolean = true;
@@ -48,9 +52,7 @@ class DataObject implements IObjectState {
     set ObjectState(value: ObjectState) {
         var t = this;
         t.objectState = value;
-        //if (value === ObjectState.Dirty) {
-            t.OnObjectStateChanged();
-        //}
+        t.OnObjectStateChanged();
     }
     AddPropertyListener(p: string, a: string, h: (attribute: string, value: any) => void) {
         this.eLstenrs.Add(new PropertyListener(p, a, h));
@@ -78,7 +80,9 @@ class DataObject implements IObjectState {
         this.oLstenrs.Remove(o => true);
     }
     OnObjectStateChanged() {
-        this.oLstenrs.forEach(o => o(this));
+        var t = this, subs = t.SubscribeToObjectStateChange;
+        subs ? subs.forEach(s => t.InstigatePropertyChangedListeners(s, false)) : null;
+        t.oLstenrs.forEach(o => o(t));
     }
     OnElementChanged(v: any, p: string) {
         this[p] = v;

@@ -31,6 +31,7 @@
                            onclick="Main.Navigate(OrderContainer, 1)"
                            class="nav">Order 1</a>
                     </li>
+                    <li><a href="javascript:" onclick="Main.Navigate(AutoOrdersContainer)" class="nav">AutoUpdate Orders</a></li>
                     <li><a href="javascript:" onclick="Main.Navigate(OrdersContainer)" class="nav">Orders</a></li>
                     <li>
                         <a href="/Documentation"                           
@@ -48,7 +49,15 @@
             <div class="col-md-4
                  col-sm-2
                  col-xs-12 lead">
-                The Orders View saves records automatically and will call the PUT Method.  The Order View (Form View) doesn't save automatically; you have to use the save button.  The save button on the Order View demonstrates binding of a property and modifying the displayed html based on the object property values.  The values from the object won't be saved to a database and will revert to previous value as soon as you leave the view.                
+                <p>
+                    The <strong>Order 1</strong> or <strong>Order #?</strong> View is a form view of an order.  It calls /Order Api Controller for its Data and Updates.  The Save button's class is bound to the data object via a custom object Order that inherits from the DataObject of mace.ts.  When the Object has a change the bound class changes appropriately.  Upon succes from PUT method for an update the button becomes disabled. 
+                </p>
+                <p>
+                    The <strong>Orders</strong> View is a tabular view of the orders it does not automatically update.  Any changes to the array of data from the GET from /Orders Api Controller effect the Save button making it active or inactive based on existence of any records in a 'Dirty' state.  Note that this use case assumes that you have an Api PUT Method called <strong>SaveDirty</strong> on the Api. The <strong>Orders</strong> View also demonstrates the use of more records functionality.
+                </p>
+                <p>
+                    The <strong>AutoUpdate Orders</strong> is also a tabular view of the orders but it updates automatically.
+                </p>                
             </div>
         </div>        
         <footer class="navbar navbar-fixed-bottom navbar-default">

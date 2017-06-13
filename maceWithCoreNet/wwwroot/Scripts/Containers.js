@@ -8,16 +8,12 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+window["IsDebug"] = true;
 var Order = (function (_super) {
     __extends(Order, _super);
     function Order(serverObject) {
-        var _this = _super.call(this, serverObject) || this;
-        _this.AddObjectStateListener(_this.objectStateChanged.bind(_this));
-        return _this;
+        return _super.call(this, serverObject, ["SaveButtonClass"]) || this;
     }
-    Order.prototype.objectStateChanged = function (obj) {
-        this.InstigatePropertyChangedListeners("SaveButtonClass", false);
-    };
     Object.defineProperty(Order.prototype, "SaveButtonClass", {
         get: function () {
             return this.ObjectState === ObjectState.Dirty ? "btn btn-warning right" : "btn btn-success right disabled";
@@ -27,16 +23,32 @@ var Order = (function (_super) {
     });
     return Order;
 }(DataObject));
-var OrderView = (function (_super) {
-    __extends(OrderView, _super);
-    function OrderView() {
-        return _super.call(this, CacheStrategy.View, "content") || this;
+var OrdersBinder = (function (_super) {
+    __extends(OrdersBinder, _super);
+    function OrdersBinder() {
+        var _this = _super.call(this, ['Id'], '/Api/Orders') || this;
+        _this.RunWhenObjectsChange = function () {
+            var e = "SaveOrders".Element();
+            e.className = _this.DataObjects.First(function (o) { return o.ObjectState === ObjectState.Dirty; }) != null ? "btn btn-warning right" : "btn btn-success right disabled";
+        };
+        return _this;
     }
-    OrderView.Save = function (sender) {
-        //kick off the binder for the save?
-    };
-    return OrderView;
-}(View));
+    return OrdersBinder;
+}(Binder));
+var AutoOrdersContainer = (function (_super) {
+    __extends(AutoOrdersContainer, _super);
+    function AutoOrdersContainer() {
+        var _this = this;
+        if (AutoOrdersContainer.instance) {
+            return AutoOrdersContainer.instance;
+        }
+        _this = _super.call(this) || this;
+        _this.IsDefault = false;
+        return _this;
+    }
+    return AutoOrdersContainer;
+}(SingleViewContainer));
+AutoOrdersContainer.instance = new AutoOrdersContainer();
 var OrdersContainer = (function (_super) {
     __extends(OrdersContainer, _super);
     function OrdersContainer() {
@@ -72,12 +84,11 @@ var OrderContainer = (function (_super) {
             return OrderContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new OrderView());
         _this.IsDefault = false;
         return _this;
     }
     return OrderContainer;
-}(ViewContainer));
+}(SingleViewContainer));
 OrderContainer.instance = new OrderContainer();
 var Main;
 (function (Main) {

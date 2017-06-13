@@ -10,16 +10,17 @@ interface HTMLElement extends Element {
     DataObject: IObjectState;   
     DeleteFromServer(); 
     Save();
+    SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
 }
-HTMLElement.prototype.Save = function () {
-    var t = <HTMLElement>this, p = t.parentElement;
-    while (!p.Binder) {
-        p = p.parentElement;
-        if (p === document.body) {
-            break;
-        }
+HTMLElement.prototype.SaveDirty = function () {
+    var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
+    if (p && p.Binder) {
+        p.Binder.SaveDirty();
     }
+}
+HTMLElement.prototype.Save = function () {
+    var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {
         p.Binder.Save(t.DataObject);
     }
@@ -117,16 +118,10 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     }
     return r;
 };
-HTMLElement.prototype.DeleteFromServer = function () {    
-    var p = this.parentElement;
-    while (!p.Binder) {
-        p = p.parentElement;
-        if (p === document.body) {
-            break;
-        }
-    }
+HTMLElement.prototype.DeleteFromServer = function () {
+    var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {
-        p.Binder.Delete(this);
+        p.Binder.Delete(this, null);
     }
 };
 HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean): HTMLElement {

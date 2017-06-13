@@ -15,6 +15,7 @@ var Binder = (function () {
         this.AutomaticSelect = true;
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
+        this.RunWhenObjectsChange = null;
         var p = primaryKeys, t = this;
         t.StaticProperties = staticProperties;
         t.PrimaryKeys = p ? p : t.PrimaryKeys;
@@ -39,7 +40,7 @@ var Binder = (function () {
         return t._api;
     };
     Binder.prototype.NewObject = function (obj) {
-        return new DataObject(obj, this.StaticProperties);
+        return new DataObject(obj, null, this.StaticProperties);
     };
     Binder.prototype.Dispose = function () {
         var t = this, d = t.DataObject;
@@ -58,8 +59,8 @@ var Binder = (function () {
     Binder.prototype.GetApiForAjax = function (parameters) {
         var a = this.Api();
         if (a) {
-            a = a.indexOf("/") == 0 ? a.substring(1) : a;
-            var api = a.split("/"), vp = api.Where(function (part) { return part.indexOf("?") > -1; }), p = parameters ? parameters.Where(function (p) { return api.First(function (ap) { return ap == p; }) == null; }) : new Array(), np = new Array();
+            a = a.indexOf("/") === 0 ? a.substring(1) : a;
+            var api = a.split("/"), vp = api.Where(function (part) { return part.indexOf("?") > -1; }), p = parameters ? parameters.Where(function (p) { return api.First(function (ap) { return ap === p; }) === null; }) : new Array(), np = new Array();
             var pos = 0;
             for (var i = 0; i < api.length; i++) {
                 var ta = api[i];
@@ -74,9 +75,7 @@ var Binder = (function () {
                 }
             }
         }
-        if (vp && vp.length == 0) {
-            p.forEach(function (o) { return np.Add(o); });
-        }
+        vp && vp.length === 0 ? p.forEach(function (o) { return np.Add(o); }) : null;
         return "/" + np.join("/");
     };
     Binder.prototype.Execute = function (viewInstance) {
@@ -101,7 +100,7 @@ var Binder = (function () {
                         d.forEach(function (d) { return t.Add(t.NewObject(d)); });
                         var tm = t.MoreElement, tms = "none";
                         if (tm) {
-                            tms = t.DataObjects.length % t.MoreThreshold == 0 && d.length > 0 ? "inline" : tms;
+                            tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
                             tm.style.display = tms;
                         }
                     }
@@ -138,12 +137,10 @@ var Binder = (function () {
                     //needs testing
                     var x = a.Sender.XHttp, s = x.status;
                     if (!t.isRedirecting(x)) {
-                        if (s === 500) {
-                            alert("Server error contact web site administrators.");
-                        }
-                        else if (s !== 204) {
-                            alert("Failed to delete row.");
-                        }
+                        s === 500 ?
+                            alert("Server error contact web site administrators.") :
+                            s !== 204 ?
+                                alert("Failed to delete row.") : null;
                     }
                 };
                 ajaxDeleteFunction ? ajaxDeleteFunction(a) : err();
@@ -160,7 +157,7 @@ var Binder = (function () {
         t.prepTemplates();
         t.DataRowTemplates.forEach(function (d) {
             //casting here may be an issue
-            var ne = d.cloneNode(true), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter, pe = t.Element.tagName == "TABLE" ? t.Element.tBodies[0] : t.Element;
+            var ne = d.cloneNode(true), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter, pe = t.Element.tagName === "TABLE" ? t.Element.tBodies[0] : t.Element;
             be.Add(ne);
             drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
             t.DataObjects.Add(obj);
@@ -170,7 +167,7 @@ var Binder = (function () {
     };
     Binder.prototype.prepTemplates = function () {
         var t = this;
-        if (t.DataRowTemplates.length == 0) {
+        if (t.DataRowTemplates.length === 0) {
             var e = t.Element.tagName === "TABLE" ? t.Element.tBodies[0].children : t.Element.children, r = new Array(), li = 0;
             for (var i = 0; i < e.length; i++) {
                 if (e[i].getAttribute("data-template") != null) {
@@ -178,9 +175,8 @@ var Binder = (function () {
                     li = i;
                 }
             }
-            if (e[e.length - 1] != r[r.length - 1]) {
-                t.DataRowFooter = e[e.length - 1];
-            }
+            t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
+                e[e.length - 1] : null;
             r.forEach(function (r) {
                 t.DataRowTemplates.Add(r);
                 r.parentElement.removeChild(r);
@@ -198,8 +194,9 @@ var Binder = (function () {
         }
     };
     Binder.prototype.objStateChanged = function (o) {
-        var t = this;
-        t.AutomaticUpdate ? t.Save(o) : null;
+        var t = this, r = t.RunWhenObjectsChange;
+        r ? r() : null;
+        this.AutomaticUpdate ? this.Save(o) : null;
     };
     Binder.prototype.Save = function (obj) {
         var t = this, o = obj, api = t.Api();
@@ -224,12 +221,12 @@ var Binder = (function () {
             }
         }
     };
-    Binder.prototype.SaveChanges = function () {
+    Binder.prototype.SaveDirty = function () {
         var t = this, a = t.Api(), d = t.DataObjects ? t.DataObjects : [t.DataObject];
         if (a && d && d.length > 0) {
             var c = d.Where(function (o) { return o.ObjectState === ObjectState.Dirty; }).Select(function (o) { return o.ServerObject; }), aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            aj.Put(a, c);
+            aj.Submit("PUT", t.Api() + "/SaveDirty", c);
             d.forEach(function (o) { return o.ObjectState = ObjectState.Clean; });
         }
     };
@@ -276,7 +273,7 @@ var Binder = (function () {
     Binder.prototype.setListeners = function (ele, d) {
         var ba = ele.GetDataSetAttributes(), t = this;
         if (ele.tagName === "SELECT") {
-            var ds = ba.First(function (f) { return f.Attribute == "datasource"; }), dm = ba.First(function (f) { return f.Attribute == "displaymember"; }), vm = ba.First(function (f) { return f.Attribute == "valuemember"; });
+            var ds = ba.First(function (f) { return f.Attribute === "datasource"; }), dm = ba.First(function (f) { return f.Attribute === "displaymember"; }), vm = ba.First(function (f) { return f.Attribute === "valuemember"; });
             if (ds) {
                 var fun = new Function("return " + ds.Property), data = fun();
                 ele.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
@@ -288,7 +285,6 @@ var Binder = (function () {
                 var a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
-                    //tn == "INPUT" || tn == "SELECT" || tn == "TEXTAREA") {
                     var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute;
                     if (ea_1) {
                         var fun_1 = function (evt) {
@@ -381,7 +377,7 @@ var Binder = (function () {
             if (p != null) {
                 for (var i = 0; i < p.length; i++) {
                     var v = p[i];
-                    if (v == 0 && this._api.indexOf(v) == 0) {
+                    if (v === 0 && this._api.indexOf(v) === 0) {
                         continue;
                     }
                     nvi.Parameters.Add(v);
