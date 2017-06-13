@@ -203,8 +203,8 @@ var Binder = (function () {
         if (api && o.ObjectState === ObjectState.Dirty) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            o.ObjectState = ObjectState.Cleaning;
             a.Put(api, o.ServerObject);
-            o.ObjectState = ObjectState.Clean;
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
@@ -214,6 +214,7 @@ var Binder = (function () {
                 for (var i = 0; i < rd.length; i++) {
                     var o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.isPKMatch(d, rd[i]); });
                     o ? t.SetServerObjectValue(o, rd[i]) : null;
+                    o.ObjectState = ObjectState.Clean;
                 }
             }
             else {
@@ -227,7 +228,7 @@ var Binder = (function () {
             var c = d.Where(function (o) { return o.ObjectState === ObjectState.Dirty; }).Select(function (o) { return o.ServerObject; }), aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             aj.Submit("PUT", t.Api() + "/SaveDirty", c);
-            d.forEach(function (o) { return o.ObjectState = ObjectState.Clean; });
+            d.forEach(function (o) { return o.ObjectState = ObjectState.Cleaning; });
         }
     };
     Binder.prototype.isRedirecting = function (x) {

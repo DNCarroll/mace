@@ -437,8 +437,8 @@ class Binder implements IBinder {
         if (api && o.ObjectState === ObjectState.Dirty) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            a.Put(api, o.ServerObject);
-            o.ObjectState = ObjectState.Clean;
+            o.ObjectState = ObjectState.Cleaning;
+            a.Put(api, o.ServerObject);            
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
@@ -449,6 +449,7 @@ class Binder implements IBinder {
                 for (var i = 0; i < rd.length; i++) {
                     let o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.isPKMatch(d, rd[i]));
                     o ? t.SetServerObjectValue(o, rd[i]) : null;
+                    o.ObjectState = ObjectState.Clean;
                 }
             }
             else {
@@ -465,7 +466,7 @@ class Binder implements IBinder {
                 aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             aj.Submit("PUT", t.Api() + "/SaveDirty", c);      
-            d.forEach(o => o.ObjectState = ObjectState.Clean);
+            d.forEach(o => o.ObjectState = ObjectState.Cleaning);
         }
     }
     private isRedirecting(x: XMLHttpRequest) {        

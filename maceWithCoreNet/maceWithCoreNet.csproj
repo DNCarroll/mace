@@ -10,6 +10,7 @@
     <Content Include="wwwroot\css\menu.css" />
     <Content Include="wwwroot\css\normalize.css" />
     <Content Include="wwwroot\css\pure.css" />
+    <Content Include="wwwroot\css\removeThisJustGettingPartOfCssFromIt.css" />
     <Content Include="wwwroot\css\site.css" />
     <Content Include="wwwroot\css\skeleton.css" />
     <Content Include="wwwroot\css\testmenu.css" />
@@ -42,7 +43,6 @@
     <Content Include="wwwroot\Views\OrdersWPure.html" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="mace.ts" Version="17.4.25.10" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.3" />

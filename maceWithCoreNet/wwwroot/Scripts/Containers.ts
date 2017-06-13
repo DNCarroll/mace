@@ -1,11 +1,39 @@
 ﻿window["IsDebug"] = true;
 class Order extends DataObject {
     constructor(serverObject) {
-        super(serverObject, ["SaveButtonClass"]);
+        super(serverObject, ["SaveButtonClass", "SaveOccurring"]);
     }
     get SaveButtonClass(): string {
-        return this.ObjectState === ObjectState.Dirty ? "btn btn-warning right" : "btn btn-success right disabled";
+        return this.ObjectState === ObjectState.Dirty ?
+            "btn btn-warning right" :
+            this.ObjectState === ObjectState.Cleaning ?
+                "btn btn- warning disabled" :
+                "btn btn-success right disabled";
     }
+    //because it fast use a timer?
+    saveOccurring = "off";
+    get SaveOccurring(): string {
+        var t = this;
+        if (t.ObjectState === ObjectState.Dirty) {
+            t.saveOccurring = "blink";
+            t.runTimeout();
+        }
+        return t.saveOccurring;
+    }
+    runTimeout() {
+        var t = this;
+        setTimeout(function () {
+            if (t.ObjectState !== ObjectState.Clean) {
+                t.runTimeout();
+            }
+            t.saveOccurring = "off";
+            t.InstigatePropertyChangedListeners("SaveOccurring", false);
+        }, 1250);
+    }
+    //get SaveOccurring(): string {
+    //    var t = this;
+    //    return t.ObjectState === ObjectState.Dirty || t.ObjectState === ObjectState.Cleaning ? "blink" : "off";
+    //}
 }
 class OrdersBinder extends Binder {
     constructor() {

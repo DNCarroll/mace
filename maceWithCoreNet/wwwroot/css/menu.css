@@ -111,7 +111,7 @@
     .menu-icon {
         display: inline-block;
         position: fixed;
-        opacity: 100;
+        opacity: 1;
     }
 
     .navbar-nav {

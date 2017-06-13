@@ -12,15 +12,44 @@ window["IsDebug"] = true;
 var Order = (function (_super) {
     __extends(Order, _super);
     function Order(serverObject) {
-        return _super.call(this, serverObject, ["SaveButtonClass"]) || this;
+        var _this = _super.call(this, serverObject, ["SaveButtonClass", "SaveOccurring"]) || this;
+        //because it fast use a timer?
+        _this.saveOccurring = "off";
+        return _this;
     }
     Object.defineProperty(Order.prototype, "SaveButtonClass", {
         get: function () {
-            return this.ObjectState === ObjectState.Dirty ? "btn btn-warning right" : "btn btn-success right disabled";
+            return this.ObjectState === ObjectState.Dirty ?
+                "btn btn-warning right" :
+                this.ObjectState === ObjectState.Cleaning ?
+                    "btn btn- warning disabled" :
+                    "btn btn-success right disabled";
         },
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Order.prototype, "SaveOccurring", {
+        get: function () {
+            var t = this;
+            if (t.ObjectState === ObjectState.Dirty) {
+                t.saveOccurring = "blink";
+                t.runTimeout();
+            }
+            return t.saveOccurring;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Order.prototype.runTimeout = function () {
+        var t = this;
+        setTimeout(function () {
+            if (t.ObjectState !== ObjectState.Clean) {
+                t.runTimeout();
+            }
+            t.saveOccurring = "off";
+            t.InstigatePropertyChangedListeners("SaveOccurring", false);
+        }, 1250);
+    };
     return Order;
 }(DataObject));
 var OrdersBinder = (function (_super) {
