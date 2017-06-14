@@ -448,13 +448,15 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
-        var t = this, x = a.Sender.XHttp, rd = [a.Sender.GetRequestData()];
+        var t = this, x = a.Sender.XHttp, td = a.Sender.GetRequestData(), rd = Is.Array(td) ? td : [td];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
                 for (var i = 0; i < rd.length; i++) {
                     var o = t.DataObject ? t.DataObject : t.DataObjects.First(function (d) { return t.isPKMatch(d, rd[i]); });
-                    o ? t.SetServerObjectValue(o, rd[i]) : null;
-                    o.ObjectState = ObjectState.Clean;
+                    if (o) {
+                        t.SetServerObjectValue(o, rd[i]);
+                        o.ObjectState = ObjectState.Clean;
+                    }
                 }
             }
             else {

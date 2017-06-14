@@ -225,13 +225,16 @@ class Binder implements IBinder {
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
         var t = this, x = a.Sender.XHttp,
-            rd = [<any>a.Sender.GetRequestData()];
+            td = <any>a.Sender.GetRequestData(),
+            rd = Is.Array(td) ? td : [td];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
                 for (var i = 0; i < rd.length; i++) {
                     let o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.isPKMatch(d, rd[i]));
-                    o ? t.SetServerObjectValue(o, rd[i]) : null;
-                    o.ObjectState = ObjectState.Clean;
+                    if (o) {
+                        t.SetServerObjectValue(o, rd[i]);
+                        o.ObjectState = ObjectState.Clean;
+                    }
                 }
             }
             else {
