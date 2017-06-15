@@ -13,7 +13,6 @@ var Order = (function (_super) {
     __extends(Order, _super);
     function Order(serverObject) {
         var _this = _super.call(this, serverObject, ["SaveButtonClass", "SaveOccurring"]) || this;
-        //because it fast use a timer?
         _this.saveOccurring = "off";
         return _this;
     }
@@ -121,15 +120,11 @@ var OrderContainer = (function (_super) {
 OrderContainer.instance = new OrderContainer();
 var Main;
 (function (Main) {
-    //export function Execute(e?) {
     function Navigate(type) {
         var parameters = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             parameters[_i - 1] = arguments[_i];
         }
-        //are we trying to figure out the who?
-        //parameters here is probably a problem
-        //most likely it will stick the array of parameter in the first
         "menu-btn".Element().checked = false;
         window.Show(type, parameters);
     }

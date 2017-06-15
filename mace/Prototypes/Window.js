@@ -27,7 +27,7 @@ Window.prototype.Show = function (type) {
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url) {
-    var vc = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
+    var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
     vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
     if (vc) {
         var p = url.split("/"), vi = new ViewInstance(p, vc);

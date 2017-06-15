@@ -48,9 +48,9 @@ namespace maceWithCoreNet
             loggerFactory.AddDebug();
 
             app.Use(async (context, next) => {
-                await next();
+                await next();                
                 if (context.Response.StatusCode == 404 && !Path.HasExtension(context.Request.Path.Value)) {
-                    context.Request.Path = "/default.html";
+                    context.Request.Path = isDocumentationUrl(context.Request.Path.Value)? "/Documentation/default.html":"/default.html";
                     context.Response.StatusCode = 200;
                     await next();
                 }
@@ -59,6 +59,9 @@ namespace maceWithCoreNet
             app.UseStaticFiles();
             app.UseMvc();
             
+        }
+        bool isDocumentationUrl(string path) {
+            return path.IndexOf("Documentation") > -1;
         }
     }
 }

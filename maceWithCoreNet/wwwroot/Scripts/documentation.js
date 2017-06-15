@@ -8,21 +8,25 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var HighLevelContainer = (function (_super) {
-    __extends(HighLevelContainer, _super);
-    function HighLevelContainer() {
+window["IsDebug"] = true;
+var DocumentationContainer = (function (_super) {
+    __extends(DocumentationContainer, _super);
+    function DocumentationContainer() {
         var _this = this;
-        if (HighLevelContainer.instance) {
-            return HighLevelContainer.instance;
+        if (DocumentationContainer.instance) {
+            return DocumentationContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/HighLevel.html"));
-        _this.IsDefault = false;
+        _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/Landing.html"));
+        _this.IsDefault = true;
+        _this.UrlPattern = function () {
+            return "^" + _this.UrlBase + "%";
+        };
         return _this;
     }
-    return HighLevelContainer;
+    return DocumentationContainer;
 }(ViewContainer));
-HighLevelContainer.instance = new HighLevelContainer();
+DocumentationContainer.instance = new DocumentationContainer();
 var BinderContainer = (function (_super) {
     __extends(BinderContainer, _super);
     function BinderContainer() {
@@ -33,6 +37,7 @@ var BinderContainer = (function (_super) {
         _this = _super.call(this) || this;
         _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/Binder.html"));
         _this.IsDefault = false;
+        _this.UrlBase = "Documentation/Binder";
         return _this;
     }
     return BinderContainer;
@@ -48,6 +53,7 @@ var DataObjectContainer = (function (_super) {
         _this = _super.call(this) || this;
         _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/DataObject.html"));
         _this.IsDefault = false;
+        _this.UrlBase = "Documentation/DataObject";
         return _this;
     }
     return DataObjectContainer;
@@ -63,9 +69,38 @@ var ViewContainerContainer = (function (_super) {
         _this = _super.call(this) || this;
         _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/ViewContainer.html"));
         _this.IsDefault = false;
+        _this.UrlBase = "Documentation/ViewContainer";
         return _this;
     }
     return ViewContainerContainer;
 }(ViewContainer));
 ViewContainerContainer.instance = new ViewContainerContainer();
+var ViewDocumentationContainer = (function (_super) {
+    __extends(ViewDocumentationContainer, _super);
+    function ViewDocumentationContainer() {
+        var _this = this;
+        if (ViewDocumentationContainer.instance) {
+            return ViewDocumentationContainer.instance;
+        }
+        _this = _super.call(this) || this;
+        _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/View.html"));
+        _this.IsDefault = false;
+        _this.UrlBase = "Documentation/View";
+        return _this;
+    }
+    return ViewDocumentationContainer;
+}(ViewContainer));
+ViewDocumentationContainer.instance = new ViewDocumentationContainer();
+var Documentation;
+(function (Documentation) {
+    function Navigate(type) {
+        var parameters = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            parameters[_i - 1] = arguments[_i];
+        }
+        "menu-btn".Element().checked = false;
+        window.Show(type, parameters);
+    }
+    Documentation.Navigate = Navigate;
+})(Documentation || (Documentation = {}));
 //# sourceMappingURL=documentation.js.map

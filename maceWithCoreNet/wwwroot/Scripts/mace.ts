@@ -988,10 +988,11 @@ abstract class ViewContainer implements IViewContainer {
     }
     IsUrlPatternMatch(url: string) {
         if (!Is.NullOrEmpty(url)) {
-            var p = this.UrlPattern(), up = (url.indexOf("/") == 0 ? url.substr(1) : url).split("/")[0];
+            url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
+            var p = this.UrlPattern();
             if (p) {
                 var regex = new RegExp(p, 'i');
-                return up.match(regex) ? true : false;
+                return url.match(regex) ? true : false;
             }
         }
         return false;
@@ -1023,7 +1024,7 @@ abstract class ViewContainer implements IViewContainer {
         return this.UrlBase;
     }
     UrlPattern(): string {
-        return this.UrlBase;
+        return "^" + this.UrlBase;
     }
     UrlTitle(route: ViewInstance): string {
         return this.UrlBase;
@@ -1619,8 +1620,8 @@ Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
-Window.prototype.ShowByUrl = function (url: string) {
-    var vc: IViewContainer = ViewContainers.First(d => d.IsUrlPatternMatch(url));
+Window.prototype.ShowByUrl = function (url: string) {    
+    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc=>vc.IsDefault) : ViewContainers.First(d => d.IsUrlPatternMatch(url));
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {
         var p = url.split("/"),

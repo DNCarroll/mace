@@ -999,10 +999,11 @@ var ViewContainer = (function () {
     };
     ViewContainer.prototype.IsUrlPatternMatch = function (url) {
         if (!Is.NullOrEmpty(url)) {
-            var p = this.UrlPattern(), up = (url.indexOf("/") == 0 ? url.substr(1) : url).split("/")[0];
+            url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
+            var p = this.UrlPattern();
             if (p) {
                 var regex = new RegExp(p, 'i');
-                return up.match(regex) ? true : false;
+                return url.match(regex) ? true : false;
             }
         }
         return false;
@@ -1034,7 +1035,7 @@ var ViewContainer = (function () {
         return this.UrlBase;
     };
     ViewContainer.prototype.UrlPattern = function () {
-        return this.UrlBase;
+        return "^" + this.UrlBase;
     };
     ViewContainer.prototype.UrlTitle = function (route) {
         return this.UrlBase;
@@ -1538,7 +1539,7 @@ Window.prototype.Show = function (type) {
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url) {
-    var vc = ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
+    var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
     vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
     if (vc) {
         var p = url.split("/"), vi = new ViewInstance(p, vc);

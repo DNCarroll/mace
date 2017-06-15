@@ -9,8 +9,7 @@ class Order extends DataObject {
             this.ObjectState === ObjectState.Cleaning ?
                 "btn btn- warning disabled" :
                 "btn btn-success right disabled";
-    }
-    //because it fast use a timer?
+    }    
     saveOccurring = "off";
     get SaveOccurring(): string {
         var t = this;
@@ -30,10 +29,6 @@ class Order extends DataObject {
             t.InstigatePropertyChangedListeners("SaveOccurring", false);
         }, 1250);
     }
-    //get SaveOccurring(): string {
-    //    var t = this;
-    //    return t.ObjectState === ObjectState.Dirty || t.ObjectState === ObjectState.Cleaning ? "blink" : "off";
-    //}
 }
 class OrdersBinder extends Binder {
     constructor() {
@@ -83,12 +78,8 @@ class OrderContainer extends SingleViewContainer {
         this.IsDefault = false;
     }
 }
-module Main {
-    //export function Execute(e?) {
-    export function Navigate<T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
-        //are we trying to figure out the who?
-        //parameters here is probably a problem
-        //most likely it will stick the array of parameter in the first
+module Main {    
+    export function Navigate<T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {        
         (<HTMLInputElement>"menu-btn".Element()).checked = false;
         window.Show(type, parameters);
     }
