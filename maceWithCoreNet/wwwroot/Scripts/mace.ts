@@ -966,12 +966,12 @@ var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
 abstract class ViewContainer implements IViewContainer {
     constructor() {
         var n = Reflection.GetName(this.constructor);
-        this.UrlBase = n.replace("ViewContainer", "");
-        this.UrlBase = this.UrlBase.replace("Container", "");
+        this.Name = n.replace("ViewContainer", "");
+        this.Name = this.Name.replace("Container", "");
         ViewContainers.push(this);
     }
     UrlPattern: () => string = null;
-    UrlBase: string;
+    public Name: string;
     Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
     NumberViewsShown: number;
@@ -990,7 +990,7 @@ abstract class ViewContainer implements IViewContainer {
     IsUrlPatternMatch(url: string) {
         if (!Is.NullOrEmpty(url)) {
             url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
-            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.UrlBase;
+            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.Name;
             if (p) {
                 var regex = new RegExp(p, 'i');
                 return url.match(regex) ? true : false;
@@ -1031,13 +1031,13 @@ abstract class ViewContainer implements IViewContainer {
             }
             return nu.join("/");
         }
-        return t.UrlBase + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     }
     DocumentTitle(route: ViewInstance): string {
-        return this.UrlBase;
+        return this.Name;
     }
     UrlTitle(route: ViewInstance): string {
-        return this.UrlBase;
+        return this.Name;
     }
 }
 class SingleViewContainer extends ViewContainer {
@@ -1045,7 +1045,7 @@ class SingleViewContainer extends ViewContainer {
         super();
         var t = this;
         t.IsDefault = isDefault;
-        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.UrlBase + ".html"));
+        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
     }
 }
 class ViewInstance {
@@ -1155,9 +1155,10 @@ interface IViewContainer {
     UrlTitle: (route: ViewInstance) => string;
     IsUrlPatternMatch: (url: string) => boolean;
     Views: Array<IView>;
+    Name: string;
 }
 module HistoryContainer {
-    export class History {
+    export class History implements IEventDispatcher<ViewInstance> {
         private ViewInstances = new Array<ViewInstance>();
         CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
@@ -1171,6 +1172,7 @@ module HistoryContainer {
                 t = this;
             t.ViewInstances.Add(vi);
             t.ManageRouteInfo(vi);
+            t.Dispatch(EventType.Completed);
         }
         Back() {
             var t = this,
@@ -1183,6 +1185,7 @@ module HistoryContainer {
                     f = i.ViewContainer;
                 f.Show(i);
                 t.ManageRouteInfo(i);
+                t.Dispatch(EventType.Completed);
             }
             else {
                 //do nothing?
@@ -1206,6 +1209,24 @@ module HistoryContainer {
         FormatUrl(url: string) {
             url = url.replace(/[^A-z0-9/]/g, "");
             return url;
+        }
+        private eHandlrs = new Array<Listener<ViewInstance>>();
+        AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<ViewInstance>) => void) {
+            var t = this,
+                f = t.eHandlrs.First(h => h.EventType === eventType && h.EventHandler === eventHandler);
+            if (!f) {
+                t.eHandlrs.Add(new Listener(eventType, eventHandler));
+            }
+        }
+        RemoveListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<ViewInstance>) => void) {
+            this.eHandlrs.Remove(l => l.EventType === eventType && eventHandler === eventHandler);
+        }
+        RemoveListeners(eventType: EventType) {
+            this.eHandlrs.Remove(l => l.EventType === eventType);
+        }
+        Dispatch(eventType: EventType) {
+            var l = this.eHandlrs.Where(e => e.EventType === eventType);
+            l.forEach(l => l.EventHandler(new CustomEventArg<ViewInstance>(this.CurrentViewInstance(), eventType)));
         }
     }
 }

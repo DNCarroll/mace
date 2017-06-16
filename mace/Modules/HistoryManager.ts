@@ -1,5 +1,5 @@
 ﻿module HistoryContainer {
-    export class History {
+    export class History implements IEventDispatcher<ViewInstance> {        
         private ViewInstances = new Array<ViewInstance>();
         CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
@@ -13,6 +13,7 @@
                 t = this;
             t.ViewInstances.Add(vi);
             t.ManageRouteInfo(vi);
+            t.Dispatch(EventType.Completed);
         }
         Back() {
             var t = this,
@@ -25,6 +26,7 @@
                     f = i.ViewContainer;
                 f.Show(i);
                 t.ManageRouteInfo(i);
+                t.Dispatch(EventType.Completed);
             }
             else {
                 //do nothing?
@@ -48,6 +50,24 @@
         FormatUrl(url: string) {
             url = url.replace(/[^A-z0-9/]/g, "");
             return url;
+        }
+        private eHandlrs = new Array<Listener<ViewInstance>>();
+        AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<ViewInstance>) => void) {
+            var t = this,
+                f = t.eHandlrs.First(h => h.EventType === eventType && h.EventHandler === eventHandler);
+            if (!f) {
+                t.eHandlrs.Add(new Listener(eventType, eventHandler));
+            }
+        }
+        RemoveListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<ViewInstance>) => void) {
+            this.eHandlrs.Remove(l => l.EventType === eventType && eventHandler === eventHandler);
+        }
+        RemoveListeners(eventType: EventType) {
+            this.eHandlrs.Remove(l => l.EventType === eventType);
+        }
+        Dispatch(eventType: EventType) {
+            var l = this.eHandlrs.Where(e => e.EventType === eventType);
+            l.forEach(l => l.EventHandler(new CustomEventArg<ViewInstance>(this.CurrentViewInstance(), eventType)));
         }
     }
 }

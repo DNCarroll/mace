@@ -3,6 +3,7 @@ var HistoryContainer;
     var History = (function () {
         function History() {
             this.ViewInstances = new Array();
+            this.eHandlrs = new Array();
         }
         History.prototype.CurrentViewInstance = function () {
             var vi = this.ViewInstances;
@@ -15,6 +16,7 @@ var HistoryContainer;
             var vi = viewInstance, t = this;
             t.ViewInstances.Add(vi);
             t.ManageRouteInfo(vi);
+            t.Dispatch(EventType.Completed);
         };
         History.prototype.Back = function () {
             var t = this, vi = t.ViewInstances;
@@ -25,6 +27,7 @@ var HistoryContainer;
                 var i = vi[vi.length - 1], f = i.ViewContainer;
                 f.Show(i);
                 t.ManageRouteInfo(i);
+                t.Dispatch(EventType.Completed);
             }
             else {
                 //do nothing?
@@ -43,6 +46,23 @@ var HistoryContainer;
         History.prototype.FormatUrl = function (url) {
             url = url.replace(/[^A-z0-9/]/g, "");
             return url;
+        };
+        History.prototype.AddListener = function (eventType, eventHandler) {
+            var t = this, f = t.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
+            if (!f) {
+                t.eHandlrs.Add(new Listener(eventType, eventHandler));
+            }
+        };
+        History.prototype.RemoveListener = function (eventType, eventHandler) {
+            this.eHandlrs.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
+        };
+        History.prototype.RemoveListeners = function (eventType) {
+            this.eHandlrs.Remove(function (l) { return l.EventType === eventType; });
+        };
+        History.prototype.Dispatch = function (eventType) {
+            var _this = this;
+            var l = this.eHandlrs.Where(function (e) { return e.EventType === eventType; });
+            l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this.CurrentViewInstance(), eventType)); });
         };
         return History;
     }());

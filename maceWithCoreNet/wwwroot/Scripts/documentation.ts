@@ -6,10 +6,10 @@ class DocumentationContainer extends ViewContainer {
             return DocumentationContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/Landing.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../Views/Landing.html"));
         this.IsDefault = true;
         this.UrlPattern = ()=> {
-            return "^" + this.UrlBase + "%";
+            return "^" + this.Name + "%";
         }
     }
 }
@@ -22,7 +22,7 @@ class BinderContainer extends ViewContainer {
         super();
         this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/Binder.html"));
         this.IsDefault = false;
-        this.UrlBase = "Documentation/Binder";
+        this.Name = "Documentation/Binder";
     }
 }
 class DataObjectContainer extends ViewContainer {
@@ -34,7 +34,7 @@ class DataObjectContainer extends ViewContainer {
         super();
         this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/DataObject.html"));
         this.IsDefault = false;
-        this.UrlBase = "Documentation/DataObject";
+        this.Name = "Documentation/DataObject";
     }
 }
 class ViewContainerContainer extends ViewContainer {
@@ -46,7 +46,7 @@ class ViewContainerContainer extends ViewContainer {
         super();
         this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/ViewContainer.html"));
         this.IsDefault = false;
-        this.UrlBase = "Documentation/ViewContainer";
+        this.Name = "Documentation/ViewContainer";
     }
 }
 class ViewDocumentationContainer extends ViewContainer {
@@ -58,15 +58,19 @@ class ViewDocumentationContainer extends ViewContainer {
         super();
         this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/View.html"));
         this.IsDefault = false;
-        this.UrlBase = "Documentation/View";
+        this.Name = "Documentation/View";
     }
 }
 module Documentation {
     export function Navigate<T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
         (<HTMLInputElement>"menu-btn".Element()).checked = false;
         window.Show(type, parameters);
-    }
+    }    
 }
+HistoryManager.AddListener(EventType.Completed, (e) => {
+    var n = e.Sender.ViewContainer.Name.replace("Documentation/", "");
+    "ViewHeader".Element().innerHTML = n;
+});
 
 
 

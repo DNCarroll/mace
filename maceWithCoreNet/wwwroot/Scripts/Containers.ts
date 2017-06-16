@@ -83,5 +83,9 @@ module Main {
         (<HTMLInputElement>"menu-btn".Element()).checked = false;
         window.Show(type, parameters);
     }
+
 }
+HistoryManager.AddListener(EventType.Completed, (e) => {
+    "ViewHeader".Element().innerHTML = e.Sender.ViewContainer.Name;
+});
 

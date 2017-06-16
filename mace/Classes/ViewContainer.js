@@ -15,8 +15,8 @@ var ViewContainer = (function () {
         this.Views = new Array();
         this.IsDefault = false;
         var n = Reflection.GetName(this.constructor);
-        this.UrlBase = n.replace("ViewContainer", "");
-        this.UrlBase = this.UrlBase.replace("Container", "");
+        this.Name = n.replace("ViewContainer", "");
+        this.Name = this.Name.replace("Container", "");
         ViewContainers.push(this);
     }
     ViewContainer.prototype.Show = function (route) {
@@ -34,7 +34,7 @@ var ViewContainer = (function () {
     ViewContainer.prototype.IsUrlPatternMatch = function (url) {
         if (!Is.NullOrEmpty(url)) {
             url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
-            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.UrlBase;
+            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.Name;
             if (p) {
                 var regex = new RegExp(p, 'i');
                 return url.match(regex) ? true : false;
@@ -77,13 +77,13 @@ var ViewContainer = (function () {
             }
             return nu.join("/");
         }
-        return t.UrlBase + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     };
     ViewContainer.prototype.DocumentTitle = function (route) {
-        return this.UrlBase;
+        return this.Name;
     };
     ViewContainer.prototype.UrlTitle = function (route) {
-        return this.UrlBase;
+        return this.Name;
     };
     return ViewContainer;
 }());
@@ -96,7 +96,7 @@ var SingleViewContainer = (function (_super) {
         var _this = _super.call(this) || this;
         var t = _this;
         t.IsDefault = isDefault;
-        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.UrlBase + ".html"));
+        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
         return _this;
     }
     return SingleViewContainer;

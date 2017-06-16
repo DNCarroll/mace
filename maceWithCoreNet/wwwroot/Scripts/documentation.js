@@ -17,10 +17,10 @@ var DocumentationContainer = (function (_super) {
             return DocumentationContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/Landing.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../Views/Landing.html"));
         _this.IsDefault = true;
         _this.UrlPattern = function () {
-            return "^" + _this.UrlBase + "%";
+            return "^" + _this.Name + "%";
         };
         return _this;
     }
@@ -37,7 +37,7 @@ var BinderContainer = (function (_super) {
         _this = _super.call(this) || this;
         _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/Binder.html"));
         _this.IsDefault = false;
-        _this.UrlBase = "Documentation/Binder";
+        _this.Name = "Documentation/Binder";
         return _this;
     }
     return BinderContainer;
@@ -53,7 +53,7 @@ var DataObjectContainer = (function (_super) {
         _this = _super.call(this) || this;
         _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/DataObject.html"));
         _this.IsDefault = false;
-        _this.UrlBase = "Documentation/DataObject";
+        _this.Name = "Documentation/DataObject";
         return _this;
     }
     return DataObjectContainer;
@@ -69,7 +69,7 @@ var ViewContainerContainer = (function (_super) {
         _this = _super.call(this) || this;
         _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/ViewContainer.html"));
         _this.IsDefault = false;
-        _this.UrlBase = "Documentation/ViewContainer";
+        _this.Name = "Documentation/ViewContainer";
         return _this;
     }
     return ViewContainerContainer;
@@ -85,7 +85,7 @@ var ViewDocumentationContainer = (function (_super) {
         _this = _super.call(this) || this;
         _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/View.html"));
         _this.IsDefault = false;
-        _this.UrlBase = "Documentation/View";
+        _this.Name = "Documentation/View";
         return _this;
     }
     return ViewDocumentationContainer;
@@ -103,4 +103,8 @@ var Documentation;
     }
     Documentation.Navigate = Navigate;
 })(Documentation || (Documentation = {}));
+HistoryManager.AddListener(EventType.Completed, function (e) {
+    var n = e.Sender.ViewContainer.Name.replace("Documentation/", "");
+    "ViewHeader".Element().innerHTML = n;
+});
 //# sourceMappingURL=documentation.js.map

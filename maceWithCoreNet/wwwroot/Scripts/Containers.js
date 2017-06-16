@@ -130,4 +130,7 @@ var Main;
     }
     Main.Navigate = Navigate;
 })(Main || (Main = {}));
+HistoryManager.AddListener(EventType.Completed, function (e) {
+    "ViewHeader".Element().innerHTML = e.Sender.ViewContainer.Name;
+});
 //# sourceMappingURL=Containers.js.map

@@ -1,6 +1,6 @@
 ﻿body {
-    margin-top:6em;
-    margin-bottom:6em;
+    margin-top:4em;
+    margin-bottom:5em;
 }
 html{
     overflow-y:scroll;
@@ -25,4 +25,7 @@ html{
     100% {
         opacity: 0;
     }
+}
+h2{
+    margin-bottom:21px;
 }

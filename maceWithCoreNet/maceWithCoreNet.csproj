@@ -22,7 +22,6 @@
     <Content Include="wwwroot\Documentation\DataObject\DataObject.html" />
     <Content Include="wwwroot\Documentation\DataObject\default.html" />
     <Content Include="wwwroot\Documentation\default.html" />
-    <Content Include="wwwroot\Documentation\Landing.html" />
     <Content Include="wwwroot\Documentation\View.html" />
     <Content Include="wwwroot\Documentation\ViewContainer.html" />
     <Content Include="wwwroot\Documentation\ViewContainer\default.html" />

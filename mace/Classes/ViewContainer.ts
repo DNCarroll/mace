@@ -2,12 +2,12 @@
 abstract class ViewContainer implements IViewContainer {
     constructor() {
         var n = Reflection.GetName(this.constructor);
-        this.UrlBase = n.replace("ViewContainer", "");
-        this.UrlBase = this.UrlBase.replace("Container", "");
+        this.Name = n.replace("ViewContainer", "");
+        this.Name = this.Name.replace("Container", "");
         ViewContainers.push(this);
     }
     UrlPattern: () => string = null;
-    UrlBase: string;
+    public Name: string;
     Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
     NumberViewsShown: number;
@@ -26,7 +26,7 @@ abstract class ViewContainer implements IViewContainer {
     IsUrlPatternMatch(url: string) {
         if (!Is.NullOrEmpty(url)) {
             url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
-            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.UrlBase;
+            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.Name;
             if (p) {
                 var regex = new RegExp(p, 'i');
                 return url.match(regex) ? true : false;
@@ -67,13 +67,13 @@ abstract class ViewContainer implements IViewContainer {
             }
             return nu.join("/");            
         }
-        return t.UrlBase + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     }
     DocumentTitle(route: ViewInstance): string {
-        return this.UrlBase;
+        return this.Name;
     }
     UrlTitle(route: ViewInstance): string {
-        return this.UrlBase;
+        return this.Name;
     }
 }
 class SingleViewContainer extends ViewContainer {
@@ -81,6 +81,6 @@ class SingleViewContainer extends ViewContainer {
         super();
         var t = this;
         t.IsDefault = isDefault;
-        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.UrlBase + ".html"));
+        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
     }
 }
