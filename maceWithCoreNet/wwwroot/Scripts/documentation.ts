@@ -68,7 +68,7 @@ module Documentation {
     }    
 }
 HistoryManager.AddListener(EventType.Completed, (e) => {
-    var n = e.Sender.ViewContainer.Name.replace("Documentation/", "");
+    var n = e.Sender.Name.replace("Documentation/", "");
     "ViewHeader".Element().innerHTML = n;
 });
 

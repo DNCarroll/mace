@@ -86,6 +86,6 @@ module Main {
 
 }
 HistoryManager.AddListener(EventType.Completed, (e) => {
-    "ViewHeader".Element().innerHTML = e.Sender.ViewContainer.Name;
+    "ViewHeader".Element().innerHTML = e.Sender.Name;
 });
 
