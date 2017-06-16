@@ -6,13 +6,14 @@ abstract class ViewContainer implements IViewContainer {
         this.UrlBase = this.UrlBase.replace("Container", "");
         ViewContainers.push(this);
     }
+    UrlPattern: () => string = null;
     UrlBase: string;
     Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
     NumberViewsShown: number;
     Show(route: ViewInstance) {
         var rp = route.Parameters, t = this;
-        if (rp.length == 1 && t.IsDefault) {
+        if (rp && rp.length == 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -25,7 +26,7 @@ abstract class ViewContainer implements IViewContainer {
     IsUrlPatternMatch(url: string) {
         if (!Is.NullOrEmpty(url)) {
             url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
-            var p = this.UrlPattern();
+            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.UrlBase;
             if (p) {
                 var regex = new RegExp(p, 'i');
                 return url.match(regex) ? true : false;
@@ -41,26 +42,35 @@ abstract class ViewContainer implements IViewContainer {
             ProgressManager.Hide();
         }
     }
-    Url(route: ViewInstance): string {
-        var rp = route.Parameters, t = this;
-        if (rp) {            
-            if (rp.length == 1 && t.IsDefault) {
-                rp = new Array();
-            }
-            if (rp.length > 0) {
-                var p = rp[0] == t.UrlBase ?
-                    rp.slice(1).join("/") :
-                    rp.join("/");
-                return t.UrlBase + (p.length > 0 ? "/" + p : "");
-            }
+    Url(viewInstance: ViewInstance): string {
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
+        if (vi.Route) {
+            return vi.Route;
         }
-        return t.UrlBase;
+        else if (t.UrlPattern != null) {
+            var up = t.UrlPattern().split("/"), pi = 0, nu = new Array<string>();
+            for (var i = 0; i < up.length; i++) {
+                let p = up[i];
+                if (p.indexOf("(?:") == 0) {
+                    if (!rp) { break; }
+                    if (pi < rp.length) {
+                        nu.Add(rp[pi]);
+                    }
+                    else {
+                        break;
+                    }
+                    pi++;
+                }
+                else {
+                    nu.Add(up[i]);
+                }
+            }
+            return nu.join("/");            
+        }
+        return t.UrlBase + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     }
     DocumentTitle(route: ViewInstance): string {
         return this.UrlBase;
-    }
-    UrlPattern(): string {
-        return "^" + this.UrlBase;
     }
     UrlTitle(route: ViewInstance): string {
         return this.UrlBase;

@@ -657,8 +657,8 @@ class DataObject implements IObjectState {
     }
     private setProps(p: string, o: any) {
         var t = this,
-            g = function () { return o[p]; },
-            s = function (v) { t.SetServerProperty(p, v); },
+            g = function() { return o[p]; },
+            s = function(v) { t.SetServerProperty(p, v); },
             odp = Object.defineProperty;
         if (!t[p]) {
             odp ? odp(t, p, { 'get': g, 'set': s }) : null;
@@ -970,13 +970,14 @@ abstract class ViewContainer implements IViewContainer {
         this.UrlBase = this.UrlBase.replace("Container", "");
         ViewContainers.push(this);
     }
+    UrlPattern: () => string = null;
     UrlBase: string;
     Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
     NumberViewsShown: number;
     Show(route: ViewInstance) {
         var rp = route.Parameters, t = this;
-        if (rp.length == 1 && t.IsDefault) {
+        if (rp && rp.length == 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -989,7 +990,7 @@ abstract class ViewContainer implements IViewContainer {
     IsUrlPatternMatch(url: string) {
         if (!Is.NullOrEmpty(url)) {
             url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
-            var p = this.UrlPattern();
+            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.UrlBase;
             if (p) {
                 var regex = new RegExp(p, 'i');
                 return url.match(regex) ? true : false;
@@ -1005,26 +1006,35 @@ abstract class ViewContainer implements IViewContainer {
             ProgressManager.Hide();
         }
     }
-    Url(route: ViewInstance): string {
-        var rp = route.Parameters, t = this;
-        if (rp) {
-            if (rp.length == 1 && t.IsDefault) {
-                rp = new Array();
-            }
-            if (rp.length > 0) {
-                var p = rp[0] == t.UrlBase ?
-                    rp.slice(1).join("/") :
-                    rp.join("/");
-                return t.UrlBase + (p.length > 0 ? "/" + p : "");
-            }
+    Url(viewInstance: ViewInstance): string {
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
+        if (vi.Route) {
+            return vi.Route;
         }
-        return t.UrlBase;
+        else if (t.UrlPattern != null) {
+            var up = t.UrlPattern().split("/"), pi = 0, nu = new Array<string>();
+            for (var i = 0; i < up.length; i++) {
+                let p = up[i];
+                if (p.indexOf("(?:") == 0) {
+                    if (!rp) { break; }
+                    if (pi < rp.length) {
+                        nu.Add(rp[pi]);
+                    }
+                    else {
+                        break;
+                    }
+                    pi++;
+                }
+                else {
+                    nu.Add(up[i]);
+                }
+            }
+            return nu.join("/");
+        }
+        return t.UrlBase + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     }
     DocumentTitle(route: ViewInstance): string {
         return this.UrlBase;
-    }
-    UrlPattern(): string {
-        return "^" + this.UrlBase;
     }
     UrlTitle(route: ViewInstance): string {
         return this.UrlBase;
@@ -1041,7 +1051,9 @@ class SingleViewContainer extends ViewContainer {
 class ViewInstance {
     Parameters: Array<any>;
     ViewContainer: IViewContainer;
-    constructor(parameters: Array<any>, viewContainer: IViewContainer) {
+    Route: string;
+    constructor(parameters: Array<any>, viewContainer: IViewContainer, route: string = null) {
+        this.Route = route;
         this.Parameters = parameters;
         this.ViewContainer = viewContainer;
     }
@@ -1208,7 +1220,7 @@ module Initializer {
             WindowLoaded ? WindowLoaded(e) : null;
         }
         else {
-            w.onload = function () {
+            w.onload = function() {
                 windowLoaded();
                 WindowLoaded ? WindowLoaded(e) : null;
             };
@@ -1288,14 +1300,14 @@ interface Array<T> {
     Where(func: (obj: T) => boolean): T[];
     Select<U>(keySelector: (element: T) => U): Array<U>;
 }
-Array.prototype.Select = function (keySelector: (element: any) => any): Array<any> {
+Array.prototype.Select = function(keySelector: (element: any) => any): Array<any> {
     var r = new Array<any>(), t = this;
     for (var i = 0; i < t.length; i++) {
         r.push(keySelector(t[i]));
     }
     return r;
 };
-Array.prototype.Add = function (...objectOrObjects: Array<any>) {
+Array.prototype.Add = function(...objectOrObjects: Array<any>) {
     var o = objectOrObjects;
     if (!Is.Array(o)) {
         o = [o];
@@ -1304,7 +1316,7 @@ Array.prototype.Add = function (...objectOrObjects: Array<any>) {
         this.push(o[i]);
     }
 };
-Array.prototype.First = function (func?: (obj) => boolean) {
+Array.prototype.First = function(func?: (obj) => boolean) {
     var t = this, l = t.length;
     if (func) {
         for (var i = 0; i < l; i++) {
@@ -1318,7 +1330,7 @@ Array.prototype.First = function (func?: (obj) => boolean) {
     }
     return null;
 };
-Array.prototype.Last = function (func?: (obj) => boolean): any {
+Array.prototype.Last = function(func?: (obj) => boolean): any {
     var t = this, l = t.length;
     if (func) {
         var p = l - 1;
@@ -1334,7 +1346,7 @@ Array.prototype.Last = function (func?: (obj) => boolean): any {
     }
     return null;
 };
-Array.prototype.Remove = function (func: (obj) => boolean): Array<any> {
+Array.prototype.Remove = function(func: (obj) => boolean): Array<any> {
     var t = this;
     if (func) {
         var p = t.length - 1;
@@ -1347,7 +1359,7 @@ Array.prototype.Remove = function (func: (obj) => boolean): Array<any> {
     }
     return t;
 };
-Array.prototype.Where = function (func: (obj) => boolean): Array<any> {
+Array.prototype.Where = function(func: (obj) => boolean): Array<any> {
     var m = new Array();
     for (var i = 0; i < this.length; i++) {
         var c = this[i];
@@ -1362,7 +1374,7 @@ interface Date {
     Add(y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date;
     ToyyyymmddHHMMss();
 }
-Date.prototype.Add = function (y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date {
+Date.prototype.Add = function(y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date {
     y = y ? y : 0;
     m = m ? m : 0;
     d = d ? d : 0;
@@ -1373,7 +1385,7 @@ Date.prototype.Add = function (y?: number, m?: number, d?: number, h?: number, m
     return new Date(t.getFullYear() + y, t.getMonth() + m, t.getDate() + d, t.getHours() + h,
         t.getMinutes() + mm, t.getSeconds() + s, t.getMilliseconds());
 };
-Date.prototype.ToyyyymmddHHMMss = function () {
+Date.prototype.ToyyyymmddHHMMss = function() {
     var f = (v: number) => {
         return (v <= 9 ? '0' : '') + v.toString();
     };
@@ -1401,19 +1413,19 @@ interface HTMLElement extends Element {
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
 }
-HTMLElement.prototype.SaveDirty = function () {
+HTMLElement.prototype.SaveDirty = function() {
     var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {
         p.Binder.SaveDirty();
     }
 }
-HTMLElement.prototype.Save = function () {
+HTMLElement.prototype.Save = function() {
     var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {
         p.Binder.Save(t.DataObject);
     }
 };
-HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
+HTMLElement.prototype.Get = function(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
     var n = nodes == null ? new Array<HTMLElement>() : nodes;
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
@@ -1429,7 +1441,7 @@ HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRe
     }
     return n;
 };
-HTMLElement.prototype.First = function (func: (ele: HTMLElement) => boolean): HTMLElement {
+HTMLElement.prototype.First = function(func: (ele: HTMLElement) => boolean): HTMLElement {
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
@@ -1452,17 +1464,17 @@ HTMLElement.prototype.First = function (func: (ele: HTMLElement) => boolean): HT
     }
     return null;
 };
-HTMLElement.prototype.Clear = function () {
+HTMLElement.prototype.Clear = function() {
     var t = <HTMLElement>this;
     var chs = t.childNodes;
     while (chs.length > 0) {
         t.removeChild(chs[0]);
     }
 };
-HTMLElement.prototype.AddListener = function (eventName, method) {
+HTMLElement.prototype.AddListener = function(eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
 };
-HTMLElement.prototype.Set = function (objectProperties) {
+HTMLElement.prototype.Set = function(objectProperties) {
     var t = <HTMLElement>this, op = objectProperties;
     if (op) {
         for (var p in op) {
@@ -1487,7 +1499,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
     }
     return t;
 };
-HTMLElement.prototype.HasDataSet = function () {
+HTMLElement.prototype.HasDataSet = function() {
     var d = this["dataset"];
     if (d) {
         for (var p in d) {
@@ -1496,7 +1508,7 @@ HTMLElement.prototype.HasDataSet = function () {
     }
     return false;
 };
-HTMLElement.prototype.GetDataSetAttributes = function () {
+HTMLElement.prototype.GetDataSetAttributes = function() {
     var r = new Array<{ Attribute: string; Property: any; }>();
     var d = this["dataset"];
     if (d) {
@@ -1506,13 +1518,13 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     }
     return r;
 };
-HTMLElement.prototype.DeleteFromServer = function () {
+HTMLElement.prototype.DeleteFromServer = function() {
     var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {
         p.Binder.Delete(this, null);
     }
 };
-HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean): HTMLElement {
+HTMLElement.prototype.Ancestor = function(func: (ele: HTMLElement) => boolean): HTMLElement {
     var p = this.parentElement;
     while (!func(p)) {
         p = p.parentElement;
@@ -1522,7 +1534,7 @@ HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean):
 interface HTMLSelectElement {
     AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
 }
-HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement {
+HTMLSelectElement.prototype.AddOptions = function(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement {
     var s = <HTMLSelectElement>this,
         sv = selectedValue,
         aoo = arrayOrObject,
@@ -1565,20 +1577,20 @@ interface String {
     CreateElementFromHtml(): HTMLElement;
     IsStyle(): boolean;
 }
-String.prototype.Trim = function () {
+String.prototype.Trim = function() {
     return this.replace(/^\s+|\s+$/g, "");
 };
-String.prototype.Element = function (): HTMLElement {
+String.prototype.Element = function(): HTMLElement {
     return document.getElementById(this.toString());
 };
-String.prototype.CreateElement = function (objectProperties?): HTMLElement {
+String.prototype.CreateElement = function(objectProperties?): HTMLElement {
     var o = document.createElement(this), op = objectProperties;
     if (op) {
         o.Set(op);
     }
     return o;
 };
-String.prototype.CreateElementFromHtml = function (): HTMLElement {
+String.prototype.CreateElementFromHtml = function(): HTMLElement {
     var d = "div".CreateElement({ innerHTML: this }),
         dcs = d.children;
     while (dcs.length > 0) {
@@ -1586,7 +1598,7 @@ String.prototype.CreateElementFromHtml = function (): HTMLElement {
         return <HTMLElement>c;
     }
 };
-String.prototype.IsStyle = function () {
+String.prototype.IsStyle = function() {
     for (var p in document.body.style) {
         return p.toLowerCase() === this.toLowerCase()
     }
@@ -1599,7 +1611,7 @@ interface Window {
     ShowByUrl(url: string);
     Exception(...parameters: any[]);
 }
-Window.prototype.Exception = function (...parameters: any[]) {
+Window.prototype.Exception = function(...parameters: any[]) {
     if (parameters.length == 1) {
         var o = {};
         for (var i = 0; i < parameters.length; i++) {
@@ -1615,18 +1627,20 @@ Window.prototype.Exception = function (...parameters: any[]) {
     }
 };
 Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
+    var p = parameters;
+    p = p.length == 1 && p[0] == "" ? null : p;
     var vc = Reflection.NewObject(type),
-        vi = new ViewInstance(parameters, vc);
+        vi = new ViewInstance(p, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
-Window.prototype.ShowByUrl = function (url: string) {    
-    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc=>vc.IsDefault) : ViewContainers.First(d => d.IsUrlPatternMatch(url));
+Window.prototype.ShowByUrl = function(url: string) {
+    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.First(d => d.IsUrlPatternMatch(url));
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {
         var p = url.split("/"),
-            vi = new ViewInstance(p, vc);
+            vi = new ViewInstance(p, vc, window.location.pathname);
         vc.Show(vi);
         HistoryManager.Add(vi);
     }
-}
+};

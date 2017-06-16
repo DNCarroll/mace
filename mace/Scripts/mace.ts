@@ -443,13 +443,16 @@ class Binder implements IBinder {
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
         var t = this, x = a.Sender.XHttp,
-            rd = [<any>a.Sender.GetRequestData()];
+            td = <any>a.Sender.GetRequestData(),
+            rd = Is.Array(td) ? td : [td];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
                 for (var i = 0; i < rd.length; i++) {
                     let o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.isPKMatch(d, rd[i]));
-                    o ? t.SetServerObjectValue(o, rd[i]) : null;
-                    o.ObjectState = ObjectState.Clean;
+                    if (o) {
+                        t.SetServerObjectValue(o, rd[i]);
+                        o.ObjectState = ObjectState.Clean;
+                    }
                 }
             }
             else {
@@ -967,13 +970,14 @@ abstract class ViewContainer implements IViewContainer {
         this.UrlBase = this.UrlBase.replace("Container", "");
         ViewContainers.push(this);
     }
+    UrlPattern: () => string = null;
     UrlBase: string;
     Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
     NumberViewsShown: number;
     Show(route: ViewInstance) {
         var rp = route.Parameters, t = this;
-        if (rp.length == 1 && t.IsDefault) {
+        if (rp && rp.length == 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -985,10 +989,11 @@ abstract class ViewContainer implements IViewContainer {
     }
     IsUrlPatternMatch(url: string) {
         if (!Is.NullOrEmpty(url)) {
-            var p = this.UrlPattern(), up = (url.indexOf("/") == 0 ? url.substr(1) : url).split("/")[0];
+            url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
+            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.UrlBase;
             if (p) {
                 var regex = new RegExp(p, 'i');
-                return up.match(regex) ? true : false;
+                return url.match(regex) ? true : false;
             }
         }
         return false;
@@ -1001,25 +1006,34 @@ abstract class ViewContainer implements IViewContainer {
             ProgressManager.Hide();
         }
     }
-    Url(route: ViewInstance): string {
-        var rp = route.Parameters, t = this;
-        if (rp) {            
-            if (rp.length == 1 && t.IsDefault) {
-                rp = new Array();
-            }
-            if (rp.length > 0) {
-                var p = rp[0] == t.UrlBase ?
-                    rp.slice(1).join("/") :
-                    rp.join("/");
-                return t.UrlBase + (p.length > 0 ? "/" + p : "");
-            }
+    Url(viewInstance: ViewInstance): string {
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
+        if (vi.Route) {
+            return vi.Route;
         }
-        return t.UrlBase;
+        else if (t.UrlPattern != null) {
+            var up = t.UrlPattern().split("/"), pi = 0, nu = new Array<string>();
+            for (var i = 0; i < up.length; i++) {
+                let p = up[i];
+                if (p.indexOf("(?:") == 0) {
+                    if (!rp) { break; }
+                    if (pi < rp.length) {
+                        nu.Add(rp[pi]);
+                    }
+                    else {
+                        break;
+                    }
+                    pi++;
+                }
+                else {
+                    nu.Add(up[i]);
+                }
+            }
+            return nu.join("/");            
+        }
+        return t.UrlBase + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     }
     DocumentTitle(route: ViewInstance): string {
-        return this.UrlBase;
-    }
-    UrlPattern(): string {
         return this.UrlBase;
     }
     UrlTitle(route: ViewInstance): string {
@@ -1034,12 +1048,14 @@ class SingleViewContainer extends ViewContainer {
         t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.UrlBase + ".html"));
     }
 }
-class ViewInstance {    
+class ViewInstance {
     Parameters: Array<any>;
     ViewContainer: IViewContainer;    
-    constructor(parameters: Array<any>, viewContainer: IViewContainer) {
-        this.Parameters = parameters;        
-        this.ViewContainer = viewContainer;
+    Route: string;
+    constructor(parameters: Array<any>, viewContainer: IViewContainer, route: string = null) {
+        this.Route = route;
+        this.Parameters = parameters;
+        this.ViewContainer = viewContainer;        
     }
 }
 
@@ -1611,18 +1627,20 @@ Window.prototype.Exception = function (...parameters: any[]) {
     }
 };
 Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
+    var p = parameters;
+    p = p.length == 1 && p[0] == "" ? null : p;
     var vc = Reflection.NewObject(type),
-        vi = new ViewInstance(parameters, vc);
+        vi = new ViewInstance(p, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url: string) {
-    var vc: IViewContainer = ViewContainers.First(d => d.IsUrlPatternMatch(url));
+    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.First(d => d.IsUrlPatternMatch(url));
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {
         var p = url.split("/"),
-            vi = new ViewInstance(p, vc);
+            vi = new ViewInstance(p, vc, window.location.pathname);
         vc.Show(vi);
         HistoryManager.Add(vi);
     }
-}
+};

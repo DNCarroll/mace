@@ -21,8 +21,10 @@ Window.prototype.Exception = function (...parameters: any[]) {
     }
 };
 Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
+    var p = parameters;
+    p = p.length == 1 && p[0] == "" ? null : p;
     var vc = Reflection.NewObject(type),
-        vi = new ViewInstance(parameters, vc);
+        vi = new ViewInstance(p, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
@@ -31,7 +33,7 @@ Window.prototype.ShowByUrl = function (url: string) {
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {
         var p = url.split("/"),
-            vi = new ViewInstance(p, vc);
+            vi = new ViewInstance(p, vc, window.location.pathname);
         vc.Show(vi);
         HistoryManager.Add(vi);
     }

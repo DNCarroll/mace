@@ -1,5 +1,5 @@
 ﻿class UseOfAllTypeScriptObjectsBinder extends Binder {
     constructor() {
-        super(['ID'], null, MaceTestObject);
+        super(['ID'], null, true, MaceTestObject);
     }
 }

@@ -978,6 +978,7 @@ var DataLoader = (function () {
 var ViewContainers = new Array();
 var ViewContainer = (function () {
     function ViewContainer() {
+        this.UrlPattern = null;
         this.Views = new Array();
         this.IsDefault = false;
         var n = Reflection.GetName(this.constructor);
@@ -987,7 +988,7 @@ var ViewContainer = (function () {
     }
     ViewContainer.prototype.Show = function (route) {
         var rp = route.Parameters, t = this;
-        if (rp.length == 1 && t.IsDefault) {
+        if (rp && rp.length == 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -1000,7 +1001,7 @@ var ViewContainer = (function () {
     ViewContainer.prototype.IsUrlPatternMatch = function (url) {
         if (!Is.NullOrEmpty(url)) {
             url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
-            var p = this.UrlPattern();
+            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.UrlBase;
             if (p) {
                 var regex = new RegExp(p, 'i');
                 return url.match(regex) ? true : false;
@@ -1016,26 +1017,37 @@ var ViewContainer = (function () {
             ProgressManager.Hide();
         }
     };
-    ViewContainer.prototype.Url = function (route) {
-        var rp = route.Parameters, t = this;
-        if (rp) {
-            if (rp.length == 1 && t.IsDefault) {
-                rp = new Array();
-            }
-            if (rp.length > 0) {
-                var p = rp[0] == t.UrlBase ?
-                    rp.slice(1).join("/") :
-                    rp.join("/");
-                return t.UrlBase + (p.length > 0 ? "/" + p : "");
-            }
+    ViewContainer.prototype.Url = function (viewInstance) {
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
+        if (vi.Route) {
+            return vi.Route;
         }
-        return t.UrlBase;
+        else if (t.UrlPattern != null) {
+            var up = t.UrlPattern().split("/"), pi = 0, nu = new Array();
+            for (var i = 0; i < up.length; i++) {
+                var p = up[i];
+                if (p.indexOf("(?:") == 0) {
+                    if (!rp) {
+                        break;
+                    }
+                    if (pi < rp.length) {
+                        nu.Add(rp[pi]);
+                    }
+                    else {
+                        break;
+                    }
+                    pi++;
+                }
+                else {
+                    nu.Add(up[i]);
+                }
+            }
+            return nu.join("/");
+        }
+        return t.UrlBase + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     };
     ViewContainer.prototype.DocumentTitle = function (route) {
         return this.UrlBase;
-    };
-    ViewContainer.prototype.UrlPattern = function () {
-        return "^" + this.UrlBase;
     };
     ViewContainer.prototype.UrlTitle = function (route) {
         return this.UrlBase;
@@ -1057,7 +1069,9 @@ var SingleViewContainer = (function (_super) {
     return SingleViewContainer;
 }(ViewContainer));
 var ViewInstance = (function () {
-    function ViewInstance(parameters, viewContainer) {
+    function ViewInstance(parameters, viewContainer, route) {
+        if (route === void 0) { route = null; }
+        this.Route = route;
         this.Parameters = parameters;
         this.ViewContainer = viewContainer;
     }
@@ -1534,7 +1548,9 @@ Window.prototype.Show = function (type) {
     for (var _i = 1; _i < arguments.length; _i++) {
         parameters[_i - 1] = arguments[_i];
     }
-    var vc = Reflection.NewObject(type), vi = new ViewInstance(parameters, vc);
+    var p = parameters;
+    p = p.length == 1 && p[0] == "" ? null : p;
+    var vc = Reflection.NewObject(type), vi = new ViewInstance(p, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
@@ -1542,7 +1558,7 @@ Window.prototype.ShowByUrl = function (url) {
     var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
     vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
     if (vc) {
-        var p = url.split("/"), vi = new ViewInstance(p, vc);
+        var p = url.split("/"), vi = new ViewInstance(p, vc, window.location.pathname);
         vc.Show(vi);
         HistoryManager.Add(vi);
     }

@@ -11,6 +11,7 @@ var __extends = (this && this.__extends) || (function () {
 var ViewContainers = new Array();
 var ViewContainer = (function () {
     function ViewContainer() {
+        this.UrlPattern = null;
         this.Views = new Array();
         this.IsDefault = false;
         var n = Reflection.GetName(this.constructor);
@@ -20,7 +21,7 @@ var ViewContainer = (function () {
     }
     ViewContainer.prototype.Show = function (route) {
         var rp = route.Parameters, t = this;
-        if (rp.length == 1 && t.IsDefault) {
+        if (rp && rp.length == 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -33,7 +34,7 @@ var ViewContainer = (function () {
     ViewContainer.prototype.IsUrlPatternMatch = function (url) {
         if (!Is.NullOrEmpty(url)) {
             url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
-            var p = this.UrlPattern();
+            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.UrlBase;
             if (p) {
                 var regex = new RegExp(p, 'i');
                 return url.match(regex) ? true : false;
@@ -49,26 +50,37 @@ var ViewContainer = (function () {
             ProgressManager.Hide();
         }
     };
-    ViewContainer.prototype.Url = function (route) {
-        var rp = route.Parameters, t = this;
-        if (rp) {
-            if (rp.length == 1 && t.IsDefault) {
-                rp = new Array();
-            }
-            if (rp.length > 0) {
-                var p = rp[0] == t.UrlBase ?
-                    rp.slice(1).join("/") :
-                    rp.join("/");
-                return t.UrlBase + (p.length > 0 ? "/" + p : "");
-            }
+    ViewContainer.prototype.Url = function (viewInstance) {
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
+        if (vi.Route) {
+            return vi.Route;
         }
-        return t.UrlBase;
+        else if (t.UrlPattern != null) {
+            var up = t.UrlPattern().split("/"), pi = 0, nu = new Array();
+            for (var i = 0; i < up.length; i++) {
+                var p = up[i];
+                if (p.indexOf("(?:") == 0) {
+                    if (!rp) {
+                        break;
+                    }
+                    if (pi < rp.length) {
+                        nu.Add(rp[pi]);
+                    }
+                    else {
+                        break;
+                    }
+                    pi++;
+                }
+                else {
+                    nu.Add(up[i]);
+                }
+            }
+            return nu.join("/");
+        }
+        return t.UrlBase + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     };
     ViewContainer.prototype.DocumentTitle = function (route) {
         return this.UrlBase;
-    };
-    ViewContainer.prototype.UrlPattern = function () {
-        return "^" + this.UrlBase;
     };
     ViewContainer.prototype.UrlTitle = function (route) {
         return this.UrlBase;

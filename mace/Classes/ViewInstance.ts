@@ -1,8 +1,10 @@
-﻿class ViewInstance {    
+﻿class ViewInstance {
     Parameters: Array<any>;
     ViewContainer: IViewContainer;    
-    constructor(parameters: Array<any>, viewContainer: IViewContainer) {
-        this.Parameters = parameters;        
-        this.ViewContainer = viewContainer;
+    Route: string;
+    constructor(parameters: Array<any>, viewContainer: IViewContainer, route: string = null) {
+        this.Route = route;
+        this.Parameters = parameters;
+        this.ViewContainer = viewContainer;        
     }
 }

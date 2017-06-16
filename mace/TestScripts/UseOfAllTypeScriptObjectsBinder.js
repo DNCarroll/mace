@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
 var UseOfAllTypeScriptObjectsBinder = (function (_super) {
     __extends(UseOfAllTypeScriptObjectsBinder, _super);
     function UseOfAllTypeScriptObjectsBinder() {
-        return _super.call(this, ['ID'], null, MaceTestObject) || this;
+        return _super.call(this, ['ID'], null, true, MaceTestObject) || this;
     }
     return UseOfAllTypeScriptObjectsBinder;
 }(Binder));
