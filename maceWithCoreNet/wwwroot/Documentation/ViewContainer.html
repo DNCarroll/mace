@@ -1,48 +1,65 @@
-﻿<div class="col-md-11">
-    <h4>Constructing ViewContainers</h4>
-    <div class="col-md-11 col-md-offset-1">
-        <p>
-            ViewContainers should be set up as Singletons (see examples below).  mace.ts is convention based unless behavior is overridden.  When naming a ViewContainer name the ViewContainer according to Url that it should be handling.  For example if the ViewContainer is suppose to handle '/Orders' then the ViewContainer should be named OrdersContainer.  There are <a href="https://marketplace.visualstudio.com/items?itemName=vs-publisher-335138.maceSnippets">three helper snipptes</a> for building ViewContainers.
-        </p>
+﻿<div class="col-md-12">
+    <ul class="pager">
+        <li class="previous"><a href="javascript:" onclick="VcDocumentation.ChangePage(false);">&larr; Previous</a></li>
+        <li class="next"><a href="javascript:" onclick="VcDocumentation.ChangePage(true);">&rarr; Next</a></li>
+    </ul>
+
+    <div id="page1" style="opacity:1">
+        <h3>Constructing ViewContainers</h3>
+        <div class="col-md-12">
+            <p>
+                ViewContainers should be set up as Singletons (example to follow).  mace.ts is convention based unless behavior is overridden.  When naming a ViewContainer name the ViewContainer according to Url that it should be handling.  For example if the ViewContainer is suppose to handle '/Orders' then the ViewContainer should be named OrdersContainer.  There are <a href="https://marketplace.visualstudio.com/items?itemName=vs-publisher-335138.maceSnippets">three helper snipptes</a> for building ViewContainers.
+            </p>
+        </div>
+
     </div>
-    <h4>Methods</h4>
-    <div class="col-md-11 col-md-offset-1">
-        <dl class="dl-horizontal">
-            <dt>constructor()</dt>
-            <dd>
-                <p>
-                    Some customization can be done here including designating the Container as the default Container in the case when a url isn't matched to a ViewContainer (this.IsDefault = true;).  Can also tell the container what HTML fragments to get ('Views') and what their HTML Container Element is.
-                </p>
-            </dd>
-            <dt>
-                Show
-            </dt>
-            <dd>
-                <p>
-                    This method starts the process of retrieving the View(s) and getting them into their HTML Container Element.  It should not be overridden.
-                </p>
-            </dd>
-            <dt>IsUrlPatternMatch</dt>
-            <dd>This method determines if the ViewContainer is a match to the current Url.  It should not normaly be overridden.</dd>
-            <dt>ViewLoadCompleted</dt>
-            <dd>This method helps cycle through View(s) to insure smooth load of the HTML fragments to their HTML Containers.  It should not be overridden.</dd>
-            <dt>Url</dt>
-            <dd>Specifies the url to set in the browser based on the parameters.  It should not normally be overridden.</dd>
-            <dt>DocumentTitle</dt>
-            <dd>Value for the browser document title.  Can override this is have something specific that is needed for the current Url.</dd>
-            <dt>UrlPattern</dt>
-            <dd>This returns the UrlBase field if it is not overridden.  If Url is not standard then you will want to override this method.</dd>
-            <dt>UrlTitle</dt>
-            <dd>This value is provided to the History Manager.  Can be overridden.</dd>
-        </dl>
+
+    <div id="page2" style="opacity:0; display:none">
+        <h3>Page Container Types</h3>
+        <div class="col-md-11 col-md-offset-1">
+            <p><strong>ViewContainer</strong> is the base class mace.ts.  It implements IViewContainer.  Relevant methods on next page.</p>
+            <p><strong>SingleViewContainer</strong> is an extension of the ViewContainer that assumes the ViewContainer has only one view and its view fragment is housed in the server path 'Views' and the view will follow the name of the Container.</p>
+        </div>
     </div>
-    <h4>SingleViewContainer</h4>
-    <div class="col-md-11 col-md-offset-1">
-        <p>An extension of the ViewContainer that assumes the ViewContainer has only one view and its view fragment is housed in the server path 'Views' and the view will follow the name of the Container.</p>
+
+    <div id="page3" style="opacity:0; display:none;">
+        <h3>Methods</h3>
+        <div class="col-md-12">
+            <dl class="dl-horizontal">
+                <dt>constructor()</dt>
+                <dd>
+                    <p>
+                        Some customization can be done here including designating the Container as the default Container in the case when a url isn't matched to a ViewContainer (this.IsDefault = true;).  Can also tell the container what HTML fragments to get ('Views') and what their HTML Container Element is.
+                    </p>
+                </dd>
+                <dt>
+                    Show
+                </dt>
+                <dd>
+                    <p>
+                        This method starts the process of retrieving the View(s) and getting them into their HTML Container Element.  It should not be overridden.
+                    </p>
+                </dd>
+                <dt>IsUrlPatternMatch</dt>
+                <dd>This method determines if the ViewContainer is a match to the current Url.  It should not normaly be overridden.</dd>
+                <dt>ViewLoadCompleted</dt>
+                <dd>This method helps cycle through View(s) to insure smooth load of the HTML fragments to their HTML Containers.  It should not be overridden.</dd>
+                <dt>Url</dt>
+                <dd>Specifies the url to set in the browser based on the parameters.  It should not normally be overridden.</dd>
+                <dt>DocumentTitle</dt>
+                <dd>Value for the browser document title.  Can override this is have something specific that is needed for the current Url.</dd>
+                <dt>UrlPattern</dt>
+                <dd>This returns the UrlBase field if it is not overridden.  If Url is not standard then you will want to override this method.</dd>
+                <dt>UrlTitle</dt>
+                <dd>This value is provided to the History Manager.  Can be overridden.</dd>
+            </dl>
+        </div>
     </div>
-    <h4>Examples</h4>
-    <div class="col-md-11 col-md-offset-1">
-        <textarea style="width:100%; height:20em; border:none;">
+    
+    <div id="page4" style="opacity:0; display:none;">
+        <h3>Examples</h3>
+        <div class="col-md-12">
+            <textarea style="width:100%; height:20em; border:none;">
 class ViewDocumentationContainer extends ViewContainer {
 private static instance: ViewDocumentationContainer = new ViewDocumentationContainer();
     constructor() {
@@ -56,7 +73,7 @@ private static instance: ViewDocumentationContainer = new ViewDocumentationConta
     }
 }
     </textarea>
-        <textarea style="width:100%; height:20em; border:none;">
+            <textarea style="width:100%; height:20em; border:none;">
 class AutoOrdersContainer extends SingleViewContainer {
 private static instance: AutoOrdersContainer = new AutoOrdersContainer();
     constructor() {
@@ -67,6 +84,8 @@ private static instance: AutoOrdersContainer = new AutoOrdersContainer();
         this.IsDefault = false;
     }
 }
+        
         </textarea>
+        </div>
     </div>
 </div>

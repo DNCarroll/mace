@@ -1178,7 +1178,7 @@ var HistoryContainer;
         History.prototype.Dispatch = function (eventType) {
             var _this = this;
             var l = this.eHandlrs.Where(function (e) { return e.EventType === eventType; });
-            l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this.CurrentViewInstance(), eventType)); });
+            l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this.CurrentViewInstance().ViewContainer, eventType)); });
         };
         return History;
     }());

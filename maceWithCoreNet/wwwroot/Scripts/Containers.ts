@@ -81,11 +81,10 @@ class OrderContainer extends SingleViewContainer {
 module Main {    
     export function Navigate<T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {        
         (<HTMLInputElement>"menu-btn".Element()).checked = false;
-        window.Show(type, parameters);
+        window.Show(type, parameters);        
     }
 
 }
-HistoryManager.AddListener(EventType.Completed, (e) => {
+HistoryManager.AddListener(EventType.Completed, (e) => {    
     "ViewHeader".Element().innerHTML = e.Sender.Name;
 });
-

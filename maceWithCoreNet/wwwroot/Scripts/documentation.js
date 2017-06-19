@@ -103,8 +103,25 @@ var Documentation;
     }
     Documentation.Navigate = Navigate;
 })(Documentation || (Documentation = {}));
+var VcDocumentation;
+(function (VcDocumentation) {
+    var position = 1;
+    function ChangePage(isNext) {
+        var lastposition = position, previousElement = ("page" + lastposition).Element();
+        position = isNext ? position === 4 ? 1 : position + 1 : position === 1 ? 4 : position - 1;
+        var currentElement = ("page" + position).Element();
+        previousElement.style.opacity = "0";
+        previousElement.style.display = "none";
+        currentElement.style.opacity = "1";
+        currentElement.style.display = "block";
+    }
+    VcDocumentation.ChangePage = ChangePage;
+})(VcDocumentation || (VcDocumentation = {}));
 HistoryManager.AddListener(EventType.Completed, function (e) {
-    var n = e.Sender.ViewContainer.Name.replace("Documentation/", "");
+    var n = e.Sender.Name.replace("Documentation/", ""), bc = "breadCrumbWhere".Element();
     "ViewHeader".Element().innerHTML = n;
+    bc.style.opacity = n === "Documentation" ? "0" : "1";
+    bc.innerHTML = n;
+    "DocumentationCrumb".Element().className = n === "Documentation" ? "active" : null;
 });
 //# sourceMappingURL=documentation.js.map

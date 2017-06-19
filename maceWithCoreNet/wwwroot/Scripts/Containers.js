@@ -131,6 +131,6 @@ var Main;
     Main.Navigate = Navigate;
 })(Main || (Main = {}));
 HistoryManager.AddListener(EventType.Completed, function (e) {
-    "ViewHeader".Element().innerHTML = e.Sender.ViewContainer.Name;
+    "ViewHeader".Element().innerHTML = e.Sender.Name;
 });
 //# sourceMappingURL=Containers.js.map

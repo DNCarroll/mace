@@ -67,10 +67,26 @@ module Documentation {
         window.Show(type, parameters);
     }    
 }
+module VcDocumentation {
+    var position = 1;
+    export function ChangePage(isNext: boolean) {
+        var lastposition = position, previousElement = ("page" + lastposition).Element();
+        position = isNext ? position === 4 ? 1 : position + 1 : position === 1 ? 4 : position - 1;
+        var currentElement = ("page" + position).Element();
+        previousElement.style.opacity = "0";
+        previousElement.style.display = "none";
+        currentElement.style.opacity = "1";
+        currentElement.style.display = "block";
+    }
+}
 HistoryManager.AddListener(EventType.Completed, (e) => {
-    var n = e.Sender.Name.replace("Documentation/", "");
+    var n = e.Sender.Name.replace("Documentation/", ""), bc = "breadCrumbWhere".Element();
     "ViewHeader".Element().innerHTML = n;
+    bc.style.opacity = n === "Documentation" ? "0" : "1";
+    bc.innerHTML = n;
+    "DocumentationCrumb".Element().className = n === "Documentation" ? "active" : null;
 });
+
 
 
 
