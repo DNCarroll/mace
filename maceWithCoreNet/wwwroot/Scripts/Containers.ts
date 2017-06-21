@@ -1,4 +1,10 @@
 ﻿window["IsDebug"] = true;
+class OrdersView extends View {
+    constructor() {
+        super(CacheStrategy.View, "content");        
+    }
+}
+
 class Order extends DataObject {
     constructor(serverObject) {
         super(serverObject, ["SaveButtonClass", "SaveOccurring"]);

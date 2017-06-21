@@ -8,7 +8,7 @@ interface HTMLElement extends Element {
     GetDataSetAttributes: () => { Attribute: string; Property: any; }[];        
     Binder: IBinder;
     DataObject: IObjectState;   
-    DeleteFromServer(); 
+    Delete(); 
     Save();
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
@@ -118,7 +118,7 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     }
     return r;
 };
-HTMLElement.prototype.DeleteFromServer = function () {
+HTMLElement.prototype.Delete = function () {
     var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {
         p.Binder.Delete(this, null);

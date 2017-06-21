@@ -6,6 +6,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\Documentation\Binder\**" />
+    <Compile Remove="wwwroot\Documentation\DataObject\**" />
+    <Compile Remove="wwwroot\Documentation\ViewContainer\**" />
+    <Compile Remove="wwwroot\Documentation\View\**" />
+    <Content Remove="wwwroot\Documentation\Binder\**" />
+    <Content Remove="wwwroot\Documentation\DataObject\**" />
+    <Content Remove="wwwroot\Documentation\ViewContainer\**" />
+    <Content Remove="wwwroot\Documentation\View\**" />
+    <EmbeddedResource Remove="wwwroot\Documentation\Binder\**" />
+    <EmbeddedResource Remove="wwwroot\Documentation\DataObject\**" />
+    <EmbeddedResource Remove="wwwroot\Documentation\ViewContainer\**" />
+    <EmbeddedResource Remove="wwwroot\Documentation\View\**" />
+    <None Remove="wwwroot\Documentation\Binder\**" />
+    <None Remove="wwwroot\Documentation\DataObject\**" />
+    <None Remove="wwwroot\Documentation\ViewContainer\**" />
+    <None Remove="wwwroot\Documentation\View\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="wwwroot\css\main.css" />
     <Content Include="wwwroot\css\menu.css" />
     <Content Include="wwwroot\css\normalize.css" />
@@ -16,17 +35,10 @@
     <Content Include="wwwroot\css\testmenu.css" />
     <Content Include="wwwroot\default.html" />
     <Content Include="wwwroot\Documentation\Binder.html" />
-    <Content Include="wwwroot\Documentation\Binder\Binder.html" />
-    <Content Include="wwwroot\Documentation\Binder\default.html" />
     <Content Include="wwwroot\Documentation\DataObject.html" />
-    <Content Include="wwwroot\Documentation\DataObject\DataObject.html" />
-    <Content Include="wwwroot\Documentation\DataObject\default.html" />
     <Content Include="wwwroot\Documentation\default.html" />
     <Content Include="wwwroot\Documentation\View.html" />
     <Content Include="wwwroot\Documentation\ViewContainer.html" />
-    <Content Include="wwwroot\Documentation\ViewContainer\default.html" />
-    <Content Include="wwwroot\Documentation\ViewContainer\ViewContainer.html" />
-    <Content Include="wwwroot\Documentation\View\View.html" />
     <Content Include="wwwroot\js\jquery-3.2.1.min.js" />
     <Content Include="wwwroot\Scripts\Containers.ts" />
     <Content Include="wwwroot\Scripts\documentation.ts" />

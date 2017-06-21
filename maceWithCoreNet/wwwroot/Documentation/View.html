@@ -1,1 +1,89 @@
-﻿View
+﻿<div class="col-md-12">
+    <ul class="pager">
+        <li class="previous"><a href="javascript:" onclick="VcDocumentation.ChangePage(false);">&larr; Previous</a></li>
+        <li class="next"><a href="javascript:" onclick="VcDocumentation.ChangePage(true);">&rarr; Next</a></li>
+    </ul>
+
+    <div id="page1" style="opacity:1">
+        <h3>View Construction</h3>
+        <div class="col-md-12 lead well">
+            <p>
+                Views will normally not need to be set up unless customization is required.  View object like ViewContianers are also convention based unless behavior is overridden.  When naming, name according to HTML Fragment Url that should be retrieved.  <a href="https://marketplace.visualstudio.com/items?itemName=vs-publisher-335138.maceSnippets">Snippet Package</a> contains a snippet for building Views.
+            </p>
+        </div>
+
+    </div>
+
+    <div id="page2" style="opacity:0; display:none">
+        <h3>View Types</h3>
+        <div class="col-md-12 well">
+            <p><strong>View</strong> is the base class mace.ts.  It implements IView.  Relevant methods on next page.  View in the name is a keyword and removed when using the view determine the path to the HTML Fragment.</p>            
+        </div>
+    </div>
+
+    <div id="page3" style="opacity:0; display:none;">
+        <h3>Methods</h3>
+        <div class="col-md-12 well">
+            <dl class="dl-horizontal">
+                <dt>constructor(...)</dt>
+                <dd>
+                    <p>                        
+                        If implementing the SingleViewContainer(one View per Container) the HTML Fragment for the view should be stored under server path /Views/{ViewName}.html. See example on next page.<br /><br />
+                        <strong>parameters:</strong>
+                        cacheStrategy:If CacheStrategy.ViewAndPreload or CacheStrategy.Preload is designated the Preload() method should be overridden.  More on Preload below.<br /><br />
+                        containerId: is the HTML content container for the HTML Fragment that is retrieved.<br /><br />
+                        viewPath: path to the HTMLFragment.  In the case when the HTMLFragment exists somewhere other than /Views/{ViewName}.html.
+                    </p>
+                </dd>
+                <dt>
+                    Prefix()
+                </dt>
+                <dd>
+                    <p>
+                        Can be overridden to some other path than '/Views/' for the HTML Fragment.  If overridden the naming convention for the 'View' will still hold true (Prefix() + {ViewName})
+                    </p>
+                </dd>
+                <dt>Preload()</dt>
+                <dd>This method should be set if CacheStrategy.ViewAndPreload or CacheStrategy.Preload.  The method is called prior to the retrieve of the HTML Fragment so that any action occurring within it is available for subsequent Binding of the HTML Fragment.  Use case of this method might center around secondary lookup data that is needed for the Bound HTML Fragment.  Preload is constrained to implement IPreViewLoad which is and object that has a function of Execute().  mace.ts Contains DataLoaders which implements this Interface and allows for multiple 'DataLoader' classes to be attached to it.</dd>                
+            </dl>
+        </div>
+    </div>
+
+    <div id="page4" style="opacity:0; display:none;">
+        <h3>Examples</h3>
+        <div class="col-md-12 well">
+            <textarea style="width:100%; height:20em; border:none;">
+class ViewDocumentationContainer extends ViewContainer {
+private static instance: ViewDocumentationContainer = new ViewDocumentationContainer();
+    constructor() {
+        if (ViewDocumentationContainer.instance) {
+            return ViewDocumentationContainer.instance;
+        }
+        super();
+        this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/View.html"));
+        this.IsDefault = false;
+        this.UrlBase = "View";
+    }
+}
+    </textarea>
+            <sub>note - inline use of base View class, pointing to a path other than /Views/{ViewName}.html</sub><br /><br />
+            <textarea style="width:100%; height:20em; border:none;">
+class AutoOrdersContainer extends SingleViewContainer {
+private static instance: AutoOrdersContainer = new AutoOrdersContainer();
+    constructor() {
+        if (AutoOrdersContainer.instance) {
+            return AutoOrdersContainer.instance;
+        }
+        super();
+        this.IsDefault = false;
+    }
+}
+        
+        </textarea>
+            <sub>note - there is no addition of a view.  When using SingleViewContainer it is assumed that the HTML Fragment for the view will correspond to the ViewContainer Name minus 'Container'.  In this case the view is located at /Views/AutoOrders.html</sub><br /><br />
+
+
+        </div>
+    </div>
+
+</div>

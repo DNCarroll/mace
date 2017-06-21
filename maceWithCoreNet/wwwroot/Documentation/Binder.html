@@ -1,1 +1,104 @@
-﻿binder
+﻿<div class="col-md-12">
+    <ul class="pager">
+        <li class="previous"><a href="javascript:" onclick="VcDocumentation.ChangePage(false);">&larr; Previous</a></li>
+        <li class="next"><a href="javascript:" onclick="VcDocumentation.ChangePage(true);">&rarr; Next</a></li>
+    </ul>
+
+    <div id="page1" style="opacity:1">
+        <h3>Binder Construction</h3>
+        <div class="col-md-12 lead well">
+            <p>
+                Binders will normally not need to be set up unless customization is required.  Binders are attached to HTML View Fragments via the attribute data-binder.  They are not connected to Views or ViewContainers directly.  <a href="https://marketplace.visualstudio.com/items?itemName=vs-publisher-335138.maceSnippets">Snippets Package</a> contains a snippet for Binders.
+            </p>
+        </div>
+
+    </div>
+
+    <div id="page2" style="opacity:0; display:none">
+        <h3>Binder Types</h3>
+        <div class="col-md-12 well">
+            <p><strong>Binder</strong> is the base class mace.ts.  It implements IBinder.  Relevant methods on next page.  Binders normally have no naming convention connections as they are declared through data-attribute of HTML View Fragments.  The exception would be when inheriting and customizing the binder.  Binders naming convention in that case default to point to /Api/{BinderName} (Binder keyword is removed when using the by convention method.)</p>
+        </div>
+    </div>
+
+    <div id="page3" style="opacity:0; display:none;">
+        <h3>Methods</h3>
+        <div class="col-md-12 well">
+            <dl class="dl-horizontal">
+                <dt>constructor(...)</dt>
+                <dd>
+                    <p>                        
+                        <strong>parameters:</strong>
+                        primaryKeys: array of string field that designate the PrimaryKey(s) for incoming DataObjects.  Keys are used to find DataObjects within tabular data for returns from POST, PUT, AND DELETE Api Methods.
+                        api: If not supplied uses naming convention {Name}Binder to determine the api path.  
+                        autoUpdate: If set to true then when property change events occur ajax calls are made to the PUT method automatically
+                        TypeObject: In the case when the default 'DataObject' of mace.ts is not used.  Must implement IObjectState.
+                        staticProperties: as of this documentation this feature has not been used.  The thought here was the client receives data from a dynamic object from server and properties that should be attached are not.  This string array insures that the client has accounted for static property fields that should occur.
+                    </p>
+                </dd>
+                <dt>
+                    ApiPrefix()
+                </dt>
+                <dd>
+                    <p>
+                        Can be overridden to some other path than '/Api/'.  If overridden the naming convention for the 'Binder' will still hold true (ApiPrefix() + {BinderName})
+                    </p>
+                </dd>
+                <dt>RunWhenObjectsChange()</dt>
+                <dd>
+                    is just a callback method that is hit when the DataObject state changes.  This method has no normal functionality only when custimization requires its use and sets it.  This accounts for any object or array of objects that are bound to HTML View Fragments.
+                </dd>
+                <dt>Add(obj)</dt>
+                <dd>
+                    can be attached utilized in javascript to add a new object tabular data or form data.
+                </dd>
+                <dt>Delete(sender)</dt>
+                <dd>
+                    can be attached to a button in javascript to delete the row level object from tabular or form data.
+                </dd>
+                <dt>Save(obj)</dt>
+                <dd>can be attached to click event of HTMLElement to save the associated DataObject to the standard PUT Api method.</dd>
+                <dt>SaveDirty()</dt>
+                <dd>can be attached to button to save all dirty DataObjects back to an PUT Api method called 'SaveDirty'.</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div id="page4" style="opacity:0; display:none;">
+        <h3>Examples</h3>
+        <div class="col-md-12 well">            
+            <textarea style="width:100%; height:20em; border:none;">
+            &lt;div class="col-md-10" data-binder="Binder(['Id'], '/Api/Order', false, Order)"&gt;
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;form class="form-horizontal"&gt;
+    </textarea>
+            <sub></sub><br /><br />
+            <textarea style="width:100%; height:20em; border:none;">
+class OrdersBinder extends Binder {
+    constructor() {
+        super(['Id'], '/Api/Orders');
+        this.RunWhenObjectsChange = () => {
+            var e = "SaveOrders".Element();
+            e.className = this.DataObjects.First(o => o.ObjectState === ObjectState.Dirty) != null ? "btn btn-warning right" : "btn btn-success right disabled";
+        };
+    }
+}
+        </textarea>
+            <sub>note - this example shows implementation of custom binder and the RunWhenObjectsChange() method.  In this case its to enable disable a save button for Dirty state objects in a tabular view.</sub><br /><br />            
+            <p>
+                <strong>Add(obj)</strong> - implemented through javascript once an object is formed up the Binder.Add(obj) method can be called.  The Add(obj) method points to the Api POST method.
+            </p>
+            <p>
+                <strong>Delete(sender)</strong> - The onclick below references a Delete method which is a prototype of a HTMLElement that calls the associated Binder.Delete(sender) method.<br />
+                &lt;input type="button" value="Delete" onclick="this.Delete()" /&gt;
+            </p>
+            <p>
+                <strong>Save(obj)</strong> - within the GitHub project from /Views/Order.html.  The onclick below references a Save method which is a prototype of a HTMLElement that calls the associated Binder.Save(obj) method.<br />
+                &lt;input type="button" value="Save" data-class="SaveButtonClass" onclick="this.Save()" /&gt;
+            </p>
+            <p>
+                <strong>SaveDirty()</strong> - within the GitHub project of this project from /Views/Orders.html.  The onclick below references a SaveDirty method which is a prototype of HTMLElement that calls the associated Binder.SaveDirty() method.<br />
+                &lt;input type="button" id="SaveOrders" onclick="this.SaveDirty()" class="btn btn-success right disabled" style="float:right;" value="Save" /&gt;
+            </p>
+        </div>
+    </div>
+</div>

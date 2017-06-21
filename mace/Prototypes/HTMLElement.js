@@ -103,7 +103,7 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     }
     return r;
 };
-HTMLElement.prototype.DeleteFromServer = function () {
+HTMLElement.prototype.Delete = function () {
     var t = this, p = t.Ancestor(function (p) { return p.Binder != null; });
     if (p && p.Binder) {
         p.Binder.Delete(this, null);
