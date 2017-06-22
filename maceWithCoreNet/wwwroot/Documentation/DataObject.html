@@ -1,1 +1,98 @@
-﻿DataObject
+﻿<div class="col-md-12">
+    <ul class="pager">
+        <li class="previous"><a href="javascript:" onclick="VcDocumentation.ChangePage(false);">&larr; Previous</a></li>
+        <li class="next"><a href="javascript:" onclick="VcDocumentation.ChangePage(true);">&rarr; Next</a></li>
+    </ul>
+
+    <div id="page1" style="opacity:1">
+        <h3>DataObject Construction</h3>
+        <div class="col-md-12 lead well">
+            <p>
+                DataObject will normally not need to be set up unless customization is required.  DataObject nestle the incoming server data (object from json from GET method).  Using TypeScript, equivalent transpiler, or ECMAScript you access properties on the server object via 'get' and 'set' methods (examples to follow on 'Examples').  <a href="https://marketplace.visualstudio.com/items?itemName=vs-publisher-335138.maceSnippets">Snippets Package</a> contains a snippet for DataObject.
+            </p>
+        </div>
+
+    </div>
+
+    <div id="page2" style="opacity:0; display:none">
+        <h3>DataObject Types</h3>
+        <div class="col-md-12 well">
+            <p><strong>DataObject</strong> is the base class mace.ts.  It implements IObjectState.  Relevant methods on next page.</p>
+        </div>
+    </div>
+
+    <div id="page3" style="opacity:0; display:none;">
+        <h3>Methods</h3>
+        <div class="col-md-12 well">
+            <dl class="dl-horizontal">
+                <dt>constructor(...)</dt>
+                <dd>
+                    <p>
+                        <strong>parameters:</strong><br />
+                        serverObject: is the incoming object from the GET Api method.  When inheriting from DataObject the serverObject should be in its constructor and passed to the super method of the DataObject.<br />
+                        propertiesThatShouldSubscribeToObjectStateChanged: is an array of properties that should call change event when the Object State changes.<br />
+                        staticProperties: is an array of properties that may not be on the incoming serverObject but need to be accounted for.  May happen when you call a GET Api method that returns a dynamic and the a property is null and not included in the dynamic object.
+                    </p>
+                </dd>
+                <dt>SetServerProperty</dt>
+                <dd>if inheriting from DataObject and want to create properties for client side or want to have set access to the server properties this method would be used within the 'set' method see example that follows.</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div id="page4" style="opacity:0; display:none;">
+        <h3>Examples</h3>
+        <textarea style="width:100%; height:23em; border:none;">
+class Order extends DataObject {
+    constructor(serverObject) {
+        super(serverObject);
+    }    
+    get SomeCustomProperty() {
+        var d = this["someProperty"];
+        return d != null ? true : false;
+    }
+    get OrderId(): number {
+        return this.ServerObject["OrderId"];
+    }
+    set OrderId(value: number) {
+        this.SetServerProperty("OrderId", value);
+    }
+}
+        </textarea>
+        <span class="small">**the serverObject is in constructor and passed to the super and properties of the server object are made available through 'get' and 'set' method**</span><br /><br />
+        <textarea style="width:100%; height:47em; border:none;">
+class Order extends DataObject {
+    constructor(serverObject) {
+        super(serverObject, ["SaveButtonClass", "SaveOccurring"]);
+    }
+    get SaveButtonClass(): string {
+        return this.ObjectState === ObjectState.Dirty ?
+            "btn btn-warning right" :
+            this.ObjectState === ObjectState.Cleaning ?
+                "btn btn- warning disabled" :
+                "btn btn-success right disabled";
+    }    
+    saveOccurring = "off";
+    get SaveOccurring(): string {
+        var t = this;
+        if (t.ObjectState === ObjectState.Dirty) {
+            t.saveOccurring = "blink";
+            t.runTimeout();
+        }
+        return t.saveOccurring;
+    }
+    runTimeout() {
+        var t = this;
+        setTimeout(function () {
+            if (t.ObjectState !== ObjectState.Clean) {
+                t.runTimeout();
+            }
+            t.saveOccurring = "off";
+            t.InstigatePropertyChangedListeners("SaveOccurring", false);
+        }, 1250);
+    }
+}
+        </textarea>
+        <span class="small">**the super constructor includes the use of the propertiesThatShouldSubscribeToObjectStateChanged.  The SaveButtonClass is on the /View/Order.html of this project.  It is bound to an input button's class such that it is active or inactive.**</span><br /><br />
+    </div>
+</div>

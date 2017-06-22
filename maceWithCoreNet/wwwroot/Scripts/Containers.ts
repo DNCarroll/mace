@@ -4,7 +4,6 @@ class OrdersView extends View {
         super(CacheStrategy.View, "content");        
     }
 }
-
 class Order extends DataObject {
     constructor(serverObject) {
         super(serverObject, ["SaveButtonClass", "SaveOccurring"]);

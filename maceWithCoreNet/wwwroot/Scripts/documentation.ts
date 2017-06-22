@@ -20,7 +20,7 @@ class BinderContainer extends ViewContainer {
             return BinderContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/Binder.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/Binder.html"));
         this.IsDefault = false;
         this.Name = "Documentation/Binder";
     }
@@ -32,7 +32,7 @@ class DataObjectContainer extends ViewContainer {
             return DataObjectContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/DataObject.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/DataObject.html"));
         this.IsDefault = false;
         this.Name = "Documentation/DataObject";
     }
@@ -44,7 +44,7 @@ class ViewContainerContainer extends ViewContainer {
             return ViewContainerContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/ViewContainer.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/ViewContainer.html"));
         this.IsDefault = false;
         this.Name = "Documentation/ViewContainer";
     }
@@ -56,7 +56,7 @@ class ViewDocumentationContainer extends ViewContainer {
             return ViewDocumentationContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/View.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/View.html"));
         this.IsDefault = false;
         this.Name = "Documentation/View";
     }
@@ -68,7 +68,7 @@ module Documentation {
     }    
 }
 module VcDocumentation {
-    var position = 1;
+    export var position = 1;
     export function ChangePage(isNext: boolean) {
         var lastposition = position, previousElement = ("page" + lastposition).Element();
         position = isNext ? position === 4 ? 1 : position + 1 : position === 1 ? 4 : position - 1;
@@ -85,6 +85,7 @@ HistoryManager.AddListener(EventType.Completed, (e) => {
     bc.style.opacity = n === "Documentation" ? "0" : "1";
     bc.innerHTML = n;
     "DocumentationCrumb".Element().className = n === "Documentation" ? "active" : null;
+    VcDocumentation.position = 1;
 });
 
 

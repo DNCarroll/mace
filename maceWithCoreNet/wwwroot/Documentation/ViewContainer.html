@@ -29,27 +29,17 @@
                 <dt>constructor()</dt>
                 <dd>
                     <p>
-                        Some customization can be done here including designating the Container as the default Container in the case when a url isn't matched to a ViewContainer (this.IsDefault = true;).  Can also tell the container what HTML fragments to get ('Views') and what their HTML Container Element is.
-                    </p>
-                </dd>
-                <dt>
-                    Show
-                </dt>
-                <dd>
-                    <p>
-                        This method starts the process of retrieving the View(s) and getting them into their HTML Container Element.  It should not be overridden.
+                        Some customization can be done here including designating the Container as the 'default' Container in the case when a url isn't matched to a ViewContainer (this.IsDefault = true;).  Can also tell the container what HTML fragments to get ('Views') and what their HTML Container Element is.
                     </p>
                 </dd>
                 <dt>IsUrlPatternMatch</dt>
-                <dd>This method determines if the ViewContainer is a match to the current Url.  It should not normaly be overridden.</dd>
-                <dt>ViewLoadCompleted</dt>
-                <dd>This method helps cycle through View(s) to insure smooth load of the HTML fragments to their HTML Containers.  It should not be overridden.</dd>
+                <dd>This method determines if the ViewContainer is a match to the current Url.  It should not normally be overridden.</dd>                
                 <dt>Url</dt>
                 <dd>Specifies the url to set in the browser based on the parameters.  It should not normally be overridden.</dd>
                 <dt>DocumentTitle</dt>
-                <dd>Value for the browser document title.  Can override this is have something specific that is needed for the current Url.</dd>
+                <dd>Value for the browser document title.  Can override this if have something specific that is needed for the current Url.</dd>
                 <dt>UrlPattern</dt>
-                <dd>This returns the UrlBase field if it is not overridden.  If Url is not standard then you will want to override this method.</dd>
+                <dd>This returns the UrlBase field if it is not overridden.  If Url is not standard then you will want to override this method.  Standard url being either static words or pattern of static/static/variable/variable.  Non Standard being static/variable/static/variable</dd>
                 <dt>UrlTitle</dt>
                 <dd>This value is provided to the History Manager.  Can be overridden.</dd>
             </dl>

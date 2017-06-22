@@ -28,11 +28,11 @@
                 <dt>constructor(...)</dt>
                 <dd>
                     <p>                        
-                        <strong>parameters:</strong>
-                        primaryKeys: array of string field that designate the PrimaryKey(s) for incoming DataObjects.  Keys are used to find DataObjects within tabular data for returns from POST, PUT, AND DELETE Api Methods.
-                        api: If not supplied uses naming convention {Name}Binder to determine the api path.  
-                        autoUpdate: If set to true then when property change events occur ajax calls are made to the PUT method automatically
-                        TypeObject: In the case when the default 'DataObject' of mace.ts is not used.  Must implement IObjectState.
+                        <strong>parameters:</strong><br />
+                        primaryKeys: array of string field that designate the PrimaryKey(s) for incoming DataObjects.  Keys are used to find DataObjects within tabular data for returns from POST, PUT, AND DELETE Api Methods.<br />
+                        api: If not supplied uses naming convention {Name}Binder to determine the api path.<br />  
+                        autoUpdate: If set to true then when property change events occur ajax calls are made to the PUT method automatically.<br />
+                        TypeObject: In the case when the default 'DataObject' of mace.ts is not used.  Must implement IObjectState.<br />
                         staticProperties: as of this documentation this feature has not been used.  The thought here was the client receives data from a dynamic object from server and properties that should be attached are not.  This string array insures that the client has accounted for static property fields that should occur.
                     </p>
                 </dd>
@@ -46,20 +46,20 @@
                 </dd>
                 <dt>RunWhenObjectsChange()</dt>
                 <dd>
-                    is just a callback method that is hit when the DataObject state changes.  This method has no normal functionality only when custimization requires its use and sets it.  This accounts for any object or array of objects that are bound to HTML View Fragments.
+                    is just a callback method that is hit when the DataObject state changes.  This method has no normal functionality only when custimization requires its use and sets it.  This accounts for any object or array of objects that are bound to HTML View Fragments.  Example on Next 'Examples' page.
                 </dd>
                 <dt>Add(obj)</dt>
                 <dd>
-                    can be attached utilized in javascript to add a new object tabular data or form data.
+                    implemented through javascript once an object is formed up the Binder.Add(obj) method can be called. The Add(obj) method points to the Api POST method. 
                 </dd>
                 <dt>Delete(sender)</dt>
                 <dd>
                     can be attached to a button in javascript to delete the row level object from tabular or form data.
                 </dd>
                 <dt>Save(obj)</dt>
-                <dd>can be attached to click event of HTMLElement to save the associated DataObject to the standard PUT Api method.</dd>
+                <dd>can be attached to click event of HTMLElement to save the associated DataObject to the standard PUT Api method.  HTMLElement has a prototype method Save that points back to this Binder method</dd>
                 <dt>SaveDirty()</dt>
-                <dd>can be attached to button to save all dirty DataObjects back to an PUT Api method called 'SaveDirty'.</dd>
+                <dd>can be attached to button to save all dirty DataObjects back to an PUT Api method called 'SaveDirty'.  HTMLElement has a prototype method 'SaveDirty' that points back to this Binder method</dd>
             </dl>
         </div>
     </div>
@@ -67,12 +67,12 @@
     <div id="page4" style="opacity:0; display:none;">
         <h3>Examples</h3>
         <div class="col-md-12 well">            
-            <textarea style="width:100%; height:20em; border:none;">
+            <textarea style="width:100%; height:5em; border:none;">
             &lt;div class="col-md-10" data-binder="Binder(['Id'], '/Api/Order', false, Order)"&gt;
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;form class="form-horizontal"&gt;
     </textarea>
-            <sub></sub><br /><br />
-            <textarea style="width:100%; height:20em; border:none;">
+            <span class="small">**inline use of Binder.  Normal use case, no customization through inheritance is needed.**</span><br /><br />
+            <textarea style="width:100%; height:15em; border:none;">
 class OrdersBinder extends Binder {
     constructor() {
         super(['Id'], '/Api/Orders');
@@ -83,10 +83,7 @@ class OrdersBinder extends Binder {
     }
 }
         </textarea>
-            <sub>note - this example shows implementation of custom binder and the RunWhenObjectsChange() method.  In this case its to enable disable a save button for Dirty state objects in a tabular view.</sub><br /><br />            
-            <p>
-                <strong>Add(obj)</strong> - implemented through javascript once an object is formed up the Binder.Add(obj) method can be called.  The Add(obj) method points to the Api POST method.
-            </p>
+            <span class="small">**this example shows implementation of custom binder and the RunWhenObjectsChange() method.  In this case it is used to enable disable a save button for Dirty state objects in a tabular view.**</span><br /><br />                        
             <p>
                 <strong>Delete(sender)</strong> - The onclick below references a Delete method which is a prototype of a HTMLElement that calls the associated Binder.Delete(sender) method.<br />
                 &lt;input type="button" value="Delete" onclick="this.Delete()" /&gt;

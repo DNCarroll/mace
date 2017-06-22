@@ -9,6 +9,13 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 window["IsDebug"] = true;
+var OrdersView = (function (_super) {
+    __extends(OrdersView, _super);
+    function OrdersView() {
+        return _super.call(this, CacheStrategy.View, "content") || this;
+    }
+    return OrdersView;
+}(View));
 var Order = (function (_super) {
     __extends(Order, _super);
     function Order(serverObject) {
