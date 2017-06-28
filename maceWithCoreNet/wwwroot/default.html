@@ -4,6 +4,10 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta http-equiv='cache-control' content='no-cache'>
+    <meta http-equiv='expires' content='0'>
+    <meta http-equiv='pragma' content='no-cache'>
 
     <title></title>
 
@@ -50,29 +54,48 @@
             <div class="page-header">
                 <h2 id="ViewHeader"></h2>
             </div>
-            <div class="col-md-7
-                 col-sm-10
-                 col-xs-12">                
-                <div id="content"></div>     
+            <div class="
+                 col-lg-6
+                 col-md-6
+                 col-sm-12">                
+                <div id="content">
+                </div><br /><br />
             </div>
-            <div class="col-md-4 col-md-offset-1
-                 col-sm-2
-                 col-xs-12">
+            <div class="
+                 col-lg-5 col-lg-offset-1
+                 col-md-5 col-md-offset-1
+                 col-sm-12">
                 <div class="panel">
-                    <div class="panel-heading">
-                        <h2 class="panel-title">Different Bindable Views</h2>
-                    </div>
-                    <div class="panel-body">
-                        <p>
-                            The <strong>Order 1</strong> or <strong>Order #?</strong> View is a form view of an order.  It calls /Order Api Controller for its Data and Updates.  The Save button's class is bound to the data object via a custom object Order that inherits from the DataObject of mace.ts.  When the Object has a change the bound class changes appropriately.  Upon succes from PUT method for an update the button becomes disabled.
-                        </p>
-                        <p>
-                            The <strong>Orders</strong> View is a tabular view of the orders it does not automatically update.  Any changes to the array of data from the GET from /Orders Api Controller effect the Save button making it active or inactive based on existence of any records in a 'Dirty' state.  Note that this use case assumes that you have an Api PUT Method called <strong>SaveDirty</strong> on the Api. The <strong>Orders</strong> View also demonstrates the use of more records functionality.
-                        </p>
-                        <p>
-                            The <strong>AutoUpdate Orders</strong> is also a tabular view of the orders but it updates automatically.
-                        </p>
-                    </div>
+                    <dl class="dl-horizontal">
+                        <dt>ViewContainer</dt>
+                        <dd>
+                            <p>
+                                associates a given url via its name but can be customized, determines if it is the default view for a given area, and supplies <strong>Views</strong> (HTML fragments) that are associated to html container elements.  More on ViewContainers can be found <a href="/Documentation/ViewContainer">here</a>.<br /><strong>Required.</strong>
+                            </p>
+                        </dd>
+                        <dt>
+                            View
+                        </dt>
+                        <dd>
+                            <p>associates to HTML fragment by name but can be customized, determines cache strategy for the HTML fragment, and what target content element will recieve the HTML fragment.  More on Views can be found <a href="/Documentation/View">here</a>.<br /><strong>Optional.</strong></p>
+                        </dd>
+                        <dt>
+                            Binder
+                        </dt>
+                        <dd>
+                            <p>
+                                associates HTML Elements to a WebApi Controller.  Inheritance allows for customization.  Utilizes GET, POST, PUT, DELETE methods.  Binds data returned from GET method to the associated HTML Element.  More on Binders can be found <a href="/Documentation/Binder">here</a>.<br /><strong>Required</strong> (normally declared in HTML Fragment).
+                            </p>
+                        </dd>
+                        <dt>
+                            DataObject
+                        </dt>
+                        <dd>
+                            <p>
+                                All incoming data from GET is stored in this base object.  Inheritance allows for customization.  More on DataObjects can be found <a href="/Documentation/DataObject">here</a>.<br /><strong>Optional.</strong>
+                            </p>
+                        </dd>
+                    </dl>
                 </div>
             </div>
         </div>        

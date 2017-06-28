@@ -256,7 +256,7 @@ class Binder implements IBinder {
     }
     private isRedirecting(x: XMLHttpRequest) {        
         var s = x.status, r = x.getResponseHeader('Location');
-        if ((s === 401 || s === 407) && r) {
+        if ((s === 401 || s === 407 || s === 403) && r) {
             window.location.href = r;
             return true;
         }

@@ -35,7 +35,7 @@ var BinderContainer = (function (_super) {
             return BinderContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/Binder.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/Binder.html"));
         _this.IsDefault = false;
         _this.Name = "Documentation/Binder";
         return _this;
@@ -51,7 +51,7 @@ var DataObjectContainer = (function (_super) {
             return DataObjectContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/DataObject.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/DataObject.html"));
         _this.IsDefault = false;
         _this.Name = "Documentation/DataObject";
         return _this;
@@ -67,7 +67,7 @@ var ViewContainerContainer = (function (_super) {
             return ViewContainerContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/ViewContainer.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/ViewContainer.html"));
         _this.IsDefault = false;
         _this.Name = "Documentation/ViewContainer";
         return _this;
@@ -83,7 +83,7 @@ var ViewDocumentationContainer = (function (_super) {
             return ViewDocumentationContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "/Documentation/View.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/View.html"));
         _this.IsDefault = false;
         _this.Name = "Documentation/View";
         return _this;
@@ -91,6 +91,22 @@ var ViewDocumentationContainer = (function (_super) {
     return ViewDocumentationContainer;
 }(ViewContainer));
 ViewDocumentationContainer.instance = new ViewDocumentationContainer();
+var BattleAxeContainer = (function (_super) {
+    __extends(BattleAxeContainer, _super);
+    function BattleAxeContainer() {
+        var _this = this;
+        if (BattleAxeContainer.instance) {
+            return BattleAxeContainer.instance;
+        }
+        _this = _super.call(this) || this;
+        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/BattleAxe.html"));
+        _this.IsDefault = false;
+        _this.Name = "Documentation/BattleAxe";
+        return _this;
+    }
+    return BattleAxeContainer;
+}(ViewContainer));
+BattleAxeContainer.instance = new BattleAxeContainer();
 var Documentation;
 (function (Documentation) {
     function Navigate(type) {
@@ -105,11 +121,11 @@ var Documentation;
 })(Documentation || (Documentation = {}));
 var VcDocumentation;
 (function (VcDocumentation) {
-    var position = 1;
+    VcDocumentation.position = 1;
     function ChangePage(isNext) {
-        var lastposition = position, previousElement = ("page" + lastposition).Element();
-        position = isNext ? position === 4 ? 1 : position + 1 : position === 1 ? 4 : position - 1;
-        var currentElement = ("page" + position).Element();
+        var lastposition = VcDocumentation.position, previousElement = ("page" + lastposition).Element();
+        VcDocumentation.position = isNext ? VcDocumentation.position === 4 ? 1 : VcDocumentation.position + 1 : VcDocumentation.position === 1 ? 4 : VcDocumentation.position - 1;
+        var currentElement = ("page" + VcDocumentation.position).Element();
         previousElement.style.opacity = "0";
         previousElement.style.display = "none";
         currentElement.style.opacity = "1";
@@ -123,5 +139,6 @@ HistoryManager.AddListener(EventType.Completed, function (e) {
     bc.style.opacity = n === "Documentation" ? "0" : "1";
     bc.innerHTML = n;
     "DocumentationCrumb".Element().className = n === "Documentation" ? "active" : null;
+    VcDocumentation.position = 1;
 });
 //# sourceMappingURL=documentation.js.map

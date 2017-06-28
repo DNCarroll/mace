@@ -97,20 +97,21 @@ var OrdersContainer = (function (_super) {
     return OrdersContainer;
 }(SingleViewContainer));
 OrdersContainer.instance = new OrdersContainer();
-var LandingContainer = (function (_super) {
-    __extends(LandingContainer, _super);
-    function LandingContainer() {
+var OverviewContainer = (function (_super) {
+    __extends(OverviewContainer, _super);
+    function OverviewContainer() {
         var _this = this;
-        if (LandingContainer.instance) {
-            return LandingContainer.instance;
+        if (OverviewContainer.instance) {
+            return OverviewContainer.instance;
         }
         _this = _super.call(this) || this;
+        _this.Views.push(new View(CacheStrategy.View, "content", "/Views/Landing.html"));
         _this.IsDefault = true;
         return _this;
     }
-    return LandingContainer;
-}(SingleViewContainer));
-LandingContainer.instance = new LandingContainer();
+    return OverviewContainer;
+}(ViewContainer));
+OverviewContainer.instance = new OverviewContainer();
 var OrderContainer = (function (_super) {
     __extends(OrderContainer, _super);
     function OrderContainer() {

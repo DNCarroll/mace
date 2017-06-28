@@ -34,6 +34,7 @@
     <Content Include="wwwroot\css\skeleton.css" />
     <Content Include="wwwroot\css\testmenu.css" />
     <Content Include="wwwroot\default.html" />
+    <Content Include="wwwroot\Documentation\BattleAxe.html" />
     <Content Include="wwwroot\Documentation\Binder.html" />
     <Content Include="wwwroot\Documentation\DataObject.html" />
     <Content Include="wwwroot\Documentation\default.html" />

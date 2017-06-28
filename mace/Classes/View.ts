@@ -11,6 +11,7 @@ class View implements IView {
         this.url = viewPath;
         this._containerID = containerId;
         this.CacheStrategy = cacheStrategy;
+        this.Cache(this.CacheStrategy);
     }
     Prefix() {
         return "/Views/";
@@ -41,14 +42,9 @@ class View implements IView {
         if (t.Preload &&
             (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(() => { });
-        }
-        var f = sessionStorage.getItem(t.Url());
-        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {
-            var a = new Ajax();
-            a.AddListener(EventType.Completed, (arg: ICustomEventArg<Ajax>) => {
-                t.RequestCompleted(arg, true);
-            });
-            a.Get(t.Url());
+        }        
+        if (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload) {
+            t.postPreloaded(true);
         }
     }
     Show(viewInstance: ViewInstance) {
@@ -58,24 +54,17 @@ class View implements IView {
         t.binders.forEach(b => b.RemoveListeners(EventType.Any));
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     }
-    private postPreloaded() {
+    private postPreloaded(dontSetHtml: boolean = false) {
         var t = this,
-            f = sessionStorage.getItem(t.Url());
-        if (!f || window["IsDebug"]) {
-            var a = new Ajax();
+            a = new Ajax();
+        if (!dontSetHtml) {
             a.AddListener(EventType.Completed, t.RequestCompleted.bind(this));
-            a.Get(t.Url());
         }
-        else {
-            t.SetHTML(f);
-        }
+        a.Get(t.Url());
     }
-    RequestCompleted(a: CustomEventArg<Ajax>, dontSetHTML = false) {
+    RequestCompleted(a: CustomEventArg<Ajax>) {
         if (a.Sender.ResponseText) {
-            sessionStorage.setItem(this.Url(), a.Sender.ResponseText);
-            if (!dontSetHTML) {
-                this.SetHTML(a.Sender.ResponseText);
-            }
+            this.SetHTML(a.Sender.ResponseText);
         }
         a.Sender = null;
     }

@@ -1,0 +1,93 @@
+﻿<div class="col-md-3">
+    <div>
+        <ul>
+            <li>
+                <a 
+                   href="#commandDefinition">Command Definitions</a>
+            </li>
+            <li>
+                <a 
+                   href="#extensions">Extension Methods</a>
+            </li>
+            <li>
+                <a 
+                   href="#dataObjects">DataObjects/IBattleAxe</a>
+            </li>
+        </ul>
+    </div>
+</div>
+    <div class="col-md-9">        
+        <div>
+            <p>
+                What is BattleAxe?  Main themes of it.
+                Dynamic
+                Overview - Sql Server only, using statement, extension method
+            </p>
+        </div>
+        <div>
+            <h2 name="commandDefinition">Command Definitions</h2>
+            <div>
+                <h3>Types</h3>
+                <div class="col-md-offset-1">
+                    <h4>CommandDefinition</h4>
+                    <dl class="dl-horizontal">
+                        <dt>Constructor</dt>
+                        <dd>
+                            CommandDefinition(string commandText, string connectionString, CommandType? commandType = null)<br />
+                            <strong>parameters</strong>
+                            commandText - can be command text or stored procedure.
+                            connectionString - ADO.NET connection string to SQL database
+                            commandType - System.Data.CommandType, if not supplied BattleAxe will query the database to discover if this is a stored procedure or just text.  Subsequent uses of the given command text will be recognized and the call to database to determine CommandType will not be run.
+                        </dd>
+                        <dt>CommandTimeout</dt>
+                        <dd>
+                            is a property that sets the SqlCommand.CommandTimeout.
+                        </dd>
+                    </dl>
+                    <h4>TextDefinition</h4>
+                    <p class="col-md-offset-1">
+                        TextDefinition inherits from CommandDefinition.  It sets the CommandType to Text.
+                    </p>
+                    <h4>ProcedureDefinition</h4>
+                    <p class="col-md-offset-1">
+                        ProcedureDefinition inherits from CommandDefinition.  It sets the CommandType to StoredProcedure.
+                    </p>
+                </div>
+            </div><br /><br />
+            <h2 name="extensions">Extension Methods</h2>
+            <div>
+                <h3>
+                    Execute(...)<a href="#top" class="glyphicon-triangle-top"></a>
+                    <sub>
+                        includes extensions for strings, CommandDefinition, or objects
+                    </sub>
+                </h3>
+                <div class="col-md-offset-1">
+                    <h4>Execute(this string commandText, string connectionString)</h4>
+                    <p class="col-md-offset-1">This extension is a plain CommandText execution of the commandText against the database.</p>
+                    <h4>Execute&lt;T&gt;(this string commandText, string connectionString, T parameter = null, CommandType? commandType = null)</h4>
+                    <dl class="dl-horizontal">
+                        <dt>'T'</dt>
+                        <dd>is only a constrained to be a class.</dd>
+                        <dt style="white-space:nowrap;">
+                            commandText
+                        </dt>
+                        <dd>
+                            can be a either CommandType.Text or Procedure.
+                        </dd>
+                        <dt>connectionString</dt>
+                        <dd>is the ADO.NET ConnectionString to the SQL SERVER.</dd>
+                        <dt>parameter</dt>
+                        <dd>
+                            its properties are used to set the values of the SqlParameters[].
+                        </dd>
+                        <dt>commandType</dt>
+                        <dd>
+                            If the commandType parameter is not designated BattleAxe will query the db schema to determine if it is a stored procedure.
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+            <p>left off at commandDefinition methods</p>
+        </div>
+    </div>

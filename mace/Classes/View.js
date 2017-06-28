@@ -18,6 +18,7 @@ var View = (function () {
         this.url = viewPath;
         this._containerID = containerId;
         this.CacheStrategy = cacheStrategy;
+        this.Cache(this.CacheStrategy);
     }
     View.prototype.Prefix = function () {
         return "/Views/";
@@ -49,13 +50,8 @@ var View = (function () {
             (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(function () { });
         }
-        var f = sessionStorage.getItem(t.Url());
-        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {
-            var a = new Ajax();
-            a.AddListener(EventType.Completed, function (arg) {
-                t.RequestCompleted(arg, true);
-            });
-            a.Get(t.Url());
+        if (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload) {
+            t.postPreloaded(true);
         }
     };
     View.prototype.Show = function (viewInstance) {
@@ -65,24 +61,17 @@ var View = (function () {
         t.binders.forEach(function (b) { return b.RemoveListeners(EventType.Any); });
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     };
-    View.prototype.postPreloaded = function () {
-        var t = this, f = sessionStorage.getItem(t.Url());
-        if (!f || window["IsDebug"]) {
-            var a = new Ajax();
+    View.prototype.postPreloaded = function (dontSetHtml) {
+        if (dontSetHtml === void 0) { dontSetHtml = false; }
+        var t = this, a = new Ajax();
+        if (!dontSetHtml) {
             a.AddListener(EventType.Completed, t.RequestCompleted.bind(this));
-            a.Get(t.Url());
         }
-        else {
-            t.SetHTML(f);
-        }
+        a.Get(t.Url());
     };
-    View.prototype.RequestCompleted = function (a, dontSetHTML) {
-        if (dontSetHTML === void 0) { dontSetHTML = false; }
+    View.prototype.RequestCompleted = function (a) {
         if (a.Sender.ResponseText) {
-            sessionStorage.setItem(this.Url(), a.Sender.ResponseText);
-            if (!dontSetHTML) {
-                this.SetHTML(a.Sender.ResponseText);
-            }
+            this.SetHTML(a.Sender.ResponseText);
         }
         a.Sender = null;
     };

@@ -63,13 +63,14 @@ class OrdersContainer extends SingleViewContainer {
         super();
     }
 }
-class LandingContainer extends SingleViewContainer {
-    private static instance: LandingContainer = new LandingContainer();
+class OverviewContainer extends ViewContainer {
+    private static instance: OverviewContainer = new OverviewContainer();
     constructor() {
-        if (LandingContainer.instance) {
-            return LandingContainer.instance;
+        if (OverviewContainer.instance) {
+            return OverviewContainer.instance;
         }
         super();
+        this.Views.push(new View(CacheStrategy.View, "content", "/Views/Landing.html"));
         this.IsDefault = true;
     }
 }

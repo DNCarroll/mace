@@ -61,6 +61,19 @@ class ViewDocumentationContainer extends ViewContainer {
         this.Name = "Documentation/View";
     }
 }
+class BattleAxeContainer extends ViewContainer {
+    private static instance: BattleAxeContainer = new BattleAxeContainer();
+    constructor() {
+        if (BattleAxeContainer.instance) {
+            return BattleAxeContainer.instance;
+        }
+        super();
+        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/BattleAxe.html"));
+        this.IsDefault = false;
+        this.Name = "Documentation/BattleAxe";
+    }
+}
+
 module Documentation {
     export function Navigate<T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
         (<HTMLInputElement>"menu-btn".Element()).checked = false;
@@ -79,6 +92,7 @@ module VcDocumentation {
         currentElement.style.display = "block";
     }
 }
+
 HistoryManager.AddListener(EventType.Completed, (e) => {
     var n = e.Sender.Name.replace("Documentation/", ""), bc = "breadCrumbWhere".Element();
     "ViewHeader".Element().innerHTML = n;
