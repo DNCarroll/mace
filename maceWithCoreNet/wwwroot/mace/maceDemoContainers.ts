@@ -44,25 +44,41 @@ class OrdersBinder extends Binder {
         };
     }
 }
-class AutoOrdersContainer extends SingleViewContainer {
+class AutoOrdersContainer extends ViewContainer {
     private static instance: AutoOrdersContainer = new AutoOrdersContainer();
     constructor() {
         if (AutoOrdersContainer.instance) {
             return AutoOrdersContainer.instance;
         }
         super();
+        this.Views.push(new View(CacheStrategy.View, "content", "/mace/AutoOrders.html"));
         this.IsDefault = false;
+        this.Name = "mace/AutoOrders";
     }
 }
-class OrdersContainer extends SingleViewContainer {
-    public static instance: OrdersContainer = new OrdersContainer();
+class OrdersContainer extends ViewContainer {
+    private static instance: OrdersContainer = new OrdersContainer();
     constructor() {
         if (OrdersContainer.instance) {
             return OrdersContainer.instance;
         }
         super();
+        this.Views.push(new View(CacheStrategy.View, "content", "/mace/Orders.html"));
+        this.IsDefault = false;
+        this.Name = "mace/Orders";
     }
 }
+class DefaultTypeNameContainer extends SingleViewContainer {
+    private static instance: DefaultTypeNameContainer = new DefaultTypeNameContainer();
+    constructor() {
+        if (DefaultTypeNameContainer.instance) {
+            return DefaultTypeNameContainer.instance;
+        }
+        super();
+        this.IsDefault = false;
+    }
+}
+
 class OverviewContainer extends ViewContainer {
     private static instance: OverviewContainer = new OverviewContainer();
     constructor() {
@@ -70,18 +86,21 @@ class OverviewContainer extends ViewContainer {
             return OverviewContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "/Views/Landing.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "/mace/Landing.html"));
         this.IsDefault = true;
+        this.Name = "mace";
     }
 }
-class OrderContainer extends SingleViewContainer {
+class OrderContainer extends ViewContainer {
     private static instance: OrderContainer = new OrderContainer();
     constructor() {
         if (OrderContainer.instance) {
             return OrderContainer.instance;
         }
         super();
+        this.Views.push(new View(CacheStrategy.View, "content", "/mace/Order.html"));
         this.IsDefault = false;
+        this.Name = "mace/Order";
     }
 }
 module Main {    
@@ -91,6 +110,7 @@ module Main {
     }
 
 }
-HistoryManager.AddListener(EventType.Completed, (e) => {    
-    "ViewHeader".Element().innerHTML = e.Sender.Name;
+HistoryManager.AddListener(EventType.Completed, (e) => {
+    var header = e.Sender.Name.replace("mace/", "");
+    "ViewHeader".Element().innerHTML = header == "mace" ? "Overview" : header;
 });

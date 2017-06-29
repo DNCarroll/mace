@@ -1,0 +1,37 @@
+﻿<h3>.Net Core Project</h3>
+<ul class="list-group">
+    <li class="list-group-item">Modify startup for handling paths that may not be handled.</li>
+    <li class="list-group-item">
+        Add nuget reference for core project to handle static html files StaticFiles, Microsoft.AspNetCore.StaticFiles.
+    </li>
+</ul>
+<h3>ViewContainers</h3>
+<ul class="list-group">
+    <li class="list-group-item">
+        Named such that they don't conflict with other objects - {Name}Container.
+    </li>
+    <li class="list-group-item">
+        For objects extending the ViewContainer make sure they have correct pathing to their views if views are declared in constructor agasint base class 'View'
+    </li>
+    <li class="list-group-item">
+        Make sure one view is designated with the IsDefault = true
+    </li>
+    <li class="list-group-item">
+        For SingleViewContainer extending the make sure its naming matchs to a view in /Views/{Name}.html given the SingleViewContainer name is {Name}Container.
+    </li>
+</ul>
+<h3>Views</h3>
+<ul class="list-group">
+    <li class="list-group-item">
+        Insure that an appropriate strategy for Caching, by the None, ViewAndPreload, View, Preload.  review View documentation for more on CacheStrategy.
+    </li>
+</ul>
+<h3>Binders</h3>
+<h3>WebApi</h3>
+<ul class="list-group">
+    <li class="list-group-item">
+        insure that WebApi's exist for any Binders that call to them
+    </li>
+</ul>
+
+<h3>DataObjects</h3>

@@ -6,25 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="wwwroot\Documentation\Binder\**" />
-    <Compile Remove="wwwroot\Documentation\DataObject\**" />
-    <Compile Remove="wwwroot\Documentation\ViewContainer\**" />
-    <Compile Remove="wwwroot\Documentation\View\**" />
-    <Content Remove="wwwroot\Documentation\Binder\**" />
-    <Content Remove="wwwroot\Documentation\DataObject\**" />
-    <Content Remove="wwwroot\Documentation\ViewContainer\**" />
-    <Content Remove="wwwroot\Documentation\View\**" />
-    <EmbeddedResource Remove="wwwroot\Documentation\Binder\**" />
-    <EmbeddedResource Remove="wwwroot\Documentation\DataObject\**" />
-    <EmbeddedResource Remove="wwwroot\Documentation\ViewContainer\**" />
-    <EmbeddedResource Remove="wwwroot\Documentation\View\**" />
-    <None Remove="wwwroot\Documentation\Binder\**" />
-    <None Remove="wwwroot\Documentation\DataObject\**" />
-    <None Remove="wwwroot\Documentation\ViewContainer\**" />
-    <None Remove="wwwroot\Documentation\View\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="wwwroot\css\main.css" />
     <Content Include="wwwroot\css\menu.css" />
     <Content Include="wwwroot\css\normalize.css" />
@@ -33,16 +14,26 @@
     <Content Include="wwwroot\css\site.css" />
     <Content Include="wwwroot\css\skeleton.css" />
     <Content Include="wwwroot\css\testmenu.css" />
-    <Content Include="wwwroot\default.html" />
-    <Content Include="wwwroot\Documentation\BattleAxe.html" />
-    <Content Include="wwwroot\Documentation\Binder.html" />
-    <Content Include="wwwroot\Documentation\DataObject.html" />
-    <Content Include="wwwroot\Documentation\default.html" />
-    <Content Include="wwwroot\Documentation\View.html" />
-    <Content Include="wwwroot\Documentation\ViewContainer.html" />
     <Content Include="wwwroot\js\jquery-3.2.1.min.js" />
-    <Content Include="wwwroot\Scripts\Containers.ts" />
-    <Content Include="wwwroot\Scripts\documentation.ts" />
+    <Content Include="wwwroot\mace\AutoOrders.html" />
+    <Content Include="wwwroot\mace\default.html" />
+    <Content Include="wwwroot\mace\Documentation\Binder.html" />
+    <Content Include="wwwroot\mace\Documentation\BuildChecklist.html" />
+    <Content Include="wwwroot\mace\Documentation\DataObject.html" />
+    <Content Include="wwwroot\mace\Documentation\default.html" />
+    <Content Include="wwwroot\mace\Documentation\maceDocumentationContainers.js" />
+    <Content Include="wwwroot\mace\Documentation\maceDocumentationContainers.js.map" />
+    <Content Include="wwwroot\mace\Documentation\maceDocumentationContainers.ts" />
+    <Content Include="wwwroot\mace\Documentation\View.html" />
+    <Content Include="wwwroot\mace\Documentation\ViewContainer.html" />
+    <Content Include="wwwroot\mace\Landing.html" />
+    <Content Include="wwwroot\mace\maceDemoContainers.js" />
+    <Content Include="wwwroot\mace\maceDemoContainers.js.map" />
+    <Content Include="wwwroot\mace\maceDemoContainers.ts" />
+    <Content Include="wwwroot\mace\Order.html" />
+    <Content Include="wwwroot\mace\Orders.html" />
+    <Content Include="wwwroot\mace\OrdersWBoostrap.html" />
+    <Content Include="wwwroot\mace\OrdersWPure.html" />
     <Content Include="wwwroot\Scripts\mace.ts" />
     <Content Include="wwwroot\StyleTesting\BootstrapWoJQuery.html">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -54,12 +45,6 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="wwwroot\testmenu.html" />
-    <Content Include="wwwroot\Views\AutoOrders.html" />
-    <Content Include="wwwroot\Views\Landing.html" />
-    <Content Include="wwwroot\Views\Order.html" />
-    <Content Include="wwwroot\Views\Orders.html" />
-    <Content Include="wwwroot\Views\OrdersWBoostrap.html" />
-    <Content Include="wwwroot\Views\OrdersWPure.html" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />

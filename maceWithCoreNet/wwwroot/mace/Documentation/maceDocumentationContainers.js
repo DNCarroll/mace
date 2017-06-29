@@ -17,7 +17,7 @@ var DocumentationContainer = (function (_super) {
             return DocumentationContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "../Views/Landing.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Landing.html"));
         _this.IsDefault = true;
         _this.UrlPattern = function () {
             return "^" + _this.Name + "%";
@@ -35,9 +35,9 @@ var BinderContainer = (function (_super) {
             return BinderContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/Binder.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/Binder.html"));
         _this.IsDefault = false;
-        _this.Name = "Documentation/Binder";
+        _this.Name = "mace/Documentation/Binder";
         return _this;
     }
     return BinderContainer;
@@ -51,9 +51,9 @@ var DataObjectContainer = (function (_super) {
             return DataObjectContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/DataObject.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/DataObject.html"));
         _this.IsDefault = false;
-        _this.Name = "Documentation/DataObject";
+        _this.Name = "mace/Documentation/DataObject";
         return _this;
     }
     return DataObjectContainer;
@@ -67,9 +67,9 @@ var ViewContainerContainer = (function (_super) {
             return ViewContainerContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/ViewContainer.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/ViewContainer.html"));
         _this.IsDefault = false;
-        _this.Name = "Documentation/ViewContainer";
+        _this.Name = "mace/Documentation/ViewContainer";
         return _this;
     }
     return ViewContainerContainer;
@@ -83,32 +83,32 @@ var ViewDocumentationContainer = (function (_super) {
             return ViewDocumentationContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/View.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/View.html"));
         _this.IsDefault = false;
-        _this.Name = "Documentation/View";
+        _this.Name = "mace/Documentation/View";
         return _this;
     }
     return ViewDocumentationContainer;
 }(ViewContainer));
 ViewDocumentationContainer.instance = new ViewDocumentationContainer();
-var BattleAxeContainer = (function (_super) {
-    __extends(BattleAxeContainer, _super);
-    function BattleAxeContainer() {
+var BuildChecklistContainer = (function (_super) {
+    __extends(BuildChecklistContainer, _super);
+    function BuildChecklistContainer() {
         var _this = this;
-        if (BattleAxeContainer.instance) {
-            return BattleAxeContainer.instance;
+        if (BuildChecklistContainer.instance) {
+            return BuildChecklistContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/BattleAxe.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/BuildCheckList.html"));
         _this.IsDefault = false;
-        _this.Name = "Documentation/BattleAxe";
         return _this;
     }
-    return BattleAxeContainer;
+    return BuildChecklistContainer;
 }(ViewContainer));
-BattleAxeContainer.instance = new BattleAxeContainer();
+BuildChecklistContainer.instance = new BuildChecklistContainer();
 var Documentation;
 (function (Documentation) {
+    Documentation.position = 1;
     function Navigate(type) {
         var parameters = [];
         for (var _i = 1; _i < arguments.length; _i++) {
@@ -118,27 +118,23 @@ var Documentation;
         window.Show(type, parameters);
     }
     Documentation.Navigate = Navigate;
-})(Documentation || (Documentation = {}));
-var VcDocumentation;
-(function (VcDocumentation) {
-    VcDocumentation.position = 1;
     function ChangePage(isNext) {
-        var lastposition = VcDocumentation.position, previousElement = ("page" + lastposition).Element();
-        VcDocumentation.position = isNext ? VcDocumentation.position === 4 ? 1 : VcDocumentation.position + 1 : VcDocumentation.position === 1 ? 4 : VcDocumentation.position - 1;
-        var currentElement = ("page" + VcDocumentation.position).Element();
+        var lastposition = Documentation.position, previousElement = ("page" + lastposition).Element();
+        Documentation.position = isNext ? Documentation.position === 4 ? 1 : Documentation.position + 1 : Documentation.position === 1 ? 4 : Documentation.position - 1;
+        var currentElement = ("page" + Documentation.position).Element();
         previousElement.style.opacity = "0";
         previousElement.style.display = "none";
         currentElement.style.opacity = "1";
         currentElement.style.display = "block";
     }
-    VcDocumentation.ChangePage = ChangePage;
-})(VcDocumentation || (VcDocumentation = {}));
+    Documentation.ChangePage = ChangePage;
+})(Documentation || (Documentation = {}));
 HistoryManager.AddListener(EventType.Completed, function (e) {
-    var n = e.Sender.Name.replace("Documentation/", ""), bc = "breadCrumbWhere".Element();
+    var n = e.Sender.Name.replace("mace/Documentation/", ""), bc = "breadCrumbWhere".Element();
     "ViewHeader".Element().innerHTML = n;
     bc.style.opacity = n === "Documentation" ? "0" : "1";
     bc.innerHTML = n;
     "DocumentationCrumb".Element().className = n === "Documentation" ? "active" : null;
-    VcDocumentation.position = 1;
+    Documentation.position = 1;
 });
-//# sourceMappingURL=documentation.js.map
+//# sourceMappingURL=maceDocumentationContainers.js.map

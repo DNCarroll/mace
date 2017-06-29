@@ -12,25 +12,19 @@
     <title></title>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet" />
-    <!--<link href="css/bootstrap.yeti.min.css" rel="stylesheet" />-->
-    <!--<link href="/css/flatly.min.css" rel="stylesheet" />-->
-    <!--<link href="css/bootstrap-theme.css" rel="stylesheet" />-->
-    <!--<link href="css/bootstrap.slate.min.css" rel="stylesheet" />-->
-    <!--<link href="css/bootstrap.sandstone.min.css" rel="stylesheet" />-->
-    <!--<link href="css/bootstra.united.min.css" rel="stylesheet" />-->
     <link href="/css/bootstrap.cosmos.min.css" rel="stylesheet" />
     <link href="/css/site.css" rel="stylesheet" />
     <link href="/css/menu.css" rel="stylesheet" />
 
     <script src="/Scripts/mace.js"></script>
-    <script src="/Scripts/Containers.js"></script>
+    <script src="/mace/maceDemoContainers.js"></script>
 </head>
 <body>
     <div>
         <header class="container">
             <div class="navbar navbar-default navbar-fixed-top">
                 <div class="navbar-header">
-                    <a href="/"><span>mace.ts</span></a>
+                    <a href="/mace"><span>mace.ts</span></a>
                 </div>
                 <input class="menu-btn" type="checkbox" id="menu-btn" />
                 <img id="progress" src="/images/progress.gif" style="display:none;" />
@@ -44,7 +38,7 @@
                     <li><a href="javascript:" onclick="Main.Navigate(AutoOrdersContainer)" class="nav">AutoUpdate Orders</a></li>
                     <li><a href="javascript:" onclick="Main.Navigate(OrdersContainer)" class="nav">Orders</a></li>
                     <li>
-                        <a href="/Documentation"                           
+                        <a href="/mace/Documentation"                           
                            class="nav">Documentation</a>
                     </li>
                 </ul>
@@ -70,21 +64,21 @@
                         <dt>ViewContainer</dt>
                         <dd>
                             <p>
-                                associates a given url via its name but can be customized, determines if it is the default view for a given area, and supplies <strong>Views</strong> (HTML fragments) that are associated to html container elements.  More on ViewContainers can be found <a href="/Documentation/ViewContainer">here</a>.<br /><strong>Required.</strong>
+                                associates a given url via its name but can be customized, determines if it is the default view for a given area, and supplies <strong>Views</strong> (HTML fragments) that are associated to html container elements.  More on ViewContainers can be found <a href="/mace/Documentation/ViewContainer">here</a>.<br /><strong>Required.</strong>
                             </p>
                         </dd>
                         <dt>
                             View
                         </dt>
                         <dd>
-                            <p>associates to HTML fragment by name but can be customized, determines cache strategy for the HTML fragment, and what target content element will recieve the HTML fragment.  More on Views can be found <a href="/Documentation/View">here</a>.<br /><strong>Optional.</strong></p>
+                            <p>associates to HTML fragment by name but can be customized, determines cache strategy for the HTML fragment, and what target content element will recieve the HTML fragment.  More on Views can be found <a href="/mace/Documentation/View">here</a>.<br /><strong>Optional.</strong></p>
                         </dd>
                         <dt>
                             Binder
                         </dt>
                         <dd>
                             <p>
-                                associates HTML Elements to a WebApi Controller.  Inheritance allows for customization.  Utilizes GET, POST, PUT, DELETE methods.  Binds data returned from GET method to the associated HTML Element.  More on Binders can be found <a href="/Documentation/Binder">here</a>.<br /><strong>Required</strong> (normally declared in HTML Fragment).
+                                associates HTML Elements to a WebApi Controller.  Inheritance allows for customization.  Utilizes GET, POST, PUT, DELETE methods.  Binds data returned from GET method to the associated HTML Element.  More on Binders can be found <a href="/mace/Documentation/Binder">here</a>.<br /><strong>Required</strong> (normally declared in HTML Fragment).
                             </p>
                         </dd>
                         <dt>
@@ -92,7 +86,7 @@
                         </dt>
                         <dd>
                             <p>
-                                All incoming data from GET is stored in this base object.  Inheritance allows for customization.  More on DataObjects can be found <a href="/Documentation/DataObject">here</a>.<br /><strong>Optional.</strong>
+                                All incoming data from GET is stored in this base object.  Inheritance allows for customization.  More on DataObjects can be found <a href="/mace/Documentation/DataObject">here</a>.<br /><strong>Optional.</strong>
                             </p>
                         </dd>
                     </dl>

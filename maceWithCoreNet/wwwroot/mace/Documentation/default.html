@@ -10,19 +10,13 @@
     <meta http-equiv='pragma' content='no-cache'>
 
     <title></title>
+    <link href="../../css/bootstrap.min.css" rel="stylesheet" />
+    <link href="../../css/bootstrap.cosmos.min.css" rel="stylesheet" />
+    <link href="../../css/site.css" rel="stylesheet" />
+    <link href="../../css/menu.css" rel="stylesheet" />
 
-    <link href="../css/bootstrap.min.css" rel="stylesheet" />
-    <!--<link href="../css/bootstrap.superhero.min.css" rel="stylesheet" />-->
-    <!--<link href="../css/flatly.min.css" rel="stylesheet" />-->
-    <link href="../css/bootstrap.cosmos.min.css" rel="stylesheet" />
-    <!--<link href="../css/bootstrap.cerlean.min.css" rel="stylesheet" />-->
-    <!--<link href="../css/bootstrap.spacelab.min.css" rel="stylesheet" />-->
-    <!--<link href="../css/bootstrap.journal.min.css" rel="stylesheet" />-->
-    <link href="../css/site.css" rel="stylesheet" />
-    <link href="../css/menu.css" rel="stylesheet" />
-
-    <script src="../Scripts/mace.js"></script>
-    <script src="../Scripts/documentation.js"></script>
+    <script src="../../Scripts/mace.js"></script>
+    <script src="../../mace/Documentation/maceDocumentationContainers.js"></script>
 
 </head>
 <body>
@@ -30,7 +24,7 @@
         <header class="container">
             <div class="navbar navbar-default navbar-fixed-top">
                 <div class="navbar-header">
-                    <a href="/Documentation"><span>mace.ts</span></a>
+                    <a href="/mace"><span>mace.ts</span></a>
                 </div>
                 <input class="menu-btn" type="checkbox" id="menu-btn" />
                 <img id="progress" src="/images/progress.gif" style="display:none;" />
@@ -49,10 +43,10 @@
                         <a href="javascript:" onclick="Documentation.Navigate(DataObjectContainer)" class="nav">DataObject</a>
                     </li>
                     <li>
-                        <a href="javascript:" onclick="Documentation.Navigate(BattleAxeContainer)" class="nav">BattleAxe</a>
+                        <a href="javascript:" onclick="Documentation.Navigate(BuildChecklistContainer)" class="nav">Build Checklist</a>
                     </li>
                     <li>
-                        <a href="/" class="nav">Demo</a>
+                        <a href="/mace" class="nav">Demo</a>
                     </li>
                 </ul>
             </div>
@@ -61,7 +55,7 @@
             <div class="page-header">
                 <ol class="breadcrumb">
                     <li>
-                        <a href="/">Landing</a>
+                        <a href="/mace">mace</a>
                     </li>
                     <li id="DocumentationCrumb">
                         <a href="javascript:" onclick="Documentation.Navigate(DocumentationContainer)">Documentation</a>
@@ -71,7 +65,7 @@
                 <h2 id="ViewHeader"></h2>
             </div>
             <div class="col-md-12">
-                <div id="content">Add high level stuff here for documentation</div>
+                <div id="content"></div>
             </div>
         </div>
         <footer class="navbar navbar-fixed-bottom navbar-default">

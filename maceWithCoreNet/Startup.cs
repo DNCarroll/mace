@@ -50,7 +50,7 @@ namespace maceWithCoreNet
             app.Use(async (context, next) => {
                 await next();                
                 if (context.Response.StatusCode == 404 && !Path.HasExtension(context.Request.Path.Value)) {
-                    context.Request.Path = isDocumentationUrl(context.Request.Path.Value)? "/Documentation/default.html":"/default.html";
+                    context.Request.Path = isMaceDocumentation(context.Request.Path.Value)? "/mace/Documentation/default.html":"/mace/default.html";
                     context.Response.StatusCode = 200;
                     await next();
                 }
@@ -60,8 +60,8 @@ namespace maceWithCoreNet
             app.UseMvc();
             
         }
-        bool isDocumentationUrl(string path) {
-            return path.IndexOf("Documentation") > -1;
+        bool isMaceDocumentation(string path) {
+            return path.ToLower().IndexOf("mace/documentation") > -1;
         }
     }
 }

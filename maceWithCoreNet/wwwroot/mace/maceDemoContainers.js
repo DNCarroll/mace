@@ -78,11 +78,13 @@ var AutoOrdersContainer = (function (_super) {
             return AutoOrdersContainer.instance;
         }
         _this = _super.call(this) || this;
+        _this.Views.push(new View(CacheStrategy.View, "content", "/mace/AutoOrders.html"));
         _this.IsDefault = false;
+        _this.Name = "mace/AutoOrders";
         return _this;
     }
     return AutoOrdersContainer;
-}(SingleViewContainer));
+}(ViewContainer));
 AutoOrdersContainer.instance = new AutoOrdersContainer();
 var OrdersContainer = (function (_super) {
     __extends(OrdersContainer, _super);
@@ -92,11 +94,28 @@ var OrdersContainer = (function (_super) {
             return OrdersContainer.instance;
         }
         _this = _super.call(this) || this;
+        _this.Views.push(new View(CacheStrategy.View, "content", "/mace/Orders.html"));
+        _this.IsDefault = false;
+        _this.Name = "mace/Orders";
         return _this;
     }
     return OrdersContainer;
-}(SingleViewContainer));
+}(ViewContainer));
 OrdersContainer.instance = new OrdersContainer();
+var DefaultTypeNameContainer = (function (_super) {
+    __extends(DefaultTypeNameContainer, _super);
+    function DefaultTypeNameContainer() {
+        var _this = this;
+        if (DefaultTypeNameContainer.instance) {
+            return DefaultTypeNameContainer.instance;
+        }
+        _this = _super.call(this) || this;
+        _this.IsDefault = false;
+        return _this;
+    }
+    return DefaultTypeNameContainer;
+}(SingleViewContainer));
+DefaultTypeNameContainer.instance = new DefaultTypeNameContainer();
 var OverviewContainer = (function (_super) {
     __extends(OverviewContainer, _super);
     function OverviewContainer() {
@@ -105,8 +124,9 @@ var OverviewContainer = (function (_super) {
             return OverviewContainer.instance;
         }
         _this = _super.call(this) || this;
-        _this.Views.push(new View(CacheStrategy.View, "content", "/Views/Landing.html"));
+        _this.Views.push(new View(CacheStrategy.View, "content", "/mace/Landing.html"));
         _this.IsDefault = true;
+        _this.Name = "mace";
         return _this;
     }
     return OverviewContainer;
@@ -120,11 +140,13 @@ var OrderContainer = (function (_super) {
             return OrderContainer.instance;
         }
         _this = _super.call(this) || this;
+        _this.Views.push(new View(CacheStrategy.View, "content", "/mace/Order.html"));
         _this.IsDefault = false;
+        _this.Name = "mace/Order";
         return _this;
     }
     return OrderContainer;
-}(SingleViewContainer));
+}(ViewContainer));
 OrderContainer.instance = new OrderContainer();
 var Main;
 (function (Main) {
@@ -139,6 +161,7 @@ var Main;
     Main.Navigate = Navigate;
 })(Main || (Main = {}));
 HistoryManager.AddListener(EventType.Completed, function (e) {
-    "ViewHeader".Element().innerHTML = e.Sender.Name;
+    var header = e.Sender.Name.replace("mace/", "");
+    "ViewHeader".Element().innerHTML = header == "mace" ? "Overview" : header;
 });
-//# sourceMappingURL=Containers.js.map
+//# sourceMappingURL=maceDemoContainers.js.map

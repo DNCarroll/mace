@@ -6,7 +6,7 @@ class DocumentationContainer extends ViewContainer {
             return DocumentationContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "../Views/Landing.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Landing.html"));
         this.IsDefault = true;
         this.UrlPattern = ()=> {
             return "^" + this.Name + "%";
@@ -20,9 +20,9 @@ class BinderContainer extends ViewContainer {
             return BinderContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/Binder.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/Binder.html"));
         this.IsDefault = false;
-        this.Name = "Documentation/Binder";
+        this.Name = "mace/Documentation/Binder";
     }
 }
 class DataObjectContainer extends ViewContainer {
@@ -32,9 +32,9 @@ class DataObjectContainer extends ViewContainer {
             return DataObjectContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/DataObject.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/DataObject.html"));
         this.IsDefault = false;
-        this.Name = "Documentation/DataObject";
+        this.Name = "mace/Documentation/DataObject";
     }
 }
 class ViewContainerContainer extends ViewContainer {
@@ -44,9 +44,9 @@ class ViewContainerContainer extends ViewContainer {
             return ViewContainerContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/ViewContainer.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/ViewContainer.html"));
         this.IsDefault = false;
-        this.Name = "Documentation/ViewContainer";
+        this.Name = "mace/Documentation/ViewContainer";
     }
 }
 class ViewDocumentationContainer extends ViewContainer {
@@ -56,32 +56,28 @@ class ViewDocumentationContainer extends ViewContainer {
             return ViewDocumentationContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/View.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/View.html"));
         this.IsDefault = false;
-        this.Name = "Documentation/View";
+        this.Name = "mace/Documentation/View";
     }
 }
-class BattleAxeContainer extends ViewContainer {
-    private static instance: BattleAxeContainer = new BattleAxeContainer();
+class BuildChecklistContainer extends ViewContainer {
+    private static instance: BuildChecklistContainer = new BuildChecklistContainer();
     constructor() {
-        if (BattleAxeContainer.instance) {
-            return BattleAxeContainer.instance;
+        if (BuildChecklistContainer.instance) {
+            return BuildChecklistContainer.instance;
         }
         super();
-        this.Views.push(new View(CacheStrategy.View, "content", "../Documentation/BattleAxe.html"));
+        this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/BuildCheckList.html"));
         this.IsDefault = false;
-        this.Name = "Documentation/BattleAxe";
     }
 }
-
 module Documentation {
+    export var position = 1;
     export function Navigate<T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
         (<HTMLInputElement>"menu-btn".Element()).checked = false;
         window.Show(type, parameters);
-    }    
-}
-module VcDocumentation {
-    export var position = 1;
+    }  
     export function ChangePage(isNext: boolean) {
         var lastposition = position, previousElement = ("page" + lastposition).Element();
         position = isNext ? position === 4 ? 1 : position + 1 : position === 1 ? 4 : position - 1;
@@ -94,12 +90,12 @@ module VcDocumentation {
 }
 
 HistoryManager.AddListener(EventType.Completed, (e) => {
-    var n = e.Sender.Name.replace("Documentation/", ""), bc = "breadCrumbWhere".Element();
+    var n = e.Sender.Name.replace("mace/Documentation/", ""), bc = "breadCrumbWhere".Element();
     "ViewHeader".Element().innerHTML = n;
     bc.style.opacity = n === "Documentation" ? "0" : "1";
     bc.innerHTML = n;
     "DocumentationCrumb".Element().className = n === "Documentation" ? "active" : null;
-    VcDocumentation.position = 1;
+    Documentation.position = 1;
 });
 
 

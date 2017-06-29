@@ -1,9 +1,8 @@
 ﻿<div class="col-md-12">
     <ul class="pager">
-        <li class="previous"><a href="javascript:" onclick="VcDocumentation.ChangePage(false);">&larr; Previous</a></li>
-        <li class="next"><a href="javascript:" onclick="VcDocumentation.ChangePage(true);">&rarr; Next</a></li>
+        <li class="previous"><a href="javascript:" onclick="Documentation.ChangePage(false);">&larr; Previous</a></li>
+        <li class="next"><a href="javascript:" onclick="Documentation.ChangePage(true);">&rarr; Next</a></li>
     </ul>
-
     <div id="page1" style="opacity:1">
         <h3>View Construction</h3>
         <div class="col-md-12 lead well">
@@ -11,16 +10,13 @@
                 Views will normally not need to be set up unless customization is required.  View object like ViewContianers are also convention based unless behavior is overridden (when using inheritance).  When naming, name according to HTML Fragment Url that should be retrieved.  <a href="https://marketplace.visualstudio.com/items?itemName=vs-publisher-335138.maceSnippets">Snippet Package</a> contains a snippet for building Views.
             </p>
         </div>
-
     </div>
-
     <div id="page2" style="opacity:0; display:none">
         <h3>View Types</h3>
         <div class="col-md-12 well">
             <p><strong>View</strong> is the base class mace.ts.  It implements IView.  Relevant methods on next page.  'View' in the name is a keyword and removed when using the view determine the path to the HTML Fragment.</p>            
         </div>
     </div>
-
     <div id="page3" style="opacity:0; display:none;">
         <h3>Methods</h3>
         <div class="col-md-12 well">
@@ -30,7 +26,7 @@
                     <p>                        
                         If implementing the SingleViewContainer(one View per Container) the HTML Fragment for the view should be stored under server path /Views/{ViewName}.html. See example on next page.<br /><br />
                         <strong>parameters:</strong><br />
-                        cacheStrategy:If CacheStrategy.ViewAndPreload or CacheStrategy.Preload is designated the Preload() method should be set.  More on Preload below.<br />
+                        cacheStrategy:When the main page of the SPA loads all 'Views' marked as CacheStrategy.View or ViewAndPreload will GET the view from server.  If you do not want to Cache HTML View Fragments then CacheStrategy.None should be selected.  This strategy will only call for the HTML View Fragment when that view is called to be visible on screen.  If CacheStrategy.ViewAndPreload or CacheStrategy.Preload is designated the Preload() method should be set.  More on Preload below.<br />
                         containerId: is the HTML content container for the HTML Fragment that is retrieved.<br />
                         viewPath: path to the HTMLFragment.  In the case when the HTMLFragment exists somewhere other than /Views/{ViewName}.html.
                     </p>
