@@ -75,6 +75,11 @@ abstract class ViewContainer implements IViewContainer {
     UrlTitle(route: ViewInstance): string {
         return this.Name;
     }
+    Parameters(url:string){
+        url = url ? url.replace(this.Name, '') : url;
+        url = url ? url.charAt(0) ===  "/" ? url.substring(1):url:url;
+        return url ? url.split('/'): new Array<string>();
+    }
 }
 class SingleViewContainer extends ViewContainer {
     constructor(cacheStrategy: CacheStrategy = CacheStrategy.View,  containerId: string = "content",  isDefault: boolean = false) {

@@ -475,7 +475,7 @@ var Binder = (function () {
     };
     Binder.prototype.isRedirecting = function (x) {
         var s = x.status, r = x.getResponseHeader('Location');
-        if ((s === 401 || s === 407) && r) {
+        if ((s === 401 || s === 407 || s === 403) && r) {
             window.location.href = r;
             return true;
         }
@@ -745,9 +745,9 @@ var DataObject = (function () {
             t.InstigatePropertyChangedListeners(p, true);
         }
     };
+    DataObject.DefaultAlternatingRowClass = null;
     return DataObject;
 }());
-DataObject.DefaultAlternatingRowClass = null;
 var CacheStrategy;
 (function (CacheStrategy) {
     CacheStrategy[CacheStrategy["None"] = 0] = "None";
@@ -800,8 +800,7 @@ var View = (function () {
             (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(function () { });
         }
-        var f = sessionStorage.getItem(t.Url());
-        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {
+        if (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload) {
             t.postPreloaded(true);
         }
     };
@@ -1041,6 +1040,11 @@ var ViewContainer = (function () {
     };
     ViewContainer.prototype.UrlTitle = function (route) {
         return this.Name;
+    };
+    ViewContainer.prototype.Parameters = function (url) {
+        url = url ? url.replace(this.Name, '') : url;
+        url = url ? url.charAt(0) === "/" ? url.substring(1) : url : url;
+        return url ? url.split('/') : new Array();
     };
     return ViewContainer;
 }());
@@ -1565,10 +1569,10 @@ Window.prototype.Show = function (type) {
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url) {
-    var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
+    var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.Where(function (vc) { return !vc.IsDefault; }).First(function (d) { return d.IsUrlPatternMatch(url); });
     vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
     if (vc) {
-        var p = url.split("/"), vi = new ViewInstance(p, vc, window.location.pathname);
+        var p = vc.Parameters(url), vi = new ViewInstance(p, vc, window.location.pathname);
         vc.Show(vi);
         HistoryManager.Add(vi);
     }

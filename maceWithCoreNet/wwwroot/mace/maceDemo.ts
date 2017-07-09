@@ -126,4 +126,4 @@ module Main {
 HistoryManager.AddListener(EventType.Completed, (e) => {
     var header = e.Sender.Name.replace("mace/", "");
     "ViewHeader".Element().innerHTML = header == "mace" ? "Overview" : header;
-});e
+});

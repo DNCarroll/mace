@@ -19,7 +19,7 @@ var NotAllowedContainer = (function (_super) {
         _this.IsDefault = false;
         return _this;
     }
+    NotAllowedContainer.instance = new NotAllowedContainer();
     return NotAllowedContainer;
 }(SingleViewContainer));
-NotAllowedContainer.instance = new NotAllowedContainer();
 //# sourceMappingURL=NotAllowed.js.map

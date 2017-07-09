@@ -24,9 +24,9 @@ var DocumentationContainer = (function (_super) {
         };
         return _this;
     }
+    DocumentationContainer.instance = new DocumentationContainer();
     return DocumentationContainer;
 }(ViewContainer));
-DocumentationContainer.instance = new DocumentationContainer();
 var BinderContainer = (function (_super) {
     __extends(BinderContainer, _super);
     function BinderContainer() {
@@ -40,9 +40,9 @@ var BinderContainer = (function (_super) {
         _this.Name = "mace/Documentation/Binder";
         return _this;
     }
+    BinderContainer.instance = new BinderContainer();
     return BinderContainer;
 }(ViewContainer));
-BinderContainer.instance = new BinderContainer();
 var DataObjectContainer = (function (_super) {
     __extends(DataObjectContainer, _super);
     function DataObjectContainer() {
@@ -56,9 +56,9 @@ var DataObjectContainer = (function (_super) {
         _this.Name = "mace/Documentation/DataObject";
         return _this;
     }
+    DataObjectContainer.instance = new DataObjectContainer();
     return DataObjectContainer;
 }(ViewContainer));
-DataObjectContainer.instance = new DataObjectContainer();
 var ViewContainerContainer = (function (_super) {
     __extends(ViewContainerContainer, _super);
     function ViewContainerContainer() {
@@ -72,9 +72,9 @@ var ViewContainerContainer = (function (_super) {
         _this.Name = "mace/Documentation/ViewContainer";
         return _this;
     }
+    ViewContainerContainer.instance = new ViewContainerContainer();
     return ViewContainerContainer;
 }(ViewContainer));
-ViewContainerContainer.instance = new ViewContainerContainer();
 var ViewDocumentationContainer = (function (_super) {
     __extends(ViewDocumentationContainer, _super);
     function ViewDocumentationContainer() {
@@ -88,9 +88,9 @@ var ViewDocumentationContainer = (function (_super) {
         _this.Name = "mace/Documentation/View";
         return _this;
     }
+    ViewDocumentationContainer.instance = new ViewDocumentationContainer();
     return ViewDocumentationContainer;
 }(ViewContainer));
-ViewDocumentationContainer.instance = new ViewDocumentationContainer();
 var BuildChecklistContainer = (function (_super) {
     __extends(BuildChecklistContainer, _super);
     function BuildChecklistContainer() {
@@ -104,9 +104,9 @@ var BuildChecklistContainer = (function (_super) {
         _this.Name = "mace/Documentation/BuildCheckList";
         return _this;
     }
+    BuildChecklistContainer.instance = new BuildChecklistContainer();
     return BuildChecklistContainer;
 }(ViewContainer));
-BuildChecklistContainer.instance = new BuildChecklistContainer();
 var NavigationContainer = (function (_super) {
     __extends(NavigationContainer, _super);
     function NavigationContainer() {
@@ -120,9 +120,9 @@ var NavigationContainer = (function (_super) {
         _this.Name = "mace/Documentation/Navigation";
         return _this;
     }
+    NavigationContainer.instance = new NavigationContainer();
     return NavigationContainer;
 }(ViewContainer));
-NavigationContainer.instance = new NavigationContainer();
 var Documentation;
 (function (Documentation) {
     Documentation.position = 1;

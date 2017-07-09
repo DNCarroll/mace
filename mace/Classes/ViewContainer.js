@@ -85,6 +85,9 @@ var ViewContainer = (function () {
     ViewContainer.prototype.UrlTitle = function (route) {
         return this.Name;
     };
+    ViewContainer.prototype.Parameters = function (url) {
+        return url ? url.replace(this.Name, '').split('/') : new Array();
+    };
     return ViewContainer;
 }());
 var SingleViewContainer = (function (_super) {
