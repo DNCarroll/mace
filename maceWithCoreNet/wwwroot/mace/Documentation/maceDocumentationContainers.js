@@ -101,11 +101,28 @@ var BuildChecklistContainer = (function (_super) {
         _this = _super.call(this) || this;
         _this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/BuildCheckList.html"));
         _this.IsDefault = false;
+        _this.Name = "mace/Documentation/BuildCheckList";
         return _this;
     }
     return BuildChecklistContainer;
 }(ViewContainer));
 BuildChecklistContainer.instance = new BuildChecklistContainer();
+var NavigationContainer = (function (_super) {
+    __extends(NavigationContainer, _super);
+    function NavigationContainer() {
+        var _this = this;
+        if (NavigationContainer.instance) {
+            return NavigationContainer.instance;
+        }
+        _this = _super.call(this) || this;
+        _this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/Navigation.html"));
+        _this.IsDefault = false;
+        _this.Name = "mace/Documentation/Navigation";
+        return _this;
+    }
+    return NavigationContainer;
+}(ViewContainer));
+NavigationContainer.instance = new NavigationContainer();
 var Documentation;
 (function (Documentation) {
     Documentation.position = 1;

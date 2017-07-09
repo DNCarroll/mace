@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mace", "mace\mace.csproj", "{5E51DCBF-995C-45AE-BCD6-1D4866B912F0}"
 EndProject
@@ -14,8 +14,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		VS Marketplace Extension Description.txt = VS Marketplace Extension Description.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceWebProject.vsix", "mace.ts.Web.VSIX\maceWebProject.vsix.csproj", "{B958D083-F547-4410-9777-EE6B813984E3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceAddWebView.vsix", "Mace.ApiViewViewContainer.VSIX\maceAddWebView.vsix.csproj", "{20083C8D-E2AF-4E06-BF21-8E037FCCF992}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceAddWebView", "Mace.ApiViewViewContainer\maceAddWebView.csproj", "{C6B6300F-B639-4FBE-A726-241C5FABBB86}"
@@ -24,7 +22,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceAddWebView.WindowsForms
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceWebProject", "mace.ts.NetFrameworkWebApp\maceWebProject.csproj", "{EF4A8282-2AFA-419D-BDC4-97ADEAB12095}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "maceWithCoreNet", "maceWithCoreNet\maceWithCoreNet.csproj", "{2FA1ADC6-38F8-49D7-8F5C-4295CEAA4BCA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "maceWithCoreNet", "maceWithCoreNet\maceWithCoreNet.csproj", "{2FA1ADC6-38F8-49D7-8F5C-4295CEAA4BCA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,10 +42,6 @@ Global
 		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA7DA481-3D25-45AB-9726-F59CDD27CB69}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B958D083-F547-4410-9777-EE6B813984E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B958D083-F547-4410-9777-EE6B813984E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B958D083-F547-4410-9777-EE6B813984E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B958D083-F547-4410-9777-EE6B813984E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{20083C8D-E2AF-4E06-BF21-8E037FCCF992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{20083C8D-E2AF-4E06-BF21-8E037FCCF992}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20083C8D-E2AF-4E06-BF21-8E037FCCF992}.Release|Any CPU.ActiveCfg = Release|Any CPU

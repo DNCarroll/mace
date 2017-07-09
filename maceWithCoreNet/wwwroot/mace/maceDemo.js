@@ -148,6 +148,22 @@ var OrderContainer = (function (_super) {
     return OrderContainer;
 }(ViewContainer));
 OrderContainer.instance = new OrderContainer();
+var ContactContainer = (function (_super) {
+    __extends(ContactContainer, _super);
+    function ContactContainer() {
+        var _this = this;
+        if (ContactContainer.instance) {
+            return ContactContainer.instance;
+        }
+        _this = _super.call(this) || this;
+        _this.Views.push(new View(CacheStrategy.View, "content", "/mace/Contact.html"));
+        _this.IsDefault = false;
+        _this.Name = "mace/Contact";
+        return _this;
+    }
+    return ContactContainer;
+}(ViewContainer));
+ContactContainer.instance = new ContactContainer();
 var Main;
 (function (Main) {
     function Navigate(type) {
@@ -164,4 +180,4 @@ HistoryManager.AddListener(EventType.Completed, function (e) {
     var header = e.Sender.Name.replace("mace/", "");
     "ViewHeader".Element().innerHTML = header == "mace" ? "Overview" : header;
 });
-//# sourceMappingURL=maceDemoContainers.js.map
+//# sourceMappingURL=maceDemo.js.map

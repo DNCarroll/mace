@@ -17,7 +17,7 @@
     <link href="/css/menu.css" rel="stylesheet" />
 
     <script src="/Scripts/mace.js"></script>
-    <script src="/mace/maceDemoContainers.js"></script>
+    <script src="/mace/maceDemo.js"></script>
 </head>
 <body>
     <div>
@@ -59,6 +59,7 @@
                  col-lg-5 col-lg-offset-1
                  col-md-5 col-md-offset-1
                  col-sm-12">
+                <h3>mace.js Objects</h3>
                 <div class="panel">
                     <dl class="dl-horizontal">
                         <dt>ViewContainer</dt>
@@ -93,8 +94,21 @@
                 </div>
             </div>
         </div>        
-        <footer class="navbar navbar-fixed-bottom navbar-default">
-            <a href="/"><span>mace.ts</span></a>
+        <footer class="navbar navbar-fixed-bottom navbar-default">            
+            <ul class="navbar-nav nav">
+                <li>
+                    <a href="javascript:" onclick="Main.Navigation(ContactContainer)" class="nav">Contact</a>
+                </li>
+                <li>
+                    <a href="https://github.com/DNCarroll/mace" class="nav">GitHub Project</a>
+                </li>
+                <li>
+                    <a href="https://marketplace.visualstudio.com/items?itemName=vs-publisher-335138.maceSnippets" class="nav">Snippets</a>
+                </li>
+                <li>
+                    <a href="https://www.nuget.org/packages/mace.ts" class="nav">Nuget</a>
+                </li>
+            </ul>
         </footer>
     </div>
 </body>
