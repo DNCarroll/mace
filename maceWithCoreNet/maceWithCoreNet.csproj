@@ -16,6 +16,7 @@
     <Content Include="wwwroot\css\testmenu.css" />
     <Content Include="wwwroot\js\jquery-3.2.1.min.js" />
     <Content Include="wwwroot\mace\AutoOrders.html" />
+    <Content Include="wwwroot\mace\Contact.html" />
     <Content Include="wwwroot\mace\default.html" />
     <Content Include="wwwroot\mace\Documentation\Binder.html" />
     <Content Include="wwwroot\mace\Documentation\BuildChecklist.html" />
@@ -24,12 +25,11 @@
     <Content Include="wwwroot\mace\Documentation\maceDocumentationContainers.js" />
     <Content Include="wwwroot\mace\Documentation\maceDocumentationContainers.js.map" />
     <Content Include="wwwroot\mace\Documentation\maceDocumentationContainers.ts" />
+    <Content Include="wwwroot\mace\Documentation\Navigation.html" />
     <Content Include="wwwroot\mace\Documentation\View.html" />
     <Content Include="wwwroot\mace\Documentation\ViewContainer.html" />
     <Content Include="wwwroot\mace\Landing.html" />
-    <Content Include="wwwroot\mace\maceDemoContainers.js" />
-    <Content Include="wwwroot\mace\maceDemoContainers.js.map" />
-    <Content Include="wwwroot\mace\maceDemoContainers.ts" />
+    <Content Include="wwwroot\mace\maceDemo.ts" />
     <Content Include="wwwroot\mace\Order.html" />
     <Content Include="wwwroot\mace\Orders.html" />
     <Content Include="wwwroot\mace\OrdersWBoostrap.html" />
@@ -44,7 +44,6 @@
     <Content Include="wwwroot\StyleTesting\PureIODefault.html">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="wwwroot\testmenu.html" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />

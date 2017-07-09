@@ -19,7 +19,7 @@ var BareBonesContainer = (function (_super) {
         _this.Views.push(new View(CacheStrategy.View, "content", "/Views/BareBones.html"));
         return _this;
     }
+    BareBonesContainer.instance = new BareBonesContainer();
     return BareBonesContainer;
 }(ViewContainer));
-BareBonesContainer.instance = new BareBonesContainer();
 //# sourceMappingURL=BareBonesContainer.js.map

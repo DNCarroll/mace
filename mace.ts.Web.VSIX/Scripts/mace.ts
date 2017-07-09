@@ -1,4 +1,4 @@
-﻿class Ajax implements IEventDispatcher<Ajax>{
+class Ajax implements IEventDispatcher<Ajax>{
     constructor(withProgress: boolean = false, disableElement:any = null) {
         this.WithProgress = withProgress;
         this.DisableElement = disableElement;
@@ -443,16 +443,13 @@ class Binder implements IBinder {
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
         var t = this, x = a.Sender.XHttp,
-            td = <any>a.Sender.GetRequestData(),
-            rd = Is.Array(td) ? td : [td];
+            rd = [<any>a.Sender.GetRequestData()];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
                 for (var i = 0; i < rd.length; i++) {
                     let o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.isPKMatch(d, rd[i]));
-                    if (o) {
-                        t.SetServerObjectValue(o, rd[i]);
-                        o.ObjectState = ObjectState.Clean;
-                    }
+                    o ? t.SetServerObjectValue(o, rd[i]) : null;
+                    o.ObjectState = ObjectState.Clean;
                 }
             }
             else {
@@ -474,7 +471,7 @@ class Binder implements IBinder {
     }
     private isRedirecting(x: XMLHttpRequest) {        
         var s = x.status, r = x.getResponseHeader('Location');
-        if ((s === 401 || s === 407 || s === 403) && r) {
+        if ((s === 401 || s === 407) && r) {
             window.location.href = r;
             return true;
         }
@@ -742,7 +739,6 @@ class DataObject implements IObjectState {
         }
     }
 }
-
 enum CacheStrategy {
     None,
     ViewAndPreload,
@@ -756,7 +752,6 @@ class View implements IView {
         this.url = viewPath;
         this._containerID = containerId;
         this.CacheStrategy = cacheStrategy;
-        this.Cache(this.CacheStrategy);
     }
     Prefix() {
         return "/Views/";
@@ -787,9 +782,14 @@ class View implements IView {
         if (t.Preload &&
             (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(() => { });
-        }        
-        if (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload) {
-            t.postPreloaded(true);
+        }
+        var f = sessionStorage.getItem(t.Url());
+        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {
+            var a = new Ajax();
+            a.AddListener(EventType.Completed, (arg: ICustomEventArg<Ajax>) => {
+                t.RequestCompleted(arg, true);
+            });
+            a.Get(t.Url());
         }
     }
     Show(viewInstance: ViewInstance) {
@@ -799,17 +799,24 @@ class View implements IView {
         t.binders.forEach(b => b.RemoveListeners(EventType.Any));
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     }
-    private postPreloaded(dontSetHtml: boolean = false) {
+    private postPreloaded() {
         var t = this,
-            a = new Ajax();
-        if (!dontSetHtml) {
+            f = sessionStorage.getItem(t.Url());
+        if (!f || window["IsDebug"]) {
+            var a = new Ajax();
             a.AddListener(EventType.Completed, t.RequestCompleted.bind(this));
+            a.Get(t.Url());
         }
-        a.Get(t.Url());
+        else {
+            t.SetHTML(f);
+        }
     }
-    RequestCompleted(a: CustomEventArg<Ajax>) {
+    RequestCompleted(a: CustomEventArg<Ajax>, dontSetHTML = false) {
         if (a.Sender.ResponseText) {
-            this.SetHTML(a.Sender.ResponseText);
+            sessionStorage.setItem(this.Url(), a.Sender.ResponseText);
+            if (!dontSetHTML) {
+                this.SetHTML(a.Sender.ResponseText);
+            }
         }
         a.Sender = null;
     }
@@ -956,18 +963,17 @@ var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
 abstract class ViewContainer implements IViewContainer {
     constructor() {
         var n = Reflection.GetName(this.constructor);
-        this.Name = n.replace("ViewContainer", "");
-        this.Name = this.Name.replace("Container", "");
+        this.UrlBase = n.replace("ViewContainer", "");
+        this.UrlBase = this.UrlBase.replace("Container", "");
         ViewContainers.push(this);
     }
-    UrlPattern: () => string = null;
-    public Name: string;
+    UrlBase: string;
     Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
     NumberViewsShown: number;
     Show(route: ViewInstance) {
         var rp = route.Parameters, t = this;
-        if (rp && rp.length == 1 && t.IsDefault) {
+        if (rp.length == 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -979,11 +985,10 @@ abstract class ViewContainer implements IViewContainer {
     }
     IsUrlPatternMatch(url: string) {
         if (!Is.NullOrEmpty(url)) {
-            url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
-            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.Name;
+            var p = this.UrlPattern(), up = (url.indexOf("/") == 0 ? url.substr(1) : url).split("/")[0];
             if (p) {
                 var regex = new RegExp(p, 'i');
-                return url.match(regex) ? true : false;
+                return up.match(regex) ? true : false;
             }
         }
         return false;
@@ -994,46 +999,31 @@ abstract class ViewContainer implements IViewContainer {
         }
         if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
-            window.scrollTo(0, 0);
         }
     }
-    Url(viewInstance: ViewInstance): string {
-        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
-        if (vi.Route) {
-            return vi.Route;
-        }
-        else if (t.UrlPattern != null) {
-            var up = t.UrlPattern().split("/"), pi = 0, nu = new Array<string>();
-            for (var i = 0; i < up.length; i++) {
-                let p = up[i];
-                if (p.indexOf("(?:") == 0) {
-                    if (!rp) { break; }
-                    if (pi < rp.length) {
-                        nu.Add(rp[pi]);
-                    }
-                    else {
-                        break;
-                    }
-                    pi++;
-                }
-                else {
-                    nu.Add(up[i]);
-                }
+    Url(route: ViewInstance): string {
+        var rp = route.Parameters, t = this;
+        if (rp) {            
+            if (rp.length == 1 && t.IsDefault) {
+                rp = new Array();
             }
-            return nu.join("/");            
+            if (rp.length > 0) {
+                var p = rp[0] == t.UrlBase ?
+                    rp.slice(1).join("/") :
+                    rp.join("/");
+                return t.UrlBase + (p.length > 0 ? "/" + p : "");
+            }
         }
-        return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        return t.UrlBase;
     }
     DocumentTitle(route: ViewInstance): string {
-        return this.Name;
+        return this.UrlBase;
+    }
+    UrlPattern(): string {
+        return this.UrlBase;
     }
     UrlTitle(route: ViewInstance): string {
-        return this.Name;
-    }
-    Parameters(url:string){
-        url = url ? url.replace(this.Name, '') : url;
-        url = url ? url.charAt(0) ===  "/" ? url.substring(1):url:url;
-        return url ? url.split('/'): new Array<string>();
+        return this.UrlBase;
     }
 }
 class SingleViewContainer extends ViewContainer {
@@ -1041,17 +1031,15 @@ class SingleViewContainer extends ViewContainer {
         super();
         var t = this;
         t.IsDefault = isDefault;
-        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
+        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.UrlBase + ".html"));
     }
 }
-class ViewInstance {
+class ViewInstance {    
     Parameters: Array<any>;
     ViewContainer: IViewContainer;    
-    Route: string;
-    constructor(parameters: Array<any>, viewContainer: IViewContainer, route: string = null) {
-        this.Route = route;
-        this.Parameters = parameters;
-        this.ViewContainer = viewContainer;        
+    constructor(parameters: Array<any>, viewContainer: IViewContainer) {
+        this.Parameters = parameters;        
+        this.ViewContainer = viewContainer;
     }
 }
 
@@ -1151,11 +1139,9 @@ interface IViewContainer {
     UrlTitle: (route: ViewInstance) => string;
     IsUrlPatternMatch: (url: string) => boolean;
     Views: Array<IView>;
-    Name: string;
-    Parameters:(url:string)=> Array<string>;
 }
 module HistoryContainer {
-    export class History implements IEventDispatcher<ViewContainer> {        
+    export class History {
         private ViewInstances = new Array<ViewInstance>();
         CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
@@ -1169,7 +1155,6 @@ module HistoryContainer {
                 t = this;
             t.ViewInstances.Add(vi);
             t.ManageRouteInfo(vi);
-            t.Dispatch(EventType.Completed);
         }
         Back() {
             var t = this,
@@ -1182,7 +1167,6 @@ module HistoryContainer {
                     f = i.ViewContainer;
                 f.Show(i);
                 t.ManageRouteInfo(i);
-                t.Dispatch(EventType.Completed);
             }
             else {
                 //do nothing?
@@ -1206,24 +1190,6 @@ module HistoryContainer {
         FormatUrl(url: string) {
             url = url.replace(/[^A-z0-9/]/g, "");
             return url;
-        }
-        private eHandlrs = new Array<Listener<ViewContainer>>();
-        AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<ViewContainer>) => void) {
-            var t = this,
-                f = t.eHandlrs.First(h => h.EventType === eventType && h.EventHandler === eventHandler);
-            if (!f) {
-                t.eHandlrs.Add(new Listener(eventType, eventHandler));
-            }
-        }
-        RemoveListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<ViewContainer>) => void) {
-            this.eHandlrs.Remove(l => l.EventType === eventType && eventHandler === eventHandler);
-        }
-        RemoveListeners(eventType: EventType) {
-            this.eHandlrs.Remove(l => l.EventType === eventType);
-        }
-        Dispatch(eventType: EventType) {
-            var l = this.eHandlrs.Where(e => e.EventType === eventType);
-            l.forEach(l => l.EventHandler(new CustomEventArg<ViewContainer>(this.CurrentViewInstance().ViewContainer, eventType)));
         }
     }
 }
@@ -1426,7 +1392,7 @@ interface HTMLElement extends Element {
     GetDataSetAttributes: () => { Attribute: string; Property: any; }[];        
     Binder: IBinder;
     DataObject: IObjectState;   
-    Delete(); 
+    DeleteFromServer(); 
     Save();
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
@@ -1536,7 +1502,7 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     }
     return r;
 };
-HTMLElement.prototype.Delete = function () {
+HTMLElement.prototype.DeleteFromServer = function () {
     var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {
         p.Binder.Delete(this, null);
@@ -1623,7 +1589,7 @@ String.prototype.IsStyle = function () {
     return false;
 };
 interface Window {
-    Show<T extends IViewContainer>(type: {
+    Show<T>(type: {
         new (): T;
     }, ...parameters: any[]);
     ShowByUrl(url: string);
@@ -1645,20 +1611,18 @@ Window.prototype.Exception = function (...parameters: any[]) {
     }
 };
 Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {
-    var p = parameters;
-    p = p.length == 1 && p[0] == "" ? null : p;
     var vc = Reflection.NewObject(type),
-        vi = new ViewInstance(p, vc);
+        vi = new ViewInstance(parameters, vc);
     vc.Show(vi);
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url: string) {
-    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.Where(vc=>!vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
+    var vc: IViewContainer = ViewContainers.First(d => d.IsUrlPatternMatch(url));
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {
-        var p = vc.Parameters(url),
-            vi = new ViewInstance(p, vc, window.location.pathname);
+        var p = url.split("/"),
+            vi = new ViewInstance(p, vc);
         vc.Show(vi);
         HistoryManager.Add(vi);
     }
-};
+}

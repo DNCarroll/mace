@@ -32,7 +32,7 @@ Window.prototype.ShowByUrl = function (url) {
     var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
     vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
     if (vc) {
-        var p = url.split("/"), vi = new ViewInstance(p, vc, window.location.pathname);
+        var p = vc.Parameters(url), vi = new ViewInstance(p, vc, window.location.pathname);
         vc.Show(vi);
         HistoryManager.Add(vi);
     }

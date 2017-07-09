@@ -91,6 +91,8 @@
     }
 
 
+
+
 @media screen and (min-width:48em) {
     .navbar-nav {
         position: fixed;
@@ -104,6 +106,10 @@
     .menu-icon {
         display: none;
         opacity: 0;
+    }
+    .navbar-nav-footer li {
+        display: inline-block;
+        width: 25%;
     }
 }
 
@@ -135,4 +141,15 @@
     #progress {
         right: 4em;
     }
+    .navbar-nav-footer li {
+        display: inline-block;
+    }
+    .nav-footer-lastmenu {
+        display:none;
+        max-height:0px;
+    }
+}
+
+.navbar-nav-footer {
+    max-height: 50px;
 }

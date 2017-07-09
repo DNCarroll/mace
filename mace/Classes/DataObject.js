@@ -109,7 +109,7 @@ var DataObject = (function () {
             t.InstigatePropertyChangedListeners(p, true);
         }
     };
+    DataObject.DefaultAlternatingRowClass = null;
     return DataObject;
 }());
-DataObject.DefaultAlternatingRowClass = null;
 //# sourceMappingURL=DataObject.js.map

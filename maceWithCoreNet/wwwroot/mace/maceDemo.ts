@@ -103,6 +103,19 @@ class OrderContainer extends ViewContainer {
         this.Name = "mace/Order";
     }
 }
+class ContactContainer extends ViewContainer {
+    private static instance: ContactContainer = new ContactContainer();
+    constructor() {
+        if (ContactContainer.instance) {
+            return ContactContainer.instance;
+        }
+        super();
+        this.Views.push(new View(CacheStrategy.View, "content", "/mace/Contact.html"));
+        this.IsDefault = false;
+        this.Name = "mace/Contact";
+    }
+}
+
 module Main {    
     export function Navigate<T extends IViewContainer>(type: { new (): T; }, ...parameters: any[]) {        
         (<HTMLInputElement>"menu-btn".Element()).checked = false;
