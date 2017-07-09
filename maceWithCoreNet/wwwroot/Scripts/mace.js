@@ -1004,6 +1004,7 @@ var ViewContainer = (function () {
         }
         if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
+            window.scrollTo(0, 0);
         }
     };
     ViewContainer.prototype.Url = function (viewInstance) {

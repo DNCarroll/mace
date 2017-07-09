@@ -40,6 +40,7 @@ abstract class ViewContainer implements IViewContainer {
         }
         if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
+            window.scrollTo(0, 0);
         }
     }
     Url(viewInstance: ViewInstance): string {
