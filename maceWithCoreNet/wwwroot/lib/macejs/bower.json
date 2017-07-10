@@ -1,0 +1,52 @@
+{
+  "name": "macejs",
+  "homepage": "https://github.com/DNCarroll/mace",
+  "authors": [
+    "Nathan Carroll nathan.carroll@outlook.com"
+  ],
+  "description": "A TypeScript library that handles url route, view management, binding, web api calls, and ajax functions of a web application.",
+  "keywords": [
+    "spa",
+    "web",
+    "app",
+    "binding",
+    "ajax",
+    "api",
+    "route"
+  ],
+ "ignore": [
+    "Api",
+    "App_Start",
+    "Classes",
+    "Interfaces",
+    "Modules",
+    "mace",
+    "maceWithCoreNet",
+    "mace.ts.Web.VSIX",
+    "mace.ts.NetFrameworkWebApp",
+    "Mace.ts.Extensibility",
+    "mace.ApiViewViewContainer.Wizard",
+    "Mace.ApiViewViewContainer.VSIX",
+    "Mace.ApiViewViewContainer",
+    "mace.Test",
+    "mace Web For 2015",
+    "*.ico",
+    "*.md",
+    "Prototypes",
+    ".*",
+    "Styles",
+    "package.json",
+    "TestScripts",
+    "Views",
+    "*.html",
+    "*.cs",
+    "*.config",
+    "*.asax",
+    "*.sln",
+    "*.txt",
+    "bundleconfig.*",
+    "*.csproj"  
+  ],
+  "license": "MIT",
+  "private": false
+}

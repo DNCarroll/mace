@@ -34,7 +34,6 @@
     <Content Include="wwwroot\mace\Orders.html" />
     <Content Include="wwwroot\mace\OrdersWBoostrap.html" />
     <Content Include="wwwroot\mace\OrdersWPure.html" />
-    <Content Include="wwwroot\Scripts\mace.ts" />
     <Content Include="wwwroot\StyleTesting\BootstrapWoJQuery.html">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
