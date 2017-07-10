@@ -6,9 +6,7 @@
   ],
   "description": "A TypeScript library that handles url route, view management, binding, web api calls, and ajax functions of a web application.",
     "main": [
-    "mace/Script/mace.ts",
-    "mace/Script/mace.min.js",
-    "mace/Script/mace.js"
+    "mace/Script"
   ],
   "keywords": [
     "spa",
