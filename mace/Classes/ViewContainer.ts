@@ -40,6 +40,7 @@ abstract class ViewContainer implements IViewContainer {
         }
         if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
+            window.scrollTo(0, 0);
         }
     }
     Url(viewInstance: ViewInstance): string {
@@ -74,6 +75,11 @@ abstract class ViewContainer implements IViewContainer {
     }
     UrlTitle(route: ViewInstance): string {
         return this.Name;
+    }
+    Parameters(url:string){
+        url = url ? url.replace(this.Name, '') : url;
+        url = url ? url.charAt(0) ===  "/" ? url.substring(1):url:url;
+        return url ? url.split('/'): new Array<string>();
     }
 }
 class SingleViewContainer extends ViewContainer {

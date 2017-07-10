@@ -474,7 +474,7 @@ class Binder implements IBinder {
     }
     private isRedirecting(x: XMLHttpRequest) {        
         var s = x.status, r = x.getResponseHeader('Location');
-        if ((s === 401 || s === 407) && r) {
+        if ((s === 401 || s === 407 || s === 403) && r) {
             window.location.href = r;
             return true;
         }
@@ -742,6 +742,7 @@ class DataObject implements IObjectState {
         }
     }
 }
+
 enum CacheStrategy {
     None,
     ViewAndPreload,
@@ -1028,6 +1029,11 @@ abstract class ViewContainer implements IViewContainer {
     UrlTitle(route: ViewInstance): string {
         return this.Name;
     }
+    Parameters(url:string){
+        url = url ? url.replace(this.Name, '') : url;
+        url = url ? url.charAt(0) ===  "/" ? url.substring(1):url:url;
+        return url ? url.split('/'): new Array<string>();
+    }
 }
 class SingleViewContainer extends ViewContainer {
     constructor(cacheStrategy: CacheStrategy = CacheStrategy.View,  containerId: string = "content",  isDefault: boolean = false) {
@@ -1145,6 +1151,7 @@ interface IViewContainer {
     IsUrlPatternMatch: (url: string) => boolean;
     Views: Array<IView>;
     Name: string;
+    Parameters:(url:string)=> Array<string>;
 }
 module HistoryContainer {
     export class History implements IEventDispatcher<ViewContainer> {        
@@ -1615,7 +1622,7 @@ String.prototype.IsStyle = function () {
     return false;
 };
 interface Window {
-    Show<T>(type: {
+    Show<T extends IViewContainer>(type: {
         new (): T;
     }, ...parameters: any[]);
     ShowByUrl(url: string);
@@ -1645,10 +1652,10 @@ Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url: string) {
-    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.First(d => d.IsUrlPatternMatch(url));
+    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.Where(vc=>!vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {
-        var p = url.split("/"),
+        var p = vc.Parameters(url),
             vi = new ViewInstance(p, vc, window.location.pathname);
         vc.Show(vi);
         HistoryManager.Add(vi);

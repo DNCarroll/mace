@@ -1,5 +1,5 @@
 interface Window {
-    Show<T>(type: {
+    Show<T extends IViewContainer>(type: {
         new (): T;
     }, ...parameters: any[]);
     ShowByUrl(url: string);
@@ -29,10 +29,10 @@ Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url: string) {
-    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.First(d => d.IsUrlPatternMatch(url));
+    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.Where(vc=>!vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {
-        var p = url.split("/"),
+        var p = vc.Parameters(url),
             vi = new ViewInstance(p, vc, window.location.pathname);
         vc.Show(vi);
         HistoryManager.Add(vi);

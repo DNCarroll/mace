@@ -31,6 +31,9 @@
                 <label class="menu-icon" for="menu-btn"><span class="navicon"></span></label>
                 <ul class="navbar-nav nav">
                     <li>
+                        <a href="javascript:" onclick="Documentation.Navigate(NavigationContainer)" class="nav">Navigation</a>
+                    </li>
+                    <li>
                         <a href="javascript:" onclick="Documentation.Navigate(ViewContainerContainer)" class="nav">ViewContainer</a>
                     </li>
                     <li>
@@ -68,8 +71,23 @@
                 <div id="content"></div>
             </div>
         </div>
-        <footer class="navbar navbar-fixed-bottom navbar-default">
-            <a href="/"><span>mace.ts</span></a>
+        <footer class="container">
+            <div class="navbar navbar-fixed-bottom navbar-default">
+                <ul class="navbar-nav nav navbar-nav-footer" style="width:90%; text-align:center">
+                    <li>
+                        <a href="javascript:" onclick="Main.Navigate(ContactContainer)">Contact</a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/DNCarroll/mace">GitHub Project</a>
+                    </li>
+                    <li>
+                        <a href="https://www.nuget.org/packages/mace.ts">Nuget</a>
+                    </li>
+                    <li class="nav-footer-lastmenu">
+                        <a href="https://marketplace.visualstudio.com/items?itemName=vs-publisher-335138.maceSnippets">Snippets</a>
+                    </li>
+                </ul>
+            </div>
         </footer>
     </div>
 </body>

@@ -70,6 +70,19 @@ class BuildChecklistContainer extends ViewContainer {
         super();
         this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/BuildCheckList.html"));
         this.IsDefault = false;
+        this.Name = "mace/Documentation/BuildCheckList";
+    }
+}
+class NavigationContainer extends ViewContainer {
+    private static instance: NavigationContainer = new NavigationContainer();
+    constructor() {
+        if (NavigationContainer.instance) {
+            return NavigationContainer.instance;
+        }
+        super();
+        this.Views.push(new View(CacheStrategy.View, "content", "../../mace/Documentation/Navigation.html"));
+        this.IsDefault = false;
+        this.Name = "mace/Documentation/Navigation";
     }
 }
 module Documentation {
@@ -88,7 +101,6 @@ module Documentation {
         currentElement.style.display = "block";
     }
 }
-
 HistoryManager.AddListener(EventType.Completed, (e) => {
     var n = e.Sender.Name.replace("mace/Documentation/", ""), bc = "breadCrumbWhere".Element();
     "ViewHeader".Element().innerHTML = n;

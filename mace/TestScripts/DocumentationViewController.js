@@ -19,7 +19,7 @@ var DocumentationContainer = (function (_super) {
         _this.IsDefault = true;
         return _this;
     }
+    DocumentationContainer.instance = new DocumentationContainer();
     return DocumentationContainer;
 }(SingleViewContainer));
-DocumentationContainer.instance = new DocumentationContainer();
 //# sourceMappingURL=DocumentationViewController.js.map

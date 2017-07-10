@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
     <meta http-equiv='cache-control' content='no-cache'>
     <meta http-equiv='expires' content='0'>
     <meta http-equiv='pragma' content='no-cache'>
@@ -17,7 +17,7 @@
     <link href="/css/menu.css" rel="stylesheet" />
 
     <script src="/Scripts/mace.js"></script>
-    <script src="/mace/maceDemoContainers.js"></script>
+    <script src="/mace/maceDemo.js"></script>
 </head>
 <body>
     <div>
@@ -38,20 +38,20 @@
                     <li><a href="javascript:" onclick="Main.Navigate(AutoOrdersContainer)" class="nav">AutoUpdate Orders</a></li>
                     <li><a href="javascript:" onclick="Main.Navigate(OrdersContainer)" class="nav">Orders</a></li>
                     <li>
-                        <a href="/mace/Documentation"                           
+                        <a href="/mace/Documentation"
                            class="nav">Documentation</a>
                     </li>
                 </ul>
             </div>
-        </header>        
-        <div class="container">   
+        </header>
+        <div class="container">
             <div class="page-header">
                 <h2 id="ViewHeader"></h2>
             </div>
             <div class="
                  col-lg-6
                  col-md-6
-                 col-sm-12">                
+                 col-sm-12">
                 <div id="content">
                 </div><br /><br />
             </div>
@@ -59,6 +59,7 @@
                  col-lg-5 col-lg-offset-1
                  col-md-5 col-md-offset-1
                  col-sm-12">
+                <h3>mace.js Objects</h3>
                 <div class="panel">
                     <dl class="dl-horizontal">
                         <dt>ViewContainer</dt>
@@ -92,9 +93,24 @@
                     </dl>
                 </div>
             </div>
-        </div>        
-        <footer class="navbar navbar-fixed-bottom navbar-default">
-            <a href="/"><span>mace.ts</span></a>
+        </div>
+        <footer class="container">
+            <div class="navbar navbar-fixed-bottom navbar-default">
+                <ul class="navbar-nav nav navbar-nav-footer" style="width:90%; text-align:center">
+                    <li>
+                        <a href="javascript:" onclick="Main.Navigate(ContactContainer)">Contact</a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/DNCarroll/mace">GitHub Project</a>
+                    </li>
+                    <li>
+                        <a href="https://www.nuget.org/packages/mace.ts">Nuget</a>
+                    </li>
+                    <li class="nav-footer-lastmenu">
+                        <a href="https://marketplace.visualstudio.com/items?itemName=vs-publisher-335138.maceSnippets">Snippets</a>
+                    </li>
+                </ul>
+            </div>
         </footer>
     </div>
 </body>

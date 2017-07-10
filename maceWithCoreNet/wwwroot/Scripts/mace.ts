@@ -1,5 +1,5 @@
 ﻿class Ajax implements IEventDispatcher<Ajax>{
-    constructor(withProgress: boolean = false, disableElement: any = null) {
+    constructor(withProgress: boolean = false, disableElement:any = null) {
         this.WithProgress = withProgress;
         this.DisableElement = disableElement;
     }
@@ -13,20 +13,20 @@
     get ResponseText(): string {
         return this.XHttp.responseText;
     }
-    XHttp: XMLHttpRequest;
+    XHttp: XMLHttpRequest;    
     Submit(method: string, url: string, parameters: any = null) {
-        var t = this;
+        var t = this;        
         t.Progress();
         url = t.getUrl(url);
-        t.XHttp = new XMLHttpRequest();
-        var x = t.XHttp;
-        x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
+        t.XHttp = new XMLHttpRequest(); 
+        var x = t.XHttp;       
+        x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);        
         x.open(method, url, true);
         x.setRequestHeader("content-type", t.ContentType);
         t.setHead();
         try {
             x.send(t.getParameters(parameters));
-        } catch (e) {
+        } catch (e) {            
             t.Progress(false);
             window.Exception(e);
         }
@@ -34,8 +34,8 @@
     private xStateChanged(e) {
         var t = this, x = t.XHttp, s = x.status;
         if (t.isRequestReady()) {
-            t.Progress(false);
-            t.Dispatch(s === 200 || s === 204 || s === 201 ? EventType.Completed : EventType.Any);
+            t.Progress(false);            
+            t.Dispatch(s === 200 || s === 204 || s === 201  ? EventType.Completed : EventType.Any);
         }
     }
     private getUrl(url: string): string {
@@ -93,7 +93,7 @@
     }
 
     GetRequestData(): any {
-        var r = null, t = this, x = this.XHttp, s = x.status;
+        var r = null, t = this, x = this.XHttp, s = x.status;       
         if (t.isRequestReady() && (s == 200 || s == 204) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
@@ -164,7 +164,7 @@
             switch (t) {
                 case "Date":
                     if (v) {
-                        v = parseInt(v.substring(6).replace(")/", ""));
+                        v = parseInt(v.substring(6).replace(")/", ""));                        
                         if (v > -62135575200000) {
                             v = new Date(v);
                             obj[k] = v;
@@ -199,7 +199,7 @@
     Put(url: string, prmtrs: any = null) { this.Submit("PUT", url, prmtrs); }
     Post(url: string, prmtrs: any = null) { this.Submit("POST", url, prmtrs); }
     Delete(url: string, prmtrs: any = null) { this.Submit("DELETE", url, prmtrs); }
-
+        
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<Ajax>) => void) {
         this.eventHandlers.Add(new Listener(eventType, eventHandler));
     }
@@ -211,7 +211,7 @@
     }
     Dispatch(eventType: EventType) {
         var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
-        l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
+        l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));        
     }
 }
 
@@ -220,7 +220,7 @@
 class Binder implements IBinder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
-    constructor(primaryKeys: Array<string> = null, api: string = null, autoUpdate: boolean = false, TypeObject: { new (obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
+    constructor(primaryKeys: Array<string> = null, api: string = null, autoUpdate:boolean = false, TypeObject: { new (obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
         var p = primaryKeys, t = this;
         t.StaticProperties = staticProperties;
         t.PrimaryKeys = p ? p : t.PrimaryKeys;
@@ -266,7 +266,7 @@ class Binder implements IBinder {
     Dispose() {
         var t = this, d = t.DataObject;
         t.PrimaryKeys = null;
-        t.Api = null;
+        t.Api = null;        
         if (d) {
             d.RemoveObjectStateListener();
             d.RemovePropertyListeners();
@@ -315,7 +315,7 @@ class Binder implements IBinder {
         }
     }
     OnAjaxComplete(arg: CustomEventArg<Ajax>) {
-        var t = this, x = arg.Sender.XHttp, s = x.status;
+        var t = this, x = arg.Sender.XHttp, s = x.status;        
         if (!t.isRedirecting(x)) {
             if (s === 200) {
                 var d = arg.Sender.GetRequestData();
@@ -351,10 +351,10 @@ class Binder implements IBinder {
         }
         if (o) {
             var a = new Ajax(t.WithProgress, t.DisableElement),
-                f = () => {
+                f = () => {                    
                     var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects, i = td.indexOf(o);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));
-                    td.splice(i);
+                    td.splice(i);                    
                     td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
                 },
                 afc = (a: CustomEventArg<Ajax>) => {
@@ -365,7 +365,7 @@ class Binder implements IBinder {
                             s === 500 ?
                                 alert("Server error contact web site administrators.") :
                                 s !== 204 ?
-                                    alert("Failed to delete row.") : null;
+                                alert("Failed to delete row.") : null;
                         }
                     };
                     ajaxDeleteFunction ? ajaxDeleteFunction(a) : err();
@@ -407,7 +407,7 @@ class Binder implements IBinder {
                 }
             }
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
-                <HTMLElement>e[e.length - 1] : null;
+                              <HTMLElement>e[e.length - 1] : null;
             r.forEach(r => {
                 t.DataRowTemplates.Add(r);
                 r.parentElement.removeChild(r);
@@ -415,7 +415,7 @@ class Binder implements IBinder {
             var dmk = "data-morekeys",
                 dmt = "data-morethreshold",
                 more = t.Element.First(m => m.HasDataSet() && m.getAttribute(dmk) != null &&
-                    m.getAttribute(dmt) != null);
+                m.getAttribute(dmt) != null);
             if (more) {
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
@@ -438,7 +438,7 @@ class Binder implements IBinder {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             o.ObjectState = ObjectState.Cleaning;
-            a.Put(api, o.ServerObject);
+            a.Put(api, o.ServerObject);            
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
@@ -468,13 +468,13 @@ class Binder implements IBinder {
             var c = d.Where(o => o.ObjectState === ObjectState.Dirty).Select(o => o.ServerObject),
                 aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            aj.Submit("PUT", t.Api() + "/SaveDirty", c);
+            aj.Submit("PUT", t.Api() + "/SaveDirty", c);      
             d.forEach(o => o.ObjectState = ObjectState.Cleaning);
         }
     }
-    private isRedirecting(x: XMLHttpRequest) {
+    private isRedirecting(x: XMLHttpRequest) {        
         var s = x.status, r = x.getResponseHeader('Location');
-        if ((s === 401 || s === 407) && r) {
+        if ((s === 401 || s === 407 || s === 403) && r) {
             window.location.href = r;
             return true;
         }
@@ -528,7 +528,7 @@ class Binder implements IBinder {
             if (!nba.First(v => v === b.Attribute)) {
                 let a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
-                if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
+                if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {                    
                     let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute;
                     if (ea) {
                         let fun = (evt) => {
@@ -638,10 +638,10 @@ class Binder implements IBinder {
     }
 }
 //state management isnt working right yet with regards to the put and the complete of the ajax call
-class DataObject implements IObjectState {
+class DataObject implements IObjectState {   
     static DefaultAlternatingRowClass: string = null;
     constructor(serverObject: any,
-        propertiesThatShouldSubscribeToObjectStateChanged: Array<string> = null,
+        propertiesThatShouldSubscribeToObjectStateChanged:Array<string>= null,
         staticProperties: Array<string> = null) {
         var so = serverObject, t = this;
         t.serverObject = so;
@@ -742,6 +742,7 @@ class DataObject implements IObjectState {
         }
     }
 }
+
 enum CacheStrategy {
     None,
     ViewAndPreload,
@@ -762,13 +763,13 @@ class View implements IView {
     }
     Url() {
         if (!this.url) {
-            var n = Reflection.GetName(this.constructor).replace("View", "");
+            var n = Reflection.GetName(this.constructor).replace("View","");
             this.url = this.Prefix() + n + ".html";
         }
         return this.url;
     };
     _containerID: string = null;
-    ContainerID(): string { return this._containerID; };
+    ContainerID(): string { return this._containerID; };    
     private countBindersReported: number;
     private cached: HTMLElement
     private eHandlrs = new Array<Listener<IView>>();
@@ -786,9 +787,8 @@ class View implements IView {
         if (t.Preload &&
             (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(() => { });
-        }
-        var f = sessionStorage.getItem(t.Url());
-        if (!f && (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload)) {
+        }        
+        if (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload) {
             t.postPreloaded(true);
         }
     }
@@ -819,7 +819,7 @@ class View implements IView {
         if (!Is.NullOrEmpty(c)) {
             t.cached = "div".CreateElement({ "innerHTML": html });
             var ele = t.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
-            t.countBindersReported = 0;
+            t.countBindersReported = 0;            
             if (ele.length > 0) {
                 ele.forEach(e => {
                     try {
@@ -829,7 +829,7 @@ class View implements IView {
                             e.Binder = <IBinder>fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;
-                            t.binders.Add(e.Binder);
+                            t.binders.Add(e.Binder);                            
                         }
                     }
                     catch (e) {
@@ -859,10 +859,10 @@ class View implements IView {
         if (a.EventType === EventType.Completed) {
             t.countBindersReported = t.countBindersReported + 1;
             if (t.binders.length === t.countBindersReported) {
-                t.MoveStuffFromCacheToReal();
+                t.MoveStuffFromCacheToReal();                
                 t.binders.forEach(b => {
                     b.RemoveListener(EventType.Completed, t.OnBinderComplete.bind(this));
-                });
+                });   
             }
         }
     }
@@ -902,7 +902,7 @@ class View implements IView {
 interface IPreViewLoad {
     Execute(callback: () => void): void;
 }
-class DataLoaders implements IPreViewLoad {
+class DataLoaders implements IPreViewLoad{
     _callback: () => any;
     completedCount: number = 0;
     private _dataLoaders: Array<DataLoader>;
@@ -994,6 +994,7 @@ abstract class ViewContainer implements IViewContainer {
         }
         if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
+            window.scrollTo(0, 0);
         }
     }
     Url(viewInstance: ViewInstance): string {
@@ -1019,7 +1020,7 @@ abstract class ViewContainer implements IViewContainer {
                     nu.Add(up[i]);
                 }
             }
-            return nu.join("/");
+            return nu.join("/");            
         }
         return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     }
@@ -1029,9 +1030,14 @@ abstract class ViewContainer implements IViewContainer {
     UrlTitle(route: ViewInstance): string {
         return this.Name;
     }
+    Parameters(url:string){
+        url = url ? url.replace(this.Name, '') : url;
+        url = url ? url.charAt(0) ===  "/" ? url.substring(1):url:url;
+        return url ? url.split('/'): new Array<string>();
+    }
 }
 class SingleViewContainer extends ViewContainer {
-    constructor(cacheStrategy: CacheStrategy = CacheStrategy.View, containerId: string = "content", isDefault: boolean = false) {
+    constructor(cacheStrategy: CacheStrategy = CacheStrategy.View,  containerId: string = "content",  isDefault: boolean = false) {
         super();
         var t = this;
         t.IsDefault = isDefault;
@@ -1040,12 +1046,12 @@ class SingleViewContainer extends ViewContainer {
 }
 class ViewInstance {
     Parameters: Array<any>;
-    ViewContainer: IViewContainer;
+    ViewContainer: IViewContainer;    
     Route: string;
     constructor(parameters: Array<any>, viewContainer: IViewContainer, route: string = null) {
         this.Route = route;
         this.Parameters = parameters;
-        this.ViewContainer = viewContainer;
+        this.ViewContainer = viewContainer;        
     }
 }
 
@@ -1097,10 +1103,10 @@ class PropertyListener {
     }
 }
 interface IPropertyChangedDispatcher {
-    AddPropertyListener(propertyName: string, attribute: string, handler: (attribute: string, value: any) => void);
+    AddPropertyListener(propertyName: string, attribute: string, handler: (attribute: string, value: any) => void);    
     RemovePropertyListeners();
     OnPropertyChanged(propertyName: string);
-
+    
 }
 interface IObjectState extends IPropertyChangedDispatcher {
     ObjectState: ObjectState;
@@ -1146,9 +1152,10 @@ interface IViewContainer {
     IsUrlPatternMatch: (url: string) => boolean;
     Views: Array<IView>;
     Name: string;
+    Parameters:(url:string)=> Array<string>;
 }
 module HistoryContainer {
-    export class History implements IEventDispatcher<ViewContainer> {
+    export class History implements IEventDispatcher<ViewContainer> {        
         private ViewInstances = new Array<ViewInstance>();
         CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
@@ -1238,7 +1245,7 @@ module Initializer {
         }
     }
     function windowLoaded() {
-        var w = window;
+        var w = window;        
         setProgressElement();
         w.ShowByUrl(w.location.pathname.substring(1));
         w.addEventListener("popstate", HistoryManager.BackEvent);
@@ -1275,7 +1282,7 @@ module Is {
     export function NullOrEmpty(value): boolean {
         return value == null || (value.length && value.length === 0);
     }
-}
+} 
 module Has {
     export function Properties(inObject: any, ...properties): boolean {
         var p = properties;
@@ -1302,13 +1309,13 @@ module ProgressManager {
         }
     }
 }
-interface Array<T> {
+interface Array<T> {     
     Add(obj: any);
     Add(...obj: T[]);
     First(func?: (obj: T) => boolean): T;
     Last(func: (obj: T) => boolean): T;
     Remove(func: (obj: T) => boolean): T[];
-    Where(func: (obj: T) => boolean): T[];
+    Where(func: (obj: T) => boolean): T[];    
     Select<U>(keySelector: (element: T) => U): Array<U>;
 }
 Array.prototype.Select = function (keySelector: (element: any) => any): Array<any> {
@@ -1411,15 +1418,15 @@ Date.prototype.ToyyyymmddHHMMss = function () {
 
 interface HTMLElement extends Element {
     Get(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[]
-    First(func: (ele: HTMLElement) => boolean): HTMLElement;
-    Clear();
+    First(func: (ele: HTMLElement) => boolean): HTMLElement; 
+    Clear();       
     AddListener(eventName, method);
     Set(objectProperties): HTMLElement;
     HasDataSet: () => boolean;
-    GetDataSetAttributes: () => { Attribute: string; Property: any; }[];
+    GetDataSetAttributes: () => { Attribute: string; Property: any; }[];        
     Binder: IBinder;
-    DataObject: IObjectState;
-    Delete();
+    DataObject: IObjectState;   
+    Delete(); 
     Save();
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
@@ -1441,7 +1448,7 @@ HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRe
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {            
             if (func(c)) {
                 n.push(c);
             }
@@ -1456,7 +1463,7 @@ HTMLElement.prototype.First = function (func: (ele: HTMLElement) => boolean): HT
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {            
             if (func(c)) {
                 return c;
             }
@@ -1464,7 +1471,7 @@ HTMLElement.prototype.First = function (func: (ele: HTMLElement) => boolean): HT
     }
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {            
             if (c.First) {
                 let f = c.First(func);
                 if (f) {
@@ -1512,7 +1519,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
 };
 HTMLElement.prototype.HasDataSet = function () {
     var d = this["dataset"];
-    if (d) {
+    if (d) {        
         for (var p in d) {
             return true;
         }
@@ -1522,7 +1529,7 @@ HTMLElement.prototype.HasDataSet = function () {
 HTMLElement.prototype.GetDataSetAttributes = function () {
     var r = new Array<{ Attribute: string; Property: any; }>();
     var d = this["dataset"];
-    if (d) {
+    if (d) {        
         for (var p in d) {
             r.Add({ Attribute: p, Property: d[p] });
         }
@@ -1543,9 +1550,9 @@ HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean):
     return p;
 };
 interface HTMLSelectElement {
-    AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
+    AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;    
 }
-HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement {
+HTMLSelectElement.prototype.AddOptions= function(arrayOrObject, valueProperty ? : string, displayProperty?: string, selectedValue?): HTMLSelectElement {
     var s = <HTMLSelectElement>this,
         sv = selectedValue,
         aoo = arrayOrObject,
@@ -1561,9 +1568,9 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
             dp = displayProperty,
             vp = valueProperty;
         if (dp && vp) {
-            ta.forEach(t => {
-                ao(t[dp], t[vp]);
-            });
+            ta.forEach(t => {  
+                ao(t[dp], t[vp]);              
+            });                        
         }
         else if (ta.length > 1 && typeof ta[0] === 'string') {
             ta.forEach(t => {
@@ -1571,20 +1578,20 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
             });
         }
     }
-    else if (aoo) {
+    else if (aoo) {        
         for (var p in aoo) {
             if (!(aoo[p] && {}.toString.call(aoo[p]) === '[object Function]')) {
-                ao(aoo[p], aoo[p]);
+                ao(aoo[p], aoo[p]);                
             }
         }
-    }
+    }    
     return s;
 };
 
 interface String {
     Trim(): string;
-    Element(): HTMLElement;
-    CreateElement(objectProperties?): HTMLElement;
+    Element(): HTMLElement;  
+    CreateElement(objectProperties?): HTMLElement;    
     CreateElementFromHtml(): HTMLElement;
     IsStyle(): boolean;
 }
@@ -1616,7 +1623,7 @@ String.prototype.IsStyle = function () {
     return false;
 };
 interface Window {
-    Show<T>(type: {
+    Show<T extends IViewContainer>(type: {
         new (): T;
     }, ...parameters: any[]);
     ShowByUrl(url: string);
@@ -1646,10 +1653,10 @@ Window.prototype.Show = function <T extends IViewContainer>(type: { new (): T; }
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url: string) {
-    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.First(d => d.IsUrlPatternMatch(url));
+    var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.Where(vc=>!vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
     vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
     if (vc) {
-        var p = url.split("/"),
+        var p = vc.Parameters(url),
             vi = new ViewInstance(p, vc, window.location.pathname);
         vc.Show(vi);
         HistoryManager.Add(vi);

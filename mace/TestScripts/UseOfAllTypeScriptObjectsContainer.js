@@ -19,7 +19,7 @@ var UseOfAllTypeScriptObjectsContainer = (function (_super) {
         _this.Views.push(new UseOfAllTypeScriptObjectsView());
         return _this;
     }
+    UseOfAllTypeScriptObjectsContainer.instance = new UseOfAllTypeScriptObjectsContainer();
     return UseOfAllTypeScriptObjectsContainer;
 }(ViewContainer));
-UseOfAllTypeScriptObjectsContainer.instance = new UseOfAllTypeScriptObjectsContainer();
 //# sourceMappingURL=UseOfAllTypeScriptObjectsContainer.js.map
