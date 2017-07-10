@@ -8,19 +8,40 @@ namespace mace.Test {
     public class SimpleMinification {
         [TestMethod]
         public void MakeMinifiedMaceJs() {
+            writeMaceJsFile();
             var path = Path.Combine(pathToMaceWeb(), "Scripts");
             var file = Path.Combine(path, "mace.js");
             var contents = System.IO.File.ReadAllText(file);
             var pattern = @"\r\n|\t|\s\s";
             var comments = @"//.*?\r\n";
             var min = System.Text.RegularExpressions.Regex.Replace(contents, comments, "");
-            var newFilePath = Path.Combine(path, "macemin.js");
+            var newFilePath = Path.Combine(path, "mace.min.js");
 
             min = System.Text.RegularExpressions.Regex.Replace(min, pattern, "");
-
+           
             System.IO.File.WriteAllText(newFilePath, min);
             var exists = existsAndIsNew(newFilePath);
             Assert.IsTrue(exists);
+        }
+
+        void writeMaceJsFile()
+        {
+            var typeScriptDirectories = new List<string>() {
+                "Classes", "Interfaces", "Modules", "Prototypes"
+            };
+            var sb = new System.Text.StringBuilder();
+            var path = pathToMaceWeb();
+            var newFilePath = Path.Combine(path, "Scripts", "mace.js");
+            foreach (var dir in typeScriptDirectories)
+            {
+                var dirToBundle = Path.Combine(path, dir);
+                var files = System.IO.Directory.GetFiles(dirToBundle, "*.js");
+                foreach (var file in files)
+                {
+                    sb.AppendLine(System.IO.File.ReadAllText(file));
+                }
+            }
+            System.IO.File.WriteAllText(newFilePath, sb.ToString());
         }
 
         bool existsAndIsNew(string file) {

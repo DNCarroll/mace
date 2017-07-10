@@ -1,11 +1,11 @@
 {
-  "name": "mace",
+  "name": "mace.ts",
   "homepage": "https://github.com/DNCarroll/mace",
   "authors": [
     "Nathan Carroll nathan.carroll@outlook.com"
   ],
   "description": "A TypeScript library that handles url route, view management, binding, web api calls, and ajax functions of a web application.",
-    "main": "mace/Script",
+  "main": "/mace/Scripts/mace.ts",
   "keywords": [
     "spa",
     "web",
@@ -15,9 +15,5 @@
     "api",
     "route"
   ],
-"ignore": [
-    "**/.*"
-  ],
-  "license": "MIT",
-  "private": false
+  "license": "MIT"
 }
