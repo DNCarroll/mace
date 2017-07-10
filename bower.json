@@ -20,6 +20,15 @@
     "Classes",
     "Interfaces",
     "Modules",
+    "maceWithCoreNet",
+    "mace.ts.Web.VSIX",
+    "mace.ts.NetFrameworkWebApp",
+    "Mace.ts.Extensibility",
+    "mace.ApiViewViewContainer.Wizard",
+    "Mace.ApiViewViewContainer.VSIX",
+    "Mace.ApiViewViewContainer",
+    "mace.Test",
+    "mace Web For 2015",
     "*.ico",
     "*.md",
     "Prototypes",
@@ -31,7 +40,7 @@
     "*.html",
     "*.cs",
     "*.config",
-    "*.asax"
+    "*.asax"    
   ],
   "license": "MIT",
   "private": false
