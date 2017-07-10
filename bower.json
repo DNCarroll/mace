@@ -20,6 +20,7 @@
     "Classes",
     "Interfaces",
     "Modules",
+    "mace",
     "maceWithCoreNet",
     "mace.ts.Web.VSIX",
     "mace.ts.NetFrameworkWebApp",
@@ -40,7 +41,11 @@
     "*.html",
     "*.cs",
     "*.config",
-    "*.asax"    
+    "*.asax",
+    "*.sln",
+    "*.txt",
+    "bundleconfig.*",
+    "*.csproj"  
   ],
   "license": "MIT",
   "private": false
