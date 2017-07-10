@@ -5,7 +5,6 @@
     "Nathan Carroll nathan.carroll@outlook.com"
   ],
   "description": "A TypeScript library that handles url route, view management, binding, web api calls, and ajax functions of a web application.",
-    "main": "mace/Script",
   "keywords": [
     "spa",
     "web",
@@ -15,8 +14,24 @@
     "api",
     "route"
   ],
-"ignore": [
-    "**/.*"
+ "ignore": [
+    "Api",
+    "App_Start",
+    "Classes",
+    "Interfaces",
+    "Modules",
+    "*.ico",
+    "*.md",
+    "Prototypes",
+    ".*",
+    "Styles",
+    "package.json",
+    "TestScripts",
+    "Views",
+    "*.html",
+    "*.cs",
+    "*.config",
+    "*.asax"
   ],
   "license": "MIT",
   "private": false
