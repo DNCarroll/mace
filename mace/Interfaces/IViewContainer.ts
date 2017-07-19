@@ -4,6 +4,7 @@
     Show: (route: ViewInstance) => void;
     Url: (route: ViewInstance) => string;
     UrlPattern: () => string;
+    UrlReplacePattern: () => string;
     UrlTitle: (route: ViewInstance) => string;
     IsUrlPatternMatch: (url: string) => boolean;
     Views: Array<IView>;

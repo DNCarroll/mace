@@ -972,6 +972,7 @@ var ViewContainers = new Array();
 var ViewContainer = (function () {
     function ViewContainer() {
         this.UrlPattern = null;
+        this.UrlReplacePattern = null;
         this.Views = new Array();
         this.IsDefault = false;
         var n = Reflection.GetName(this.constructor);
@@ -1008,6 +1009,7 @@ var ViewContainer = (function () {
         }
         if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
+            window.scrollTo(0, 0);
         }
     };
     ViewContainer.prototype.Url = function (viewInstance) {
@@ -1015,8 +1017,8 @@ var ViewContainer = (function () {
         if (vi.Route) {
             return vi.Route;
         }
-        else if (t.UrlPattern != null) {
-            var up = t.UrlPattern().split("/"), pi = 0, nu = new Array();
+        else if (t.UrlReplacePattern !== null) {
+            var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array();
             for (var i = 0; i < up.length; i++) {
                 var p = up[i];
                 if (p.indexOf("(?:") == 0) {
@@ -1046,7 +1048,9 @@ var ViewContainer = (function () {
         return this.Name;
     };
     ViewContainer.prototype.Parameters = function (url) {
-        return url ? url.replace(this.Name, '').split('/') : new Array();
+        url = url ? url.replace(this.Name, '') : url;
+        url = url ? url.charAt(0) === "/" ? url.substring(1) : url : url;
+        return url ? url.split('/') : new Array();
     };
     return ViewContainer;
 }());
@@ -1152,7 +1156,7 @@ var HistoryContainer;
         };
         History.prototype.ManageRouteInfo = function (viewInstance) {
             var vi = viewInstance, vc = vi.ViewContainer, t = vc.UrlTitle(vi), dt = vc.DocumentTitle(vi), h = history, u = vc.Url(vi);
-            if (u && !Is.NullOrEmpty(t) && h && h.pushState) {
+            if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
                 u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
                 h.pushState(null, t, u);
             }
@@ -1585,7 +1589,7 @@ Window.prototype.Show = function (type) {
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url) {
-    var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
+    var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.Where(function (vc) { return !vc.IsDefault; }).First(function (d) { return d.IsUrlPatternMatch(url); });
     vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
     if (vc) {
         var p = vc.Parameters(url), vi = new ViewInstance(p, vc, window.location.pathname);

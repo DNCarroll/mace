@@ -102,20 +102,6 @@ var OrdersContainer = (function (_super) {
     OrdersContainer.instance = new OrdersContainer();
     return OrdersContainer;
 }(ViewContainer));
-var DefaultTypeNameContainer = (function (_super) {
-    __extends(DefaultTypeNameContainer, _super);
-    function DefaultTypeNameContainer() {
-        var _this = this;
-        if (DefaultTypeNameContainer.instance) {
-            return DefaultTypeNameContainer.instance;
-        }
-        _this = _super.call(this) || this;
-        _this.IsDefault = false;
-        return _this;
-    }
-    DefaultTypeNameContainer.instance = new DefaultTypeNameContainer();
-    return DefaultTypeNameContainer;
-}(SingleViewContainer));
 var OverviewContainer = (function (_super) {
     __extends(OverviewContainer, _super);
     function OverviewContainer() {
