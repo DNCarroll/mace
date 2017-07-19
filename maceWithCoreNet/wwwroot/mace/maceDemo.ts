@@ -68,17 +68,6 @@ class OrdersContainer extends ViewContainer {
         this.Name = "mace/Orders";
     }
 }
-class DefaultTypeNameContainer extends SingleViewContainer {
-    private static instance: DefaultTypeNameContainer = new DefaultTypeNameContainer();
-    constructor() {
-        if (DefaultTypeNameContainer.instance) {
-            return DefaultTypeNameContainer.instance;
-        }
-        super();
-        this.IsDefault = false;
-    }
-}
-
 class OverviewContainer extends ViewContainer {
     private static instance: OverviewContainer = new OverviewContainer();
     constructor() {

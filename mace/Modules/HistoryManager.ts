@@ -39,7 +39,7 @@
                 dt = vc.DocumentTitle(vi),
                 h = history,
                 u = vc.Url(vi);
-            if (u && !Is.NullOrEmpty(t) && h && h.pushState) {
+            if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
                 u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
                 h.pushState(null, t, u);
             }

@@ -7,6 +7,7 @@ abstract class ViewContainer implements IViewContainer {
         ViewContainers.push(this);
     }
     UrlPattern: () => string = null;
+    UrlReplacePattern: () => string = null;
     public Name: string;
     Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
@@ -48,8 +49,8 @@ abstract class ViewContainer implements IViewContainer {
         if (vi.Route) {
             return vi.Route;
         }
-        else if (t.UrlPattern != null) {
-            var up = t.UrlPattern().split("/"), pi = 0, nu = new Array<string>();
+        else if (t.UrlReplacePattern !== null) {
+            var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array<string>();
             for (var i = 0; i < up.length; i++) {
                 let p = up[i];
                 if (p.indexOf("(?:") == 0) {
