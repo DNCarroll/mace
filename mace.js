@@ -1041,11 +1041,11 @@ var ViewContainer = (function () {
         }
         return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     };
-    ViewContainer.prototype.DocumentTitle = function (route) {
-        return this.Name;
+    ViewContainer.prototype.UrlTitle = function () {
+        return this.Name.replace(/\//g, " ");
     };
-    ViewContainer.prototype.UrlTitle = function (route) {
-        return this.Name;
+    ViewContainer.prototype.DocumentTitle = function (route) {
+        return this.UrlTitle();
     };
     ViewContainer.prototype.Parameters = function (url) {
         url = url ? url.replace(this.Name, '') : url;
