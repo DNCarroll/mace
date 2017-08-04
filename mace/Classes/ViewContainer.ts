@@ -71,11 +71,11 @@ abstract class ViewContainer implements IViewContainer {
         }
         return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     }
-    DocumentTitle(route: ViewInstance): string {
-        return this.Name;
+    UrlTitle() {
+        return this.Name.replace(/\//g, " ");
     }
-    UrlTitle(route: ViewInstance): string {
-        return this.Name;
+    DocumentTitle(route: ViewInstance): string {
+        return this.UrlTitle();
     }
     Parameters(url:string){
         url = url ? url.replace(this.Name, '') : url;
