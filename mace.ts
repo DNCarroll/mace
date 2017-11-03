@@ -1031,10 +1031,11 @@ abstract class ViewContainer implements IViewContainer {
     DocumentTitle(route: ViewInstance): string {
         return this.UrlTitle();
     }
-    Parameters(url:string){
+    Parameters(url: string) {
+        
         url = url ? url.replace(this.Name, '') : url;
-        url = url ? url.charAt(0) ===  "/" ? url.substring(1):url:url;
-        return url ? url.split('/'): new Array<string>();
+        url = url ? url.indexOf('/') === 0 ? url.substring(1) : url;
+        return url ? url.split('/') : new Array<string>();
     }
 }
 class SingleViewContainer extends ViewContainer {

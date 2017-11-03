@@ -1,0 +1,16 @@
+﻿{
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "es5",
+    "baseUrl": "./clientsrc"
+  },
+  "exclude": [
+    "node_modules",
+    //this might not be right
+    "obj",
+    "wwwroot\\js"
+  ]
+}

@@ -86,6 +86,7 @@ class Binder implements IBinder {
     }
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
+        t.prepTemplates();
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
             var a = new Ajax(t.WithProgress, t.DisableElement),
                 url = t.GetApiForAjax(viewInstance.Parameters);
@@ -104,6 +105,7 @@ class Binder implements IBinder {
                 if (d) {
                     if (Is.Array(d)) {
                         (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
+                        t.OnBindingComplete ? t.OnBindingComplete() : null;
                         var tm = t.MoreElement, tms = "none";
                         if (tm) {
                             tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
@@ -155,7 +157,7 @@ class Binder implements IBinder {
                 },
                 af = () => {
                     a.AddListener(EventType.Any, afc);
-                    a.Delete(t.Api(), o);
+                    a.Delete(t.Api(), o.ServerObject);
                 };
             t.AutomaticUpdate ? af() : f();
         }
@@ -209,6 +211,7 @@ class Binder implements IBinder {
         }
     }
     RunWhenObjectsChange: () => void = null;
+    OnBindingComplete: () => void = null;
     private objStateChanged(o: IObjectState) {
         var t = this, r = t.RunWhenObjectsChange;
         r ? r() : null;

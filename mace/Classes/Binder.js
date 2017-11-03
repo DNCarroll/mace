@@ -16,6 +16,7 @@ var Binder = (function () {
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
         this.RunWhenObjectsChange = null;
+        this.OnBindingComplete = null;
         var p = primaryKeys, t = this;
         t.StaticProperties = staticProperties;
         t.PrimaryKeys = p ? p : t.PrimaryKeys;
@@ -81,6 +82,7 @@ var Binder = (function () {
     Binder.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
+        t.prepTemplates();
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
             var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(viewInstance.Parameters);
             a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
@@ -98,6 +100,7 @@ var Binder = (function () {
                 if (d) {
                     if (Is.Array(d)) {
                         d.forEach(function (d) { return t.Add(t.NewObject(d)); });
+                        t.OnBindingComplete ? t.OnBindingComplete() : null;
                         var tm = t.MoreElement, tms = "none";
                         if (tm) {
                             tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
@@ -147,7 +150,7 @@ var Binder = (function () {
                 a.EventType === EventType.Completed ? f() : null;
             }, af = function () {
                 a.AddListener(EventType.Any, afc);
-                a.Delete(t.Api(), o);
+                a.Delete(t.Api(), o.ServerObject);
             };
             t.AutomaticUpdate ? af() : f();
         }
