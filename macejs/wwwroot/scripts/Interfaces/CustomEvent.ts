@@ -46,10 +46,10 @@ class PropertyListener {
     }
 }
 interface IPropertyChangedDispatcher {
-    AddPropertyListener(propertyName: string, attribute: string, handler: (attribute: string, value: any) => void);    
+    AddPropertyListener(propertyName: string, attribute: string, handler: (attribute: string, value: any) => void);
     RemovePropertyListeners();
     OnPropertyChanged(propertyName: string);
-    
+
 }
 interface IObjectState extends IPropertyChangedDispatcher {
     ObjectState: ObjectState;

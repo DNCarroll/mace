@@ -1,18 +1,17 @@
-﻿//disable the active context or readonly it while the new stuff is coming in?
-class Binder implements IBinder {
+﻿class Binder implements IBinder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
-    constructor(primaryKeys: Array<string> = null, api: string = null, autoUpdate:boolean = false, TypeObject: { new (obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
-        //var p = primaryKeys, t = this;
-        this.StaticProperties = staticProperties;
-        this.PrimaryKeys = primaryKeys ? primaryKeys : this.PrimaryKeys;
-        this.AutomaticUpdate = autoUpdate;
+    constructor(primaryKeys: Array<string> = null, api: string = null, autoUpdate: boolean = false, TypeObject: { new(obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
+        var p = primaryKeys, t = this;
+        t.StaticProperties = staticProperties;
+        t.PrimaryKeys = p ? p : t.PrimaryKeys;
+        t.AutomaticUpdate = autoUpdate;
         if (TypeObject) {
-            this.NewObject = (obj: any) => {
+            t.NewObject = (obj: any) => {
                 return new TypeObject(obj);
             };
         }
-        this._api = api;
+        t._api = api;
     }
     ApiPrefix() {
         return "/Api/";
@@ -31,13 +30,11 @@ class Binder implements IBinder {
     DisableElement: any;
     Element: HTMLElement;
     private eventHandlers = new Array<Listener<IBinder>>();
-    DataObject: IObjectState;
-    DataObjects: Array<IObjectState> = new Array<IObjectState>();
+    DataObjects: DataObjectCacheArray<IObjectState> = new DataObjectCacheArray<IObjectState>();
     AutomaticUpdate: boolean = true;
     AutomaticSelect: boolean = true;
     DataRowTemplates = new Array<HTMLElement>();
     DataRowFooter: HTMLElement;
-    IsFormBinding: boolean = false;
     MoreKeys: string[];
     MoreThreshold: number;
     MoreElement: HTMLElement;
@@ -46,13 +43,9 @@ class Binder implements IBinder {
         return new DataObject(obj, null, this.StaticProperties);
     }
     Dispose() {
-        var t = this, d = t.DataObject;
+        var t = this;
         t.PrimaryKeys = null;
-        t.Api = null;        
-        if (d) {
-            d.RemoveObjectStateListener();
-            d.RemovePropertyListeners();
-        }
+        t.Api = null;
         t.DataObjects.forEach(o => {
             o.RemoveObjectStateListener();
             o.RemovePropertyListeners();
@@ -80,24 +73,44 @@ class Binder implements IBinder {
                     np.Add(ta);
                 }
             }
+            vp && vp.length === 0 ? p.forEach(o => np.Add(o)) : null;
+            return "/" + np.join("/");
         }
-        vp && vp.length === 0 ? p.forEach(o => np.Add(o)) : null;
-        return "/" + np.join("/");
+        return null;
     }
+    initialLoad = true;
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
-        if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-            var a = new Ajax(t.WithProgress, t.DisableElement),
-                url = t.GetApiForAjax(viewInstance.Parameters);
-            a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
-            a.Get(url);
+        t.prepTemplates();
+        try {
+            if (this.DataObjects.length > 0 && this.initialLoad) {
+                t.SetUpMore(t.DataObjects);
+                t.DataObjects.forEach(obj => {
+                    t.Add(obj, true);
+                });
+                t.Dispatch(EventType.Completed);
+            }
+            else if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
+                var a = new Ajax(t.WithProgress, t.DisableElement),
+                    url = t.GetApiForAjax(viewInstance.Parameters);
+                if (!Is.NullOrEmpty(url)) {
+                    a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
+                    a.Get(url);
+                }
+                else {
+                    t.Dispatch(EventType.Completed);
+                }
+            }
+            else {
+                t.Dispatch(EventType.Completed);
+            }
+        } catch (e) {
+            alert("Failed to load data.");
         }
-        else {
-            t.Dispatch(EventType.Completed);
-        }
+        this.initialLoad = false;
     }
     OnAjaxComplete(arg: CustomEventArg<Ajax>) {
-        var t = this, x = arg.Sender.XHttp, s = x.status;        
+        var t = this, x = arg.Sender.XHttp, s = x.status;
         if (!t.isRedirecting(x)) {
             if (s === 200) {
                 var d = arg.Sender.GetRequestData();
@@ -105,27 +118,30 @@ class Binder implements IBinder {
                     this.RouteBinding(d);
                 }
             }
-            else {
-                alert("Failed to retrieve data from web site.");
-            }
         }
     }
     RouteBinding(data: any) {
-        var t = this, d = data;
+        var t = this,
+            d = data;
         if (Is.Array(d)) {
             (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
-
-            var tm = t.MoreElement, tms = "none";
-            if (tm) {
-                tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
-                tm.style.display = tms;
-            }
         }
         else if (d) {
-            t.IsFormBinding = true;
-            t.Bind(t.NewObject(d));
+            var newobject = t.NewObject(d);
+            this.DataObjects.Data.Add(newobject);
+            t.Bind(newobject);
         }
+        this.SetUpMore(d);
+        this.DataObjects.SaveCache();
         t.Dispatch(EventType.Completed);
+    }
+    SetUpMore(d: DataObjectCacheArray<IObjectState>) {
+        var t = this,
+            tm = t.MoreElement, tms = "none";
+        if (tm) {
+            tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
+            tm.style.display = tms;
+        }
     }
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
         var o = sender.DataObject, t = this;
@@ -138,46 +154,48 @@ class Binder implements IBinder {
         }
         if (o) {
             var a = new Ajax(t.WithProgress, t.DisableElement),
-                f = () => {                    
-                    var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects, i = td.indexOf(o);
+                f = () => {
+                    var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));
-                    td.splice(i);                    
+                    td.slice(i);
                     td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
                 },
-                afc = (a: CustomEventArg<Ajax>) => {
+                afc = (arg: CustomEventArg<Ajax>) => {
                     var err = () => {
-                        //needs testing
-                        var x = a.Sender.XHttp, s = x.status;
+                        var x = arg.Sender.XHttp, s = x.status;
                         if (!t.isRedirecting(x)) {
-                            s === 500 ?
-                                alert("Server error contact web site administrators.") :
-                                s !== 204 ?
-                                alert("Failed to delete row.") : null;
+                            if ([204, 404].indexOf(s) > -1) {
+                                f();
+                            }
+                            else {
+                                alert("Failed to delete row.");
+                            }
                         }
                     };
-                    ajaxDeleteFunction ? ajaxDeleteFunction(a) : err();
-                    a.EventType === EventType.Completed ? f() : null;
+                    ajaxDeleteFunction ? ajaxDeleteFunction(arg) : err();
+                    arg.EventType === EventType.Completed ? f() : null;
                 },
                 af = () => {
                     a.AddListener(EventType.Any, afc);
-                    a.Delete(t.Api(), o);
+                    a.Delete(t.Api(), o.ServerObject);
                 };
             t.AutomaticUpdate ? af() : f();
         }
     }
-    Add(obj: IObjectState) {
+    Add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false) {
         var t = this;
         t.prepTemplates();
         t.DataRowTemplates.forEach(d => {
-            //casting here may be an issue
             let ne = <HTMLElement>d.cloneNode(true),
                 be = ne.Get(e => e.HasDataSet()),
                 drf = t.DataRowFooter,
                 pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
             be.Add(ne);
             drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
-            t.DataObjects.Add(obj);
-            obj.Container = t.DataObjects;
+            if (!shouldNotAddItsAlreadyCached) {
+                t.DataObjects.Add(obj);
+            }
+            obj.Container = t.DataObjects.Data;
             t.Bind(obj, be);
         });
     }
@@ -194,7 +212,7 @@ class Binder implements IBinder {
                 }
             }
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
-                              <HTMLElement>e[e.length - 1] : null;
+                <HTMLElement>e[e.length - 1] : null;
             r.forEach(r => {
                 t.DataRowTemplates.Add(r);
                 r.parentElement.removeChild(r);
@@ -202,7 +220,7 @@ class Binder implements IBinder {
             var dmk = "data-morekeys",
                 dmt = "data-morethreshold",
                 more = t.Element.First(m => m.HasDataSet() && m.getAttribute(dmk) != null &&
-                m.getAttribute(dmt) != null);
+                    m.getAttribute(dmt) != null);
             if (more) {
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
@@ -225,7 +243,7 @@ class Binder implements IBinder {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             o.ObjectState = ObjectState.Cleaning;
-            a.Put(api, o.ServerObject);            
+            a.Put(api, o.ServerObject);
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
@@ -235,10 +253,11 @@ class Binder implements IBinder {
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
                 for (var i = 0; i < rd.length; i++) {
-                    let o = t.DataObject ? t.DataObject : t.DataObjects.First(d => t.isPKMatch(d, rd[i]));
+                    let o = t.DataObjects.First(d => t.isPKMatch(d, rd[i]));
                     if (o) {
                         t.SetServerObjectValue(o, rd[i]);
                         o.ObjectState = ObjectState.Clean;
+                        t.DataObjects && t.DataObjects.length > 0 ? t.DataObjects.SaveCache() : null;
                     }
                 }
             }
@@ -250,16 +269,16 @@ class Binder implements IBinder {
     SaveDirty() {
         var t = this,
             a = t.Api(),
-            d = t.DataObjects ? t.DataObjects : [t.DataObject];
+            d = t.DataObjects;
         if (a && d && d.length > 0) {
             var c = d.Where(o => o.ObjectState === ObjectState.Dirty).Select(o => o.ServerObject),
                 aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            aj.Submit("PUT", t.Api() + "/SaveDirty", c);      
+            aj.Submit("PUT", t.Api() + "/SaveDirty", c);
             d.forEach(o => o.ObjectState = ObjectState.Cleaning);
         }
     }
-    private isRedirecting(x: XMLHttpRequest) {        
+    private isRedirecting(x: XMLHttpRequest) {
         var s = x.status, r = x.getResponseHeader('Location');
         if ((s === 401 || s === 407 || s === 403) && r) {
             window.location.href = r;
@@ -287,16 +306,12 @@ class Binder implements IBinder {
             eles = t.Element.Get(e => e.HasDataSet());
             eles.Add(t.Element);
         }
-        if (t.IsFormBinding) {
-            t.DataObject = o;
-        }
         o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(e => {
             e.DataObject = o;
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
-        //is there a more element        
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -310,22 +325,37 @@ class Binder implements IBinder {
                 (<HTMLSelectElement>ele).AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var nba = ["binder", "datasource", "displaymember", "valuemember"];
+        var nba = ["binder", "datasource", "displaymember", "valuemember", "onclick"];
         ba.forEach(b => {
             if (!nba.First(v => v === b.Attribute)) {
                 let a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
-                if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {                    
+                if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
                     let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute;
                     if (ea) {
                         let fun = (evt) => {
-                            d.OnElementChanged.bind(d)(ele[ea], b.Property)
+                            d.OnElementChanged.bind(d)(ele[ea], b.Property);
                         };
                         ele.addEventListener("change", fun);
                     }
                 }
             }
         });
+        var onclicks = ba.Where(a => a.Attribute === "onclick");
+        if (onclicks && onclicks.length > 0) {
+            onclicks.forEach(a => {
+                ele.DataObject = d;
+                var body = <string>a.Property;
+                if (body) {
+                    body = body.lastIndexOf(";") === body.length - 1 ? body : body + ";";
+                    var fun = new Function("sender", body);
+                    ele.onclick = () => {
+                        fun(ele);
+                        return;
+                    };
+                }
+            });
+        }
     }
     getAttribute(a: string) {
         a = a.toLowerCase();
@@ -361,7 +391,11 @@ class Binder implements IBinder {
                 }
                 else {
                     var s = t.getStyle(atr);
-                    s ? e["style"][s] = v : e[atr] = v;
+                    if (s) {
+                        e.style[s] = v
+                    } else {
+                        e.setAttribute("for", v);
+                    }
                 }
             };
         d.AddPropertyListener(p, a, fun);
@@ -403,7 +437,7 @@ class Binder implements IBinder {
     More() {
         var pb = this.Element.Binder,
             vi = HistoryManager.CurrentViewInstance(),
-            pbd = pb.DataObjects;
+            pbd = pb.DataObjects.Data;
         if (pbd && pbd.length > 0) {
             var nvi = new ViewInstance(new Array<any>(), vi.ViewContainer),
                 o = pbd[pbd.length - 1],

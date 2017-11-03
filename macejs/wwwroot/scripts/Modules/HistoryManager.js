@@ -43,8 +43,13 @@ var HistoryContainer;
                 document.title = dt;
             }
         };
+        History.prototype.Manual = function (title, url, documentTitle) {
+            if (documentTitle === void 0) { documentTitle = null; }
+            document.title = documentTitle ? documentTitle : title;
+            history.pushState(null, title, url);
+        };
         History.prototype.FormatUrl = function (url) {
-            url = url.replace(/[^A-z0-9/]/g, "");
+            url = url.replace(/[^A-z0-9_/]/g, "");
             return url;
         };
         History.prototype.AddListener = function (eventType, eventHandler) {

@@ -7,7 +7,10 @@
             value === null ||
             (typeof value === "string" && value.length === 0);
     }
-} 
+    export function Number(value): boolean {
+        return !isNaN(parseFloat(value)) && isFinite(value);
+    }
+}
 module Has {
     export function Properties(inObject: any, ...properties): boolean {
         var p = properties;

@@ -1,7 +1,7 @@
 interface String {
     Trim(): string;
-    Element(): HTMLElement;  
-    CreateElement(objectProperties?): HTMLElement;    
+    Element(): HTMLElement;
+    CreateElement(objectProperties?): HTMLElement;
     CreateElementFromHtml(): HTMLElement;
     IsStyle(): boolean;
 }

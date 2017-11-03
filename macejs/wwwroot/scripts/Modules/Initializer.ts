@@ -14,9 +14,9 @@
         }
     }
     function windowLoaded() {
-        var w = window;        
+        var w = window;
         setProgressElement();
-        w.ShowByUrl(w.location.pathname.substring(1));
+        Navigate.Url(w.location.pathname.substring(1));
         w.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function setProgressElement() {
@@ -38,7 +38,7 @@ module Reflection {
         }
         return null;
     }
-    export function NewObject(type: { new () }) {
+    export function NewObject(type: { new() }) {
         return new type();
     }
 }

@@ -1,14 +1,14 @@
 interface HTMLElement extends Element {
     Get(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[]
-    First(func: (ele: HTMLElement) => boolean): HTMLElement; 
-    Clear();       
+    First(func: (ele: HTMLElement) => boolean): HTMLElement;
+    Clear();
     AddListener(eventName, method);
     Set(objectProperties): HTMLElement;
     HasDataSet: () => boolean;
-    GetDataSetAttributes: () => { Attribute: string; Property: any; }[];        
+    GetDataSetAttributes: () => { Attribute: string; Property: any; }[];
     Binder: IBinder;
-    DataObject: IObjectState;   
-    Delete(); 
+    DataObject: IObjectState;
+    Delete();
     Save();
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
@@ -30,7 +30,7 @@ HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRe
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {            
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
             if (func(c)) {
                 n.push(c);
             }
@@ -45,7 +45,7 @@ HTMLElement.prototype.First = function (func: (ele: HTMLElement) => boolean): HT
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {            
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
             if (func(c)) {
                 return c;
             }
@@ -53,7 +53,7 @@ HTMLElement.prototype.First = function (func: (ele: HTMLElement) => boolean): HT
     }
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {            
+        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
             if (c.First) {
                 let f = c.First(func);
                 if (f) {
@@ -101,7 +101,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
 };
 HTMLElement.prototype.HasDataSet = function () {
     var d = this["dataset"];
-    if (d) {        
+    if (d) {
         for (var p in d) {
             return true;
         }
@@ -111,7 +111,7 @@ HTMLElement.prototype.HasDataSet = function () {
 HTMLElement.prototype.GetDataSetAttributes = function () {
     var r = new Array<{ Attribute: string; Property: any; }>();
     var d = this["dataset"];
-    if (d) {        
+    if (d) {
         for (var p in d) {
             r.Add({ Attribute: p, Property: d[p] });
         }

@@ -1,5 +1,5 @@
 ﻿module HistoryContainer {
-    export class History implements IEventDispatcher<ViewContainer> {        
+    export class History implements IEventDispatcher<ViewContainer> {
         private ViewInstances = new Array<ViewInstance>();
         CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
@@ -47,8 +47,12 @@
                 document.title = dt;
             }
         }
+        Manual(title: string, url: string, documentTitle: string = null) {
+            document.title = documentTitle ? documentTitle : title;
+            history.pushState(null, title, url);
+        }
         FormatUrl(url: string) {
-            url = url.replace(/[^A-z0-9/]/g, "");
+            url = url.replace(/[^A-z0-9_/]/g, "");
             return url;
         }
         private eHandlrs = new Array<Listener<ViewContainer>>();

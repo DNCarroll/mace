@@ -1,4 +1,3 @@
-//state management isnt working right yet with regards to the put and the complete of the ajax call
 var DataObject = (function () {
     function DataObject(serverObject, propertiesThatShouldSubscribeToObjectStateChanged, staticProperties) {
         if (propertiesThatShouldSubscribeToObjectStateChanged === void 0) { propertiesThatShouldSubscribeToObjectStateChanged = null; }

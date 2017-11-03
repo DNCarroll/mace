@@ -71,7 +71,7 @@ abstract class ViewContainer implements IViewContainer {
                     nu.Add(up[i]);
                 }
             }
-            return nu.join("/");            
+            return nu.join("/");
         }
         return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     }
@@ -82,14 +82,14 @@ abstract class ViewContainer implements IViewContainer {
         return this.UrlTitle();
     }
     Parameters(url: string) {
-        
+
         url = url ? url.replace(this.Name, '') : url;
         url = url ? url.indexOf('/') === 0 ? url.substring(1) : url : url;
         return url ? url.split('/') : new Array<string>();
     }
 }
 class SingleViewContainer extends ViewContainer {
-    constructor(cacheStrategy: CacheStrategy = CacheStrategy.View,  containerId: string = "content",  isDefault: boolean = false) {
+    constructor(cacheStrategy: CacheStrategy = CacheStrategy.View, containerId: string = "content", isDefault: boolean = false) {
         super();
         var t = this;
         t.IsDefault = isDefault;

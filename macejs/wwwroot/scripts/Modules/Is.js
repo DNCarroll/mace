@@ -10,6 +10,10 @@ var Is;
             (typeof value === "string" && value.length === 0);
     }
     Is.NullOrEmpty = NullOrEmpty;
+    function Number(value) {
+        return !isNaN(parseFloat(value)) && isFinite(value);
+    }
+    Is.Number = Number;
 })(Is || (Is = {}));
 var Has;
 (function (Has) {

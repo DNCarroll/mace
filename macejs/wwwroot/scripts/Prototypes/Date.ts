@@ -1,4 +1,3 @@
-//reviewed and updated NC - 2015-04-02
 interface Date {
     Add(y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date;
     ToyyyymmddHHMMss();

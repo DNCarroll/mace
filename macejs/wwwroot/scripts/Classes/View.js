@@ -104,7 +104,7 @@ var View = (function () {
                             e.Binder.Execute(t.ViewInstance);
                         }
                         catch (ex) {
-                            window.Exception(e);
+                            window.Exception(ex);
                         }
                     }
                 });

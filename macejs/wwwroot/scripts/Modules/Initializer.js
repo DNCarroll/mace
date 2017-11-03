@@ -17,7 +17,7 @@ var Initializer;
     function windowLoaded() {
         var w = window;
         setProgressElement();
-        w.ShowByUrl(w.location.pathname.substring(1));
+        Navigate.Url(w.location.pathname.substring(1));
         w.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function setProgressElement() {

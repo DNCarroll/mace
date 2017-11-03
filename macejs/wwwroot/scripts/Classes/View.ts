@@ -18,13 +18,13 @@ class View implements IView {
     }
     Url() {
         if (!this.url) {
-            var n = Reflection.GetName(this.constructor).replace("View","");
+            var n = Reflection.GetName(this.constructor).replace("View", "");
             this.url = this.Prefix() + n + ".html";
         }
         return this.url;
     };
     _containerID: string = null;
-    ContainerID(): string { return this._containerID; };    
+    ContainerID(): string { return this._containerID; };
     private countBindersReported: number;
     private cached: HTMLElement
     private eHandlrs = new Array<Listener<IView>>();
@@ -42,7 +42,7 @@ class View implements IView {
         if (t.Preload &&
             (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
             t.Preload.Execute(() => { });
-        }        
+        }
         if (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload) {
             t.postPreloaded(true);
         }
@@ -74,7 +74,7 @@ class View implements IView {
         if (!Is.NullOrEmpty(c)) {
             t.cached = "div".CreateElement({ "innerHTML": html });
             var ele = t.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
-            t.countBindersReported = 0;            
+            t.countBindersReported = 0;
             if (ele.length > 0) {
                 ele.forEach(e => {
                     try {
@@ -84,7 +84,7 @@ class View implements IView {
                             e.Binder = <IBinder>fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;
-                            t.binders.Add(e.Binder);                            
+                            t.binders.Add(e.Binder);
                         }
                     }
                     catch (e) {
@@ -97,7 +97,7 @@ class View implements IView {
                             e.Binder.Execute(t.ViewInstance);
                         }
                         catch (ex) {
-                            window.Exception(e);
+                            window.Exception(ex);
                         }
                     }
                 });
@@ -114,10 +114,10 @@ class View implements IView {
         if (a.EventType === EventType.Completed) {
             t.countBindersReported = t.countBindersReported + 1;
             if (t.binders.length === t.countBindersReported) {
-                t.MoveStuffFromCacheToReal();                
+                t.MoveStuffFromCacheToReal();
                 t.binders.forEach(b => {
                     b.RemoveListener(EventType.Completed, t.OnBinderComplete.bind(this));
-                });   
+                });
             }
         }
     }
@@ -157,7 +157,7 @@ class View implements IView {
 interface IPreViewLoad {
     Execute(callback: () => void): void;
 }
-class DataLoaders implements IPreViewLoad{
+class DataLoaders implements IPreViewLoad {
     _callback: () => any;
     completedCount: number = 0;
     private _dataLoaders: Array<DataLoader>;

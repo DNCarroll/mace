@@ -1,5 +1,5 @@
 ﻿class Ajax implements IEventDispatcher<Ajax>{
-    constructor(withProgress: boolean = false, disableElement:any = null) {
+    constructor(withProgress: boolean = false, disableElement: any = null) {
         this.WithProgress = withProgress;
         this.DisableElement = disableElement;
     }
@@ -14,20 +14,21 @@
     get ResponseText(): string {
         return this.XHttp.responseText;
     }
-    XHttp: XMLHttpRequest;    
+    XHttp: XMLHttpRequest;
     Submit(method: string, url: string, parameters: any = null) {
-        var t = this;        
+        var t = this;
         t.Progress();
         url = t.getUrl(url);
-        t.XHttp = new XMLHttpRequest(); 
-        var x = t.XHttp;       
-        x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);        
+        t.XHttp = new XMLHttpRequest();
+        var x = t.XHttp;
+        x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
         x.open(method, url, true);
         x.setRequestHeader("content-type", t.ContentType);
         t.setHead();
         try {
-            x.send(t.getParameters(parameters));
-        } catch (e) {            
+            var p = t.getParameters(parameters);
+            Is.NullOrEmpty(p) ? x.send() : x.send(p);
+        } catch (e) {
             t.Progress(false);
             window.Exception(e);
         }
@@ -35,13 +36,13 @@
     private xStateChanged(e) {
         var t = this, x = t.XHttp, s = x.status;
         if (t.isRequestReady()) {
-            t.Progress(false);            
-            t.Dispatch(s === 200 || s === 204 || s === 201  ? EventType.Completed : EventType.Any);
+            t.Progress(false);
+            t.Dispatch(s === 200 || s === 204 || s === 201 ? EventType.Completed : EventType.Any);
         }
     }
     private getUrl(url: string): string {
         var u = url, a = Ajax.Host;
-        if (u.indexOf("http") == -1 && !Is.NullOrEmpty(a)) {
+        if (u.indexOf("http") == -1 && a) {
             u = a + (u.indexOf("/") == 0 ? u : "/" + u);
         }
         return u;
@@ -102,7 +103,7 @@
     }
 
     GetRequestData(): any {
-        var r = null, t = this, x = this.XHttp, s = x.status;       
+        var r = null, t = this, x = this.XHttp, s = x.status;
         if (t.isRequestReady() && (s == 200) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
@@ -173,7 +174,7 @@
             switch (t) {
                 case "Date":
                     if (v) {
-                        v = parseInt(v.substring(6).replace(")/", ""));                        
+                        v = parseInt(v.substring(6).replace(")/", ""));
                         if (v > -62135575200000) {
                             v = new Date(v);
                             obj[k] = v;
@@ -208,7 +209,7 @@
     Put(url: string, prmtrs: any = null) { this.Submit("PUT", url, prmtrs); }
     Post(url: string, prmtrs: any = null) { this.Submit("POST", url, prmtrs); }
     Delete(url: string, prmtrs: any = null) { this.Submit("DELETE", url, prmtrs); }
-        
+
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<Ajax>) => void) {
         this.eventHandlers.Add(new Listener(eventType, eventHandler));
     }
@@ -220,7 +221,6 @@
     }
     Dispatch(eventType: EventType) {
         var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
-        l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));        
+        l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
     }
 }
-

@@ -1,8 +1,7 @@
-﻿//state management isnt working right yet with regards to the put and the complete of the ajax call
-class DataObject implements IObjectState {   
+﻿class DataObject implements IObjectState {
     static DefaultAlternatingRowClass: string = null;
     constructor(serverObject: any,
-        propertiesThatShouldSubscribeToObjectStateChanged:Array<string>= null,
+        propertiesThatShouldSubscribeToObjectStateChanged: Array<string> = null,
         staticProperties: Array<string> = null) {
         var so = serverObject, t = this;
         t.serverObject = so;

@@ -29,7 +29,8 @@ var Ajax = (function () {
         x.setRequestHeader("content-type", t.ContentType);
         t.setHead();
         try {
-            x.send(t.getParameters(parameters));
+            var p = t.getParameters(parameters);
+            Is.NullOrEmpty(p) ? x.send() : x.send(p);
         }
         catch (e) {
             t.Progress(false);
@@ -45,7 +46,7 @@ var Ajax = (function () {
     };
     Ajax.prototype.getUrl = function (url) {
         var u = url, a = Ajax.Host;
-        if (u.indexOf("http") == -1 && !Is.NullOrEmpty(a)) {
+        if (u.indexOf("http") == -1 && a) {
             u = a + (u.indexOf("/") == 0 ? u : "/" + u);
         }
         return u;
