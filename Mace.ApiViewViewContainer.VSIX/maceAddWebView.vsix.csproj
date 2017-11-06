@@ -57,12 +57,6 @@
     <Content Include="stylesheet.css" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\mace.ApiViewViewContainer.Wizard\maceAddWebView.WindowsForms.csproj">
-      <Project>{2C39FD9E-EDC1-4F1A-8FCD-9E3A539C24DE}</Project>
-      <Name>maceAddWebView.WindowsForms</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
     <ProjectReference Include="..\Mace.ApiViewViewContainer\maceAddWebView.csproj">
       <Project>{C6B6300F-B639-4FBE-A726-241C5FABBB86}</Project>
       <Name>maceAddWebView</Name>

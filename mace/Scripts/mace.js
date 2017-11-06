@@ -247,6 +247,7 @@ var Binder = (function () {
         this.DataRowTemplates = new Array();
         this.IsFormBinding = false;
         this.RunWhenObjectsChange = null;
+        this.OnBindingComplete = null;
         var p = primaryKeys, t = this;
         t.StaticProperties = staticProperties;
         t.PrimaryKeys = p ? p : t.PrimaryKeys;
@@ -312,6 +313,7 @@ var Binder = (function () {
     Binder.prototype.Execute = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
         var t = this;
+        t.prepTemplates();
         if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
             var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(viewInstance.Parameters);
             a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
@@ -329,6 +331,7 @@ var Binder = (function () {
                 if (d) {
                     if (Is.Array(d)) {
                         d.forEach(function (d) { return t.Add(t.NewObject(d)); });
+                        t.OnBindingComplete ? t.OnBindingComplete() : null;
                         var tm = t.MoreElement, tms = "none";
                         if (tm) {
                             tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
@@ -378,7 +381,7 @@ var Binder = (function () {
                 a.EventType === EventType.Completed ? f() : null;
             }, af = function () {
                 a.AddListener(EventType.Any, afc);
-                a.Delete(t.Api(), o);
+                a.Delete(t.Api(), o.ServerObject);
             };
             t.AutomaticUpdate ? af() : f();
         }
@@ -972,6 +975,7 @@ var ViewContainers = new Array();
 var ViewContainer = (function () {
     function ViewContainer() {
         this.UrlPattern = null;
+        this.UrlReplacePattern = null;
         this.Views = new Array();
         this.IsDefault = false;
         var n = Reflection.GetName(this.constructor);
@@ -1008,6 +1012,7 @@ var ViewContainer = (function () {
         }
         if (this.NumberViewsShown === this.Views.length) {
             ProgressManager.Hide();
+            window.scrollTo(0, 0);
         }
     };
     ViewContainer.prototype.Url = function (viewInstance) {
@@ -1015,8 +1020,8 @@ var ViewContainer = (function () {
         if (vi.Route) {
             return vi.Route;
         }
-        else if (t.UrlPattern != null) {
-            var up = t.UrlPattern().split("/"), pi = 0, nu = new Array();
+        else if (t.UrlReplacePattern !== null) {
+            var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array();
             for (var i = 0; i < up.length; i++) {
                 var p = up[i];
                 if (p.indexOf("(?:") == 0) {
@@ -1039,14 +1044,16 @@ var ViewContainer = (function () {
         }
         return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
     };
-    ViewContainer.prototype.DocumentTitle = function (route) {
-        return this.Name;
+    ViewContainer.prototype.UrlTitle = function () {
+        return this.Name.replace(/\//g, " ");
     };
-    ViewContainer.prototype.UrlTitle = function (route) {
-        return this.Name;
+    ViewContainer.prototype.DocumentTitle = function (route) {
+        return this.UrlTitle();
     };
     ViewContainer.prototype.Parameters = function (url) {
-        return url ? url.replace(this.Name, '').split('/') : new Array();
+        url = url ? url.replace(this.Name, '') : url;
+        url = url ? url.indexOf('/') === 0 ? url.substring(1) : url : url;
+        return url ? url.split('/') : new Array();
     };
     return ViewContainer;
 }());
@@ -1113,8 +1120,6 @@ var ObjectState;
     ObjectState[ObjectState["Clean"] = 2] = "Clean";
 })(ObjectState || (ObjectState = {}));
 //# sourceMappingURL=CustomEvent.js.map
-//# sourceMappingURL=IView.js.map
-//# sourceMappingURL=IViewContainer.js.map
 var HistoryContainer;
 (function (HistoryContainer) {
     var History = (function () {
@@ -1152,7 +1157,7 @@ var HistoryContainer;
         };
         History.prototype.ManageRouteInfo = function (viewInstance) {
             var vi = viewInstance, vc = vi.ViewContainer, t = vc.UrlTitle(vi), dt = vc.DocumentTitle(vi), h = history, u = vc.Url(vi);
-            if (u && !Is.NullOrEmpty(t) && h && h.pushState) {
+            if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
                 u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
                 h.pushState(null, t, u);
             }
@@ -1187,56 +1192,6 @@ var HistoryContainer;
 })(HistoryContainer || (HistoryContainer = {}));
 var HistoryManager = new HistoryContainer.History();
 //# sourceMappingURL=HistoryManager.js.map
-var Initializer;
-(function (Initializer) {
-    function Execute(e) {
-        var w = window;
-        if (document.readyState === "complete") {
-            windowLoaded();
-            Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
-        }
-        else {
-            w.onload = function () {
-                windowLoaded();
-                Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
-            };
-        }
-    }
-    Initializer.Execute = Execute;
-    function windowLoaded() {
-        var w = window;
-        setProgressElement();
-        w.ShowByUrl(w.location.pathname.substring(1));
-        w.addEventListener("popstate", HistoryManager.BackEvent);
-    }
-    function setProgressElement() {
-        var pg = document.getElementById("progress");
-        if (pg != null) {
-            ProgressManager.ProgressElement = pg;
-        }
-    }
-})(Initializer || (Initializer = {}));
-var Reflection;
-(function (Reflection) {
-    function GetName(o, ignoreThese) {
-        if (ignoreThese === void 0) { ignoreThese = new Array(); }
-        var r = o && o.toString ? o.toString() : null;
-        if (!Is.NullOrEmpty(r)) {
-            var p = "^function\\s(\\w+)\\(\\)", m = r.match(p);
-            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
-                return m[1];
-            }
-        }
-        return null;
-    }
-    Reflection.GetName = GetName;
-    function NewObject(type) {
-        return new type();
-    }
-    Reflection.NewObject = NewObject;
-})(Reflection || (Reflection = {}));
-Initializer.Execute();
-//# sourceMappingURL=Initializer.js.map
 var Is;
 (function (Is) {
     function Array(value) {
@@ -1585,7 +1540,7 @@ Window.prototype.Show = function (type) {
     HistoryManager.Add(vi);
 };
 Window.prototype.ShowByUrl = function (url) {
-    var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.First(function (d) { return d.IsUrlPatternMatch(url); });
+    var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.Where(function (vc) { return !vc.IsDefault; }).First(function (d) { return d.IsUrlPatternMatch(url); });
     vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
     if (vc) {
         var p = vc.Parameters(url), vi = new ViewInstance(p, vc, window.location.pathname);
@@ -1594,3 +1549,53 @@ Window.prototype.ShowByUrl = function (url) {
     }
 };
 //# sourceMappingURL=Window.js.map
+var Initializer;
+(function (Initializer) {
+    function Execute(e) {
+        var w = window;
+        if (document.readyState === "complete") {
+            windowLoaded();
+            Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+        }
+        else {
+            w.onload = function () {
+                windowLoaded();
+                Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+            };
+        }
+    }
+    Initializer.Execute = Execute;
+    function windowLoaded() {
+        var w = window;
+        setProgressElement();
+        w.ShowByUrl(w.location.pathname.substring(1));
+        w.addEventListener("popstate", HistoryManager.BackEvent);
+    }
+    function setProgressElement() {
+        var pg = document.getElementById("progress");
+        if (pg != null) {
+            ProgressManager.ProgressElement = pg;
+        }
+    }
+})(Initializer || (Initializer = {}));
+var Reflection;
+(function (Reflection) {
+    function GetName(o, ignoreThese) {
+        if (ignoreThese === void 0) { ignoreThese = new Array(); }
+        var r = o && o.toString ? o.toString() : null;
+        if (!Is.NullOrEmpty(r)) {
+            var p = "^function\\s(\\w+)\\(\\)", m = r.match(p);
+            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
+                return m[1];
+            }
+        }
+        return null;
+    }
+    Reflection.GetName = GetName;
+    function NewObject(type) {
+        return new type();
+    }
+    Reflection.NewObject = NewObject;
+})(Reflection || (Reflection = {}));
+Initializer.Execute();
+//# sourceMappingURL=Initializer.js.map

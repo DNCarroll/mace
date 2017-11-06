@@ -1049,7 +1049,7 @@ var ViewContainer = (function () {
     };
     ViewContainer.prototype.Parameters = function (url) {
         url = url ? url.replace(this.Name, '') : url;
-        url = url ? url.charAt(0) === "/" ? url.substring(1) : url : url;
+        url = url ? url.indexOf('/') === 0 ? url.substring(1) : url : url;
         return url ? url.split('/') : new Array();
     };
     return ViewContainer;
