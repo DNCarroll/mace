@@ -9,16 +9,23 @@ namespace mace.Test {
 
         [TestMethod]
         public void MakeBowerFiles() {
-            var jsFile = writeBundle(".js");
+            //var jsFile = writeBundle(".js");
             var tsFile = writeBundle(".ts");
-            var contents = System.IO.File.ReadAllText(jsFile);
-            var pattern = @"\r\n|\t|\s\s";
-            var comments = @"//.*?\r\n";
-            var min = System.Text.RegularExpressions.Regex.Replace(contents, comments, "");
-            var newFilePath = Path.Combine(pathToRoot(), "mace.min.js");
-            min = System.Text.RegularExpressions.Regex.Replace(min, pattern, "");
-            System.IO.File.WriteAllText(newFilePath, min);
-            Assert.IsTrue(System.IO.File.Exists(jsFile) && System.IO.File.Exists(tsFile) && System.IO.File.Exists(newFilePath));
+            //C:\Users\Nathan\Documents\GitHub\mace\macejs\wwwroot\js
+            System.IO.File.Copy(@"C:\Users\Nathan\Documents\GitHub\mace\macejs\wwwroot\js\mace.js", Path.Combine(pathToRoot(), "mace.js"), true);
+            System.IO.File.Copy(@"C:\Users\Nathan\Documents\GitHub\mace\macejs\wwwroot\js\mace.min.js", Path.Combine(pathToRoot(), "mace.min.js"), true);
+            //var contents = System.IO.File.ReadAllText(jsFile);
+            //var pattern = @"\r\n|\t|\s\s";
+            //var comments = @"//.*?\r\n";
+            //var min = System.Text.RegularExpressions.Regex.Replace(contents, comments, "");
+            //var newFilePath = Path.Combine(pathToRoot(), "mace.min.js");
+
+            //create the ts file from merging the bundles together and
+            //    use the already minified mace.min.js file
+
+            //min = System.Text.RegularExpressions.Regex.Replace(min, pattern, "");
+            //System.IO.File.WriteAllText(newFilePath, min);
+            //Assert.IsTrue(System.IO.File.Exists(jsFile) && System.IO.File.Exists(tsFile) && System.IO.File.Exists(newFilePath));
         }
 
         string writeBundle(string extension)
@@ -81,7 +88,7 @@ namespace mace.Test {
 
         string pathToMaceWeb() {
             var path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase).Replace("file:\\", "");
-            path = Path.Combine(path.Substring(0, path.LastIndexOf(@"\mace\") + 5), "mace");
+            path = path.Substring(0, path.LastIndexOf(@"\mace\") + 5) + "\\macejs\\wwwroot\\scripts";
             return path;
         }
     }

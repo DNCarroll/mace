@@ -16,6 +16,8 @@
   ],
  "ignore": [
     "Api",
+    "wwwroot",
+    "macejs",
     "App_Start",
     "Classes",
     "Interfaces",
