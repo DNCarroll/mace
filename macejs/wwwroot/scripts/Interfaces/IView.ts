@@ -7,6 +7,7 @@
 }
 interface IBinder extends IEventDispatcher<IBinder> {
     Add(obj: IObjectState);
+    Insert(obj);
     Execute: (viewInstance: ViewInstance) => void;
     Dispose: () => void;
     Element: HTMLElement;
