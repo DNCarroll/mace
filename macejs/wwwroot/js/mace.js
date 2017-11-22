@@ -382,9 +382,12 @@ var Binder = (function () {
         var o = sender.DataObject, t = this;
         if (!o) {
             var p = sender.parentElement;
-            while (!o || p !== t.Element) {
+            while (!o) {
                 o = p.DataObject;
                 p = p.parentElement;
+                if (p === t.Element) {
+                    break;
+                }
             }
         }
         if (o) {
@@ -461,6 +464,14 @@ var Binder = (function () {
         var t = this, r = t.RunWhenObjectsChange;
         r ? r() : null;
         this.AutomaticUpdate ? this.Save(o) : null;
+    };
+    Binder.prototype.Insert = function (obj) {
+        var t = this, o = obj, api = t.Api();
+        if (api) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            a.Post(api, o);
+        }
     };
     Binder.prototype.Save = function (obj) {
         var t = this, o = obj, api = t.Api();

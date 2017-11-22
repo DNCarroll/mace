@@ -372,10 +372,13 @@ class Binder implements IBinder {
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void = null) {
         var o = sender.DataObject, t = this;
         if (!o) {
-            var p = sender.parentElement;
-            while (!o || p !== t.Element) {
+            let p = sender.parentElement;
+            while (!o) {
                 o = p.DataObject;
                 p = p.parentElement;
+                if (p === t.Element) {
+                    break;
+                }
             }
         }
         if (o) {
@@ -463,6 +466,15 @@ class Binder implements IBinder {
         r ? r() : null;
         this.AutomaticUpdate ? this.Save(o) : null;
     }
+    Insert(obj) {
+        var t = this, o = obj, api = t.Api();
+        if (api) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            a.Post(api, o);
+        }
+    }
+
     Save(obj: IObjectState) {
         var t = this, o = obj, api = t.Api();
         if (api && o.ObjectState === ObjectState.Dirty) {
@@ -1269,6 +1281,7 @@ interface IView extends IEventDispatcher<IView> {
 }
 interface IBinder extends IEventDispatcher<IBinder> {
     Add(obj: IObjectState);
+    Insert(obj);
     Execute: (viewInstance: ViewInstance) => void;
     Dispose: () => void;
     Element: HTMLElement;
@@ -1278,6 +1291,7 @@ interface IBinder extends IEventDispatcher<IBinder> {
     RunWhenObjectsChange: () => void;
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void);
 }
+
 interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
     IsDefault: boolean;
