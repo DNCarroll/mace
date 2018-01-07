@@ -7,7 +7,7 @@
     static Host: string;
     WithProgress = false;
     UseAsDateUTC = false;
-    ContentType = "application/json; charset=utf-8";
+    ContentType: any = "application/json; charset=utf-8";
     Header: () => any;
     static GlobalHeader: () => any;
     eventHandlers = new Array<Listener<Ajax>>();
@@ -15,7 +15,7 @@
         return this.XHttp.responseText;
     }
     XHttp: XMLHttpRequest;
-    Submit(method: string, url: string, parameters: any = null) {
+    Submit(method: string, url: string, parameters: any = null, asRaw: boolean = false) {
         var t = this;
         t.Progress();
         url = t.getUrl(url);
@@ -26,7 +26,7 @@
         x.setRequestHeader("content-type", t.ContentType);
         t.setHead();
         try {
-            var p = t.getParameters(parameters);
+            var p = asRaw ? parameters : t.getParameters(parameters);
             Is.NullOrEmpty(p) ? x.send() : x.send(p);
         } catch (e) {
             t.Progress(false);

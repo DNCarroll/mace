@@ -17,8 +17,9 @@ var Ajax = (function () {
         enumerable: true,
         configurable: true
     });
-    Ajax.prototype.Submit = function (method, url, parameters) {
+    Ajax.prototype.Submit = function (method, url, parameters, asRaw) {
         if (parameters === void 0) { parameters = null; }
+        if (asRaw === void 0) { asRaw = false; }
         var t = this;
         t.Progress();
         url = t.getUrl(url);
@@ -29,7 +30,7 @@ var Ajax = (function () {
         x.setRequestHeader("content-type", t.ContentType);
         t.setHead();
         try {
-            var p = t.getParameters(parameters);
+            var p = asRaw ? parameters : t.getParameters(parameters);
             Is.NullOrEmpty(p) ? x.send() : x.send(p);
         }
         catch (e) {
