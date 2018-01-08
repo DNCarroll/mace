@@ -314,9 +314,11 @@ var Binder = (function () {
                 ele.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var nba = ["binder", "datasource", "displaymember", "valuemember", "onclick"];
+        var eb = ["onclick", "onchange"];
+        var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(function (b) {
-            if (!nba.First(function (v) { return v === b.Attribute; })) {
+            if (!eb.First(function (v) { return v === b.Attribute; }) &&
+                !ntwb.First(function (v) { return v === b.Attribute; })) {
                 var a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
@@ -330,15 +332,15 @@ var Binder = (function () {
                 }
             }
         });
-        var onclicks = ba.Where(function (a) { return a.Attribute === "onclick"; });
-        if (onclicks && onclicks.length > 0) {
-            onclicks.forEach(function (a) {
+        var eba = ba.Where(function (a) { return eb.First(function (v) { return v === a.Attribute; }) !== null; });
+        if (eba && eba.length > 0) {
+            eba.forEach(function (a) {
                 ele.DataObject = d;
                 var body = a.Property;
                 if (body) {
                     body = body.lastIndexOf(";") === body.length - 1 ? body : body + ";";
                     var fun = new Function("sender", body);
-                    ele.onclick = function () {
+                    ele[a.Attribute] = function () {
                         fun(ele);
                         return;
                     };

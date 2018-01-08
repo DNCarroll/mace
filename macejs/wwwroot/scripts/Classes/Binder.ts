@@ -337,9 +337,11 @@
                 (<HTMLSelectElement>ele).AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var nba = ["binder", "datasource", "displaymember", "valuemember", "onclick"];
+        var eb = ["onclick", "onchange"];
+        var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(b => {
-            if (!nba.First(v => v === b.Attribute)) {
+            if (!eb.First(v => v === b.Attribute) &&
+                !ntwb.First(v => v === b.Attribute)) {
                 let a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
@@ -353,15 +355,15 @@
                 }
             }
         });
-        var onclicks = ba.Where(a => a.Attribute === "onclick");
-        if (onclicks && onclicks.length > 0) {
-            onclicks.forEach(a => {
+        var eba = ba.Where(a => eb.First(v => v === a.Attribute) !== null);
+        if (eba && eba.length > 0) {
+            eba.forEach(a => {
                 ele.DataObject = d;
                 var body = <string>a.Property;
                 if (body) {
                     body = body.lastIndexOf(";") === body.length - 1 ? body : body + ";";
                     var fun = new Function("sender", body);
-                    ele.onclick = () => {
+                    ele[a.Attribute] = () => {
                         fun(ele);
                         return;
                     };
