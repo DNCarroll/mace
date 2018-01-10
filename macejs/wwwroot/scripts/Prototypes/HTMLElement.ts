@@ -12,7 +12,14 @@ interface HTMLElement extends Element {
     Save();
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
+    RemoveDataRowElements();
 }
+HTMLElement.prototype.RemoveDataRowElements = function () {
+    var t = <HTMLElement>this;
+    var dr = t.Get(e => e.getAttribute("data-template") != null);
+    dr.forEach(r => r.parentElement.removeChild(r));
+};
+
 HTMLElement.prototype.SaveDirty = function () {
     var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {
