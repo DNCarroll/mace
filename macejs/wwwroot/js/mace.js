@@ -1581,6 +1581,11 @@ Date.prototype.ToyyyymmddHHMMss = function () {
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };
 //# sourceMappingURL=Date.js.map
+HTMLElement.prototype.RemoveDataRowElements = function () {
+    var t = this;
+    var dr = t.Get(function (e) { return e.getAttribute("data-template") != null; });
+    dr.forEach(function (r) { return r.parentElement.removeChild(r); });
+};
 HTMLElement.prototype.SaveDirty = function () {
     var t = this, p = t.Ancestor(function (p) { return p.Binder != null; });
     if (p && p.Binder) {
