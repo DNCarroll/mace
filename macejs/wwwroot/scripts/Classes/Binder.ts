@@ -91,15 +91,7 @@
                 t.Dispatch(EventType.Completed);
             }
             else if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-                var a = new Ajax(t.WithProgress, t.DisableElement),
-                    url = t.GetApiForAjax(viewInstance.Parameters);
-                if (!Is.NullOrEmpty(url)) {
-                    a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
-                    a.Get(url);
-                }
-                else {
-                    t.Dispatch(EventType.Completed);
-                }
+                t.loadFromVI(viewInstance, false);
             }
             else {
                 t.Dispatch(EventType.Completed);
@@ -108,6 +100,25 @@
             alert("Failed to load data.");
         }
         this.initialLoad = false;
+    }
+    Refresh(viewInstance: ViewInstance = null) {
+        this.loadFromVI(viewInstance);
+    }
+    private loadFromVI(vi: ViewInstance, purgeDataObjects: boolean = true) {
+        var t = this;
+        t.prepTemplates();
+        if (purgeDataObjects) {
+            t.DataObjects = new DataObjectCacheArray<IObjectState>();
+        }
+        var a = new Ajax(t.WithProgress, t.DisableElement),
+            url = t.GetApiForAjax(vi.Parameters);
+        if (!Is.NullOrEmpty(url)) {
+            a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
+            a.Get(url);
+        }
+        else {
+            t.Dispatch(EventType.Completed);
+        }
     }
     OnAjaxComplete(arg: CustomEventArg<Ajax>) {
         var t = this, x = arg.Sender.XHttp, s = x.status;
@@ -118,6 +129,7 @@
                     this.RouteBinding(d);
                 }
             }
+            t.Dispatch(EventType.Completed);
         }
     }
     RouteBinding(data: any) {
@@ -185,22 +197,35 @@
             t.AutomaticUpdate ? af() : f();
         }
     }
+    Insert(obj) {
+        var t = this, o = obj, api = t.Api();
+        if (api) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            a.Post(api, o);
+        }
+    }
     Add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false) {
         var t = this;
         t.prepTemplates();
-        t.DataRowTemplates.forEach(d => {
-            let ne = <HTMLElement>d.cloneNode(true),
-                be = ne.Get(e => e.HasDataSet()),
-                drf = t.DataRowFooter,
-                pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
-            be.Add(ne);
-            drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
-            if (!shouldNotAddItsAlreadyCached) {
-                t.DataObjects.Add(obj);
-            }
-            obj.Container = t.DataObjects.Data;
-            t.Bind(obj, be);
-        });
+        if (t.DataRowTemplates.length > 0) {
+            t.DataRowTemplates.forEach(d => {
+                let ne = <HTMLElement>d.cloneNode(true),
+                    be = ne.Get(e => e.HasDataSet()),
+                    drf = t.DataRowFooter,
+                    pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
+                be.Add(ne);
+                drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
+                if (!shouldNotAddItsAlreadyCached) {
+                    t.DataObjects.Add(obj);
+                }
+                obj.Container = t.DataObjects.Data;
+                t.Bind(obj, be);
+            });
+        }
+        else {
+            t.Bind(obj, null);
+        }
     }
     private prepTemplates() {
         var t = this;
@@ -240,15 +265,6 @@
         r ? r() : null;
         this.AutomaticUpdate ? this.Save(o) : null;
     }
-    Insert(obj) {
-        var t = this, o = obj, api = t.Api();
-        if (api) {
-            var a = new Ajax(t.WithProgress, t.DisableElement);
-            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            a.Post(api, o);
-        }
-    }
-
     Save(obj: IObjectState) {
         var t = this, o = obj, api = t.Api();
         if (api && o.ObjectState === ObjectState.Dirty) {
@@ -270,6 +286,9 @@
                         t.SetServerObjectValue(o, rd[i]);
                         o.ObjectState = ObjectState.Clean;
                         t.DataObjects && t.DataObjects.length > 0 ? t.DataObjects.SaveCache() : null;
+                    }
+                    else {
+                        t.Add(t.NewObject(rd[i]));
                     }
                 }
             }
@@ -449,9 +468,9 @@
         l.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, et)));
     }
     More() {
-        var pb = this.Element.Binder,
+        var t = this,
             vi = HistoryManager.CurrentViewInstance(),
-            pbd = pb.DataObjects.Data;
+            pbd = t.DataObjects.Data;
         if (pbd && pbd.length > 0) {
             var nvi = new ViewInstance(new Array<any>(), vi.ViewContainer),
                 o = pbd[pbd.length - 1],
@@ -468,7 +487,7 @@
             this.MoreKeys.forEach(k => {
                 nvi.Parameters.Add(o[k]);
             });
-            pb.Execute(nvi);
+            this.loadFromVI(nvi, false);
         }
     }
 }
