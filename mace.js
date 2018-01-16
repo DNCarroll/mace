@@ -328,14 +328,7 @@ var Binder = (function () {
                 t.Dispatch(EventType.Completed);
             }
             else if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-                var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(viewInstance.Parameters);
-                if (!Is.NullOrEmpty(url)) {
-                    a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
-                    a.Get(url);
-                }
-                else {
-                    t.Dispatch(EventType.Completed);
-                }
+                t.loadFromVI(viewInstance, false);
             }
             else {
                 t.Dispatch(EventType.Completed);
@@ -346,6 +339,26 @@ var Binder = (function () {
         }
         this.initialLoad = false;
     };
+    Binder.prototype.Refresh = function (viewInstance) {
+        if (viewInstance === void 0) { viewInstance = null; }
+        this.loadFromVI(viewInstance);
+    };
+    Binder.prototype.loadFromVI = function (vi, purgeDataObjects) {
+        if (purgeDataObjects === void 0) { purgeDataObjects = true; }
+        var t = this;
+        t.prepTemplates();
+        if (purgeDataObjects) {
+            t.DataObjects = new DataObjectCacheArray();
+        }
+        var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(vi.Parameters);
+        if (!Is.NullOrEmpty(url)) {
+            a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
+            a.Get(url);
+        }
+        else {
+            t.Dispatch(EventType.Completed);
+        }
+    };
     Binder.prototype.OnAjaxComplete = function (arg) {
         var t = this, x = arg.Sender.XHttp, s = x.status;
         if (!t.isRedirecting(x)) {
@@ -355,6 +368,7 @@ var Binder = (function () {
                     this.RouteBinding(d);
                 }
             }
+            t.Dispatch(EventType.Completed);
         }
     };
     Binder.prototype.RouteBinding = function (data) {
@@ -418,20 +432,33 @@ var Binder = (function () {
             t.AutomaticUpdate ? af() : f();
         }
     };
+    Binder.prototype.Insert = function (obj) {
+        var t = this, o = obj, api = t.Api();
+        if (api) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            a.Post(api, o);
+        }
+    };
     Binder.prototype.Add = function (obj, shouldNotAddItsAlreadyCached) {
         if (shouldNotAddItsAlreadyCached === void 0) { shouldNotAddItsAlreadyCached = false; }
         var t = this;
         t.prepTemplates();
-        t.DataRowTemplates.forEach(function (d) {
-            var ne = d.cloneNode(true), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter, pe = t.Element.tagName === "TABLE" ? t.Element.tBodies[0] : t.Element;
-            be.Add(ne);
-            drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
-            if (!shouldNotAddItsAlreadyCached) {
-                t.DataObjects.Add(obj);
-            }
-            obj.Container = t.DataObjects.Data;
-            t.Bind(obj, be);
-        });
+        if (t.DataRowTemplates.length > 0) {
+            t.DataRowTemplates.forEach(function (d) {
+                var ne = d.cloneNode(true), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter, pe = t.Element.tagName === "TABLE" ? t.Element.tBodies[0] : t.Element;
+                be.Add(ne);
+                drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
+                if (!shouldNotAddItsAlreadyCached) {
+                    t.DataObjects.Add(obj);
+                }
+                obj.Container = t.DataObjects.Data;
+                t.Bind(obj, be);
+            });
+        }
+        else {
+            t.Bind(obj, null);
+        }
     };
     Binder.prototype.prepTemplates = function () {
         var t = this;
@@ -466,14 +493,6 @@ var Binder = (function () {
         r ? r() : null;
         this.AutomaticUpdate ? this.Save(o) : null;
     };
-    Binder.prototype.Insert = function (obj) {
-        var t = this, o = obj, api = t.Api();
-        if (api) {
-            var a = new Ajax(t.WithProgress, t.DisableElement);
-            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            a.Post(api, o);
-        }
-    };
     Binder.prototype.Save = function (obj) {
         var t = this, o = obj, api = t.Api();
         if (api && o.ObjectState === ObjectState.Dirty) {
@@ -493,6 +512,9 @@ var Binder = (function () {
                         t.SetServerObjectValue(o, rd[i]);
                         o.ObjectState = ObjectState.Clean;
                         t.DataObjects && t.DataObjects.length > 0 ? t.DataObjects.SaveCache() : null;
+                    }
+                    else {
+                        t.Add(t.NewObject(rd[i]));
                     }
                 }
             }
@@ -669,7 +691,7 @@ var Binder = (function () {
         l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, et)); });
     };
     Binder.prototype.More = function () {
-        var pb = this.Element.Binder, vi = HistoryManager.CurrentViewInstance(), pbd = pb.DataObjects.Data;
+        var t = this, vi = HistoryManager.CurrentViewInstance(), pbd = t.DataObjects.Data;
         if (pbd && pbd.length > 0) {
             var nvi = new ViewInstance(new Array(), vi.ViewContainer), o = pbd[pbd.length - 1], p = vi.Parameters;
             if (p != null) {
@@ -684,7 +706,7 @@ var Binder = (function () {
             this.MoreKeys.forEach(function (k) {
                 nvi.Parameters.Add(o[k]);
             });
-            pb.Execute(nvi);
+            this.loadFromVI(nvi, false);
         }
     };
     return Binder;
