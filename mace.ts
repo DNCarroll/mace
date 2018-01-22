@@ -317,7 +317,7 @@ class Binder implements IBinder {
                 t.Dispatch(EventType.Completed);
             }
             else if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-                t.loadFromVI(viewInstance, false);
+                t.loadFromVI(viewInstance);
             }
             else {
                 t.Dispatch(EventType.Completed);
@@ -330,11 +330,12 @@ class Binder implements IBinder {
     Refresh(viewInstance: ViewInstance = null) {
         this.loadFromVI(viewInstance);
     }
-    private loadFromVI(vi: ViewInstance, purgeDataObjects: boolean = true) {
+    private loadFromVI(vi: ViewInstance) {
         var t = this;
         t.prepTemplates();
-        if (purgeDataObjects) {
+        if (vi.RefreshBinding) {
             t.DataObjects = new DataObjectCacheArray<IObjectState>();
+            t.Element.RemoveDataRowElements();
         }
         var a = new Ajax(t.WithProgress, t.DisableElement),
             url = t.GetApiForAjax(vi.Parameters);
@@ -713,7 +714,7 @@ class Binder implements IBinder {
             this.MoreKeys.forEach(k => {
                 nvi.Parameters.Add(o[k]);
             });
-            this.loadFromVI(nvi, false);
+            this.loadFromVI(nvi);
         }
     }
 }
@@ -1217,6 +1218,7 @@ class ViewInstance {
     Parameters: Array<any>;
     ViewContainer: IViewContainer;
     Route: string;
+    RefreshBinding: boolean;
     constructor(parameters: Array<any>, viewContainer: IViewContainer, route: string = null) {
         this.Route = route;
         this.Parameters = parameters;
@@ -1636,13 +1638,23 @@ interface HTMLElement extends Element {
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
     RemoveDataRowElements();
+    Bind(obj: any);
 }
+HTMLElement.prototype.Bind = function (obj: any) {
+    var binder = <IBinder>this.Binder;
+    if (binder) {
+        if (obj instanceof ViewInstance) {
+            binder.Refresh(<ViewInstance>obj);
+        } else if (obj) {
+            binder.Add(obj);
+        }
+    }
+};
 HTMLElement.prototype.RemoveDataRowElements = function () {
     var t = <HTMLElement>this;
     var dr = t.Get(e => e.getAttribute("data-template") != null);
     dr.forEach(r => r.parentElement.removeChild(r));
 };
-
 HTMLElement.prototype.SaveDirty = function () {
     var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {

@@ -91,7 +91,7 @@
                 t.Dispatch(EventType.Completed);
             }
             else if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-                t.loadFromVI(viewInstance, false);
+                t.loadFromVI(viewInstance);
             }
             else {
                 t.Dispatch(EventType.Completed);
@@ -104,11 +104,12 @@
     Refresh(viewInstance: ViewInstance = null) {
         this.loadFromVI(viewInstance);
     }
-    private loadFromVI(vi: ViewInstance, purgeDataObjects: boolean = true) {
+    private loadFromVI(vi: ViewInstance) {
         var t = this;
         t.prepTemplates();
-        if (purgeDataObjects) {
+        if (vi.RefreshBinding) {
             t.DataObjects = new DataObjectCacheArray<IObjectState>();
+            t.Element.RemoveDataRowElements();
         }
         var a = new Ajax(t.WithProgress, t.DisableElement),
             url = t.GetApiForAjax(vi.Parameters);
@@ -487,7 +488,7 @@
             this.MoreKeys.forEach(k => {
                 nvi.Parameters.Add(o[k]);
             });
-            this.loadFromVI(nvi, false);
+            this.loadFromVI(nvi);
         }
     }
 }

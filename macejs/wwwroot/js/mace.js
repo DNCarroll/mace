@@ -349,6 +349,7 @@ var Binder = (function () {
         t.prepTemplates();
         if (purgeDataObjects) {
             t.DataObjects = new DataObjectCacheArray();
+            t.Element.RemoveDataRowElements();
         }
         var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
