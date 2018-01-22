@@ -13,13 +13,23 @@ interface HTMLElement extends Element {
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
     RemoveDataRowElements();
+    Bind(obj: any);
 }
+HTMLElement.prototype.Bind = function (obj: any) {
+    var binder = <IBinder>this.Binder;
+    if (binder) {
+        if (obj instanceof ViewInstance) {
+            binder.Refresh(<ViewInstance>obj);
+        } else if (obj) {
+            binder.Add(obj);
+        }
+    }
+};
 HTMLElement.prototype.RemoveDataRowElements = function () {
     var t = <HTMLElement>this;
     var dr = t.Get(e => e.getAttribute("data-template") != null);
     dr.forEach(r => r.parentElement.removeChild(r));
 };
-
 HTMLElement.prototype.SaveDirty = function () {
     var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
     if (p && p.Binder) {
