@@ -23,7 +23,9 @@ class Ajax implements IEventDispatcher<Ajax>{
         var x = t.XHttp;
         x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
         x.open(method, url, true);
-        x.setRequestHeader("content-type", t.ContentType);
+        if (t.ContentType) {
+            x.setRequestHeader("content-type", t.ContentType);
+        }
         t.setHead();
         try {
             var p = asRaw ? parameters : t.getParameters(parameters);
@@ -1118,6 +1120,7 @@ class DataLoader {
 }
 var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
 abstract class ViewContainer implements IViewContainer {
+    static VirtualPath: string;
     constructor() {
         var n = Reflection.GetName(this.constructor);
         this.Name = n.replace("ViewContainer", "");
@@ -1167,9 +1170,10 @@ abstract class ViewContainer implements IViewContainer {
         }
     }
     Url(viewInstance: ViewInstance): string {
-        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters, vp = ViewContainer.VirtualPath;
+        var newUrl = "";
         if (vi.Route) {
-            return vi.Route;
+            newUrl = vi.Route;
         }
         else if (t.UrlReplacePattern !== null) {
             var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array<string>();
@@ -1189,10 +1193,14 @@ abstract class ViewContainer implements IViewContainer {
                     nu.Add(up[i]);
                 }
             }
-            return nu.join("/");
+            newUrl = nu.join("/");
         }
-        return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        if (Is.NullOrEmpty(newUrl)) {
+            newUrl = t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        }
+        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
     }
+
     UrlTitle() {
         return this.Name.replace(/\//g, " ");
     }
@@ -1498,10 +1506,18 @@ module Navigate {
         if (vc) {
             var p = vc.Parameters(url),
                 vi = new ViewInstance(p, vc, url);
+            p = vi.Parameters;
+            if (p && p.length && !Is.NullOrEmpty(ViewContainer.VirtualPath) && p[0] == ViewContainer.VirtualPath) {
+                p.splice(0, 1);
+            }
+            while (p.length && p.length > 0 && Is.NullOrEmpty(p[0])) {
+                p.splice(0, 1);
+            }
             vc.Show(vi);
             HistoryManager.Add(vi);
         }
     }
+
 }
 module ProgressManager {
     export var ProgressElement: HTMLElement = null;
