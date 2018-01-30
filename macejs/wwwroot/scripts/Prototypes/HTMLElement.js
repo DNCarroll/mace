@@ -1,3 +1,14 @@
+HTMLElement.prototype.Bind = function (obj) {
+    var binder = this.Binder;
+    if (binder) {
+        if (obj instanceof ViewInstance) {
+            binder.Refresh(obj);
+        }
+        else if (obj) {
+            binder.Add(obj);
+        }
+    }
+};
 HTMLElement.prototype.RemoveDataRowElements = function () {
     var t = this;
     var dr = t.Get(function (e) { return e.getAttribute("data-template") != null; });

@@ -87,7 +87,7 @@ var Binder = (function () {
                 t.Dispatch(EventType.Completed);
             }
             else if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
-                t.loadFromVI(viewInstance, false);
+                t.loadFromVI(viewInstance);
             }
             else {
                 t.Dispatch(EventType.Completed);
@@ -102,11 +102,10 @@ var Binder = (function () {
         if (viewInstance === void 0) { viewInstance = null; }
         this.loadFromVI(viewInstance);
     };
-    Binder.prototype.loadFromVI = function (vi, purgeDataObjects) {
-        if (purgeDataObjects === void 0) { purgeDataObjects = true; }
+    Binder.prototype.loadFromVI = function (vi) {
         var t = this;
         t.prepTemplates();
-        if (purgeDataObjects) {
+        if (vi.RefreshBinding) {
             t.DataObjects = new DataObjectCacheArray();
             t.Element.RemoveDataRowElements();
         }
@@ -466,7 +465,7 @@ var Binder = (function () {
             this.MoreKeys.forEach(function (k) {
                 nvi.Parameters.Add(o[k]);
             });
-            this.loadFromVI(nvi, false);
+            this.loadFromVI(nvi);
         }
     };
     return Binder;

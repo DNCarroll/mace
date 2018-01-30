@@ -1,5 +1,6 @@
 ﻿var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
 abstract class ViewContainer implements IViewContainer {
+    static VirtualPath: string;
     constructor() {
         var n = Reflection.GetName(this.constructor);
         this.Name = n.replace("ViewContainer", "");
@@ -49,9 +50,10 @@ abstract class ViewContainer implements IViewContainer {
         }
     }
     Url(viewInstance: ViewInstance): string {
-        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters, vp = ViewContainer.VirtualPath;
+        var newUrl = "";
         if (vi.Route) {
-            return vi.Route;
+            newUrl = vi.Route;
         }
         else if (t.UrlReplacePattern !== null) {
             var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array<string>();
@@ -71,10 +73,14 @@ abstract class ViewContainer implements IViewContainer {
                     nu.Add(up[i]);
                 }
             }
-            return nu.join("/");
+            newUrl = nu.join("/");
         }
-        return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        if (Is.NullOrEmpty(newUrl)) {
+            newUrl = t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        }
+        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
     }
+
     UrlTitle() {
         return this.Name.replace(/\//g, " ");
     }

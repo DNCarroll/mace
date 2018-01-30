@@ -20,8 +20,16 @@
         if (vc) {
             var p = vc.Parameters(url),
                 vi = new ViewInstance(p, vc, url);
+            p = vi.Parameters;
+            if (p && p.length && !Is.NullOrEmpty(ViewContainer.VirtualPath) && p[0] == ViewContainer.VirtualPath) {
+                p.splice(0, 1);
+            }
+            while (p.length && p.length > 0 && Is.NullOrEmpty(p[0])) {
+                p.splice(0, 1);
+            }
             vc.Show(vi);
             HistoryManager.Add(vi);
         }
     }
+
 }
