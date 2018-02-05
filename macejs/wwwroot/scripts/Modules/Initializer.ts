@@ -1,15 +1,15 @@
 ﻿module Initializer {
     export var WindowLoaded: (e: any) => any;
     export function Execute(e?) {
-        var w = window;
+        var w = window, WL = WindowLoaded;
         if (document.readyState === "complete") {
             windowLoaded();
-            WindowLoaded ? WindowLoaded(e) : null;
+            WL ? WL(e) : null;
         }
         else {
             w.onload = function () {
                 windowLoaded();
-                WindowLoaded ? WindowLoaded(e) : null;
+                WL ? WL(e) : null;
             };
         }
     }

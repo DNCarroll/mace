@@ -21,7 +21,7 @@ HTMLElement.prototype.Bind = function (obj: any) {
         if (obj instanceof ViewInstance) {
             binder.Refresh(<ViewInstance>obj);
         } else if (obj) {
-            binder.Add(obj);
+            binder.Add(obj instanceof DataObject ? <DataObject>obj : binder.NewObject(obj));
         }
     }
 };

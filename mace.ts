@@ -23,9 +23,6 @@ class Ajax implements IEventDispatcher<Ajax>{
         var x = t.XHttp;
         x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
         x.open(method, url, true);
-        if (t.ContentType) {
-            x.setRequestHeader("content-type", t.ContentType);
-        }
         t.setHead();
         try {
             var p = asRaw ? parameters : t.getParameters(parameters);
@@ -75,12 +72,15 @@ class Ajax implements IEventDispatcher<Ajax>{
         }
     }
     private setHead() {
-        var t = this;
+        var t = this, x = t.XHttp;
+        if (t.ContentType) {
+            x.setRequestHeader("content-type", t.ContentType);
+        }
         if (t.Header) {
             var h = t.Header();
             if (h) {
                 for (var p in h) {
-                    t.XHttp.setRequestHeader(p, h[p]);
+                    x.setRequestHeader(p, h[p]);
                 }
             }
         }
@@ -88,7 +88,7 @@ class Ajax implements IEventDispatcher<Ajax>{
             var gh = Ajax.GlobalHeader()
             if (gh) {
                 for (var p in gh) {
-                    t.XHttp.setRequestHeader(p, gh[p]);
+                    x.setRequestHeader(p, gh[p]);
                 }
             }
         }
@@ -363,17 +363,17 @@ class Binder implements IBinder {
     }
     RouteBinding(data: any) {
         var t = this,
-            d = data;
+            d = data, da = t.DataObjects;
         if (Is.Array(d)) {
             (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
         }
         else if (d) {
-            var newobject = t.NewObject(d);
-            this.DataObjects.Data.Add(newobject);
-            t.Bind(newobject);
+            var no = t.NewObject(d);
+            da.Data.Add(no);
+            t.Bind(no);
         }
-        this.SetUpMore(d);
-        this.DataObjects.SaveCache();
+        t.SetUpMore(d);
+        da.SaveCache();
         t.Dispatch(EventType.Completed);
     }
     SetUpMore(d: DataObjectCacheArray<IObjectState>) {
@@ -482,7 +482,7 @@ class Binder implements IBinder {
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
                 t.MoreThreshold = parseInt(more.getAttribute(dmt));
-                t.MoreElement.onclick = () => {
+                more.onclick = () => {
                     t.More();
                 }
             }
@@ -504,17 +504,17 @@ class Binder implements IBinder {
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
-        var t = this, x = a.Sender.XHttp,
+        var t = this, x = a.Sender.XHttp, da = t.DataObjects,
             td = <any>a.Sender.GetRequestData(),
             rd = Is.Array(td) ? td : [td];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
                 for (var i = 0; i < rd.length; i++) {
-                    let o = t.DataObjects.First(d => t.isPKMatch(d, rd[i]));
+                    let o = da.First(d => t.isPKMatch(d, rd[i]));
                     if (o) {
                         t.SetServerObjectValue(o, rd[i]);
                         o.ObjectState = ObjectState.Clean;
-                        t.DataObjects && t.DataObjects.length > 0 ? t.DataObjects.SaveCache() : null;
+                        da && da.length > 0 ? da.SaveCache() : null;
                     }
                     else {
                         t.Add(t.NewObject(rd[i]));
@@ -837,17 +837,18 @@ enum StorageType {
 class DataObjectCacheArray<T extends IObjectState>
 {
     constructor(cachingKey: string = null, storageState: StorageType = null, newT: (obj: any) => T = null) {
-        this._cachingKey = cachingKey;
-        this._storageState = storageState;
-        this._newT = newT;
-        if (this._cachingKey && this._storageState && this._newT) {
+        var t = this;
+        t._cachingKey = cachingKey;
+        t._storageState = storageState;
+        t._newT = newT;
+        if (t._cachingKey && t._storageState && t._newT) {
             var rehydrated: string;
-            switch (this._storageState) {
+            switch (t._storageState) {
                 case StorageType.local:
-                    rehydrated = localStorage.getItem(this._cachingKey);
+                    rehydrated = localStorage.getItem(t._cachingKey);
                     break;
                 case StorageType.session:
-                    rehydrated = sessionStorage.getItem(this._cachingKey);
+                    rehydrated = sessionStorage.getItem(t._cachingKey);
                     break;
                 default:
                     break;
@@ -857,11 +858,11 @@ class DataObjectCacheArray<T extends IObjectState>
                 if (Is.Array(objs)) {
                     var arr = <Array<any>>objs;
                     arr.forEach(o => {
-                        this.Add(this._newT(o));
+                        t.Add(t._newT(o));
                     });
                 }
                 else {
-                    this.Add(this._newT(objs));
+                    t.Add(t._newT(objs));
                 }
             }
         }
@@ -883,13 +884,14 @@ class DataObjectCacheArray<T extends IObjectState>
         return this.Data.indexOf(obj, fromIndex);
     }
     SaveCache() {
-        if (this._cachingKey && this._storageState) {
-            switch (this._storageState) {
+        var t = this, ck = t._cachingKey, ss = t._storageState;
+        if (ck && ss) {
+            switch (ss) {
                 case StorageType.local:
-                    localStorage.setItem(this._cachingKey, JSON.stringify(this.Data.Select(a => a.ServerObject)));
+                    localStorage.setItem(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
                     break;
                 case StorageType.session:
-                    sessionStorage.setItem(this._cachingKey, JSON.stringify(this.Data.Select(a => a.ServerObject)));
+                    sessionStorage.setItem(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
                     break;
                 default:
                     break;
@@ -919,10 +921,11 @@ class View implements IView {
     private url: string;
     CacheStrategy: CacheStrategy = CacheStrategy.None;
     constructor(cacheStrategy: CacheStrategy = CacheStrategy.View, containerId: string = "content", viewPath: string = null) {
-        this.url = viewPath;
-        this._containerID = containerId;
-        this.CacheStrategy = cacheStrategy;
-        this.Cache(this.CacheStrategy);
+        var t = this;
+        t.url = viewPath;
+        t._containerID = containerId;
+        t.CacheStrategy = cacheStrategy;
+        t.Cache(t.CacheStrategy);
     }
     Prefix() {
         return "/Views/";
@@ -1208,10 +1211,10 @@ abstract class ViewContainer implements IViewContainer {
         return this.UrlTitle();
     }
     Parameters(url: string) {
-
-        url = url ? url.replace(this.Name, '') : url;
-        url = url ? url.indexOf('/') === 0 ? url.substring(1) : url : url;
-        return url ? url.split('/') : new Array<string>();
+        var u = url;
+        u = u ? u.replace(this.Name, '') : u;
+        u = u ? u.indexOf('/') === 0 ? u.substring(1) : u : u;
+        return u ? u.split('/') : new Array<string>();
     }
 }
 class SingleViewContainer extends ViewContainer {
@@ -1322,6 +1325,7 @@ interface IBinder extends IEventDispatcher<IBinder> {
     SaveDirty();
     RunWhenObjectsChange: () => void;
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void);
+    NewObject(obj: any): IObjectState;
 }
 
 interface IViewContainer {
@@ -1418,15 +1422,15 @@ var HistoryManager = new HistoryContainer.History();
 module Initializer {
     export var WindowLoaded: (e: any) => any;
     export function Execute(e?) {
-        var w = window;
+        var w = window, WL = WindowLoaded;
         if (document.readyState === "complete") {
             windowLoaded();
-            WindowLoaded ? WindowLoaded(e) : null;
+            WL ? WL(e) : null;
         }
         else {
             w.onload = function () {
                 windowLoaded();
-                WindowLoaded ? WindowLoaded(e) : null;
+                WL ? WL(e) : null;
             };
         }
     }
@@ -1662,7 +1666,7 @@ HTMLElement.prototype.Bind = function (obj: any) {
         if (obj instanceof ViewInstance) {
             binder.Refresh(<ViewInstance>obj);
         } else if (obj) {
-            binder.Add(obj);
+            binder.Add(obj instanceof DataObject ? <DataObject>obj : binder.NewObject(obj));
         }
     }
 };

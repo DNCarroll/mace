@@ -88,10 +88,10 @@ abstract class ViewContainer implements IViewContainer {
         return this.UrlTitle();
     }
     Parameters(url: string) {
-
-        url = url ? url.replace(this.Name, '') : url;
-        url = url ? url.indexOf('/') === 0 ? url.substring(1) : url : url;
-        return url ? url.split('/') : new Array<string>();
+        var u = url;
+        u = u ? u.replace(this.Name, '') : u;
+        u = u ? u.indexOf('/') === 0 ? u.substring(1) : u : u;
+        return u ? u.split('/') : new Array<string>();
     }
 }
 class SingleViewContainer extends ViewContainer {

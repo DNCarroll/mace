@@ -27,7 +27,9 @@ var Ajax = (function () {
         var x = t.XHttp;
         x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
         x.open(method, url, true);
-        x.setRequestHeader("content-type", t.ContentType);
+        if (t.ContentType) {
+            x.setRequestHeader("content-type", t.ContentType);
+        }
         t.setHead();
         try {
             var p = asRaw ? parameters : t.getParameters(parameters);

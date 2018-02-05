@@ -8,10 +8,11 @@ class View implements IView {
     private url: string;
     CacheStrategy: CacheStrategy = CacheStrategy.None;
     constructor(cacheStrategy: CacheStrategy = CacheStrategy.View, containerId: string = "content", viewPath: string = null) {
-        this.url = viewPath;
-        this._containerID = containerId;
-        this.CacheStrategy = cacheStrategy;
-        this.Cache(this.CacheStrategy);
+        var t = this;
+        t.url = viewPath;
+        t._containerID = containerId;
+        t.CacheStrategy = cacheStrategy;
+        t.Cache(t.CacheStrategy);
     }
     Prefix() {
         return "/Views/";
