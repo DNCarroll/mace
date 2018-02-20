@@ -578,11 +578,12 @@ class Binder implements IBinder {
         if (ele.tagName === "SELECT") {
             var ds = ba.First(f => f.Attribute === "datasource"),
                 dm = ba.First(f => f.Attribute === "displaymember"),
-                vm = ba.First(f => f.Attribute === "valuemember");
-            if (ds) {
+                vm = ba.First(f => f.Attribute === "valuemember"),
+                select = (<HTMLSelectElement>ele);
+            if (ds && select.options.length == 0) {
                 var fun = new Function("return " + ds.Property),
                     data = fun();
-                (<HTMLSelectElement>ele).AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
+                select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
         var eb = ["onclick", "onchange"];
@@ -1659,14 +1660,26 @@ interface HTMLElement extends Element {
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
     RemoveDataRowElements();
     Bind(obj: any);
+    Bind(obj: any, refresh: boolean);
 }
-HTMLElement.prototype.Bind = function (obj: any) {
+HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
+    if (refresh) {
+        this.RemoveDataRowElements();
+    }
     var binder = <IBinder>this.Binder;
     if (binder) {
         if (obj instanceof ViewInstance) {
             binder.Refresh(<ViewInstance>obj);
-        } else if (obj) {
-            binder.Add(obj instanceof DataObject ? <DataObject>obj : binder.NewObject(obj));
+        }
+        else if (obj instanceof Array) {
+            var arr = <Array<any>>obj;
+            for (var i = 0; i < arr.length; i++) {
+                var tempObj = arr[i];
+                binder.Add(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+            }
+        }
+        else if (obj) {
+            binder.Add(obj instanceof DataObject ? obj : new DataObject(obj));
         }
     }
 };
