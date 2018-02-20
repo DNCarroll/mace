@@ -96,9 +96,10 @@ var ViewContainer = (function () {
         return this.UrlTitle();
     };
     ViewContainer.prototype.Parameters = function (url) {
-        url = url ? url.replace(this.Name, '') : url;
-        url = url ? url.indexOf('/') === 0 ? url.substring(1) : url : url;
-        return url ? url.split('/') : new Array();
+        var u = url;
+        u = u ? u.replace(this.Name, '') : u;
+        u = u ? u.indexOf('/') === 0 ? u.substring(1) : u : u;
+        return u ? u.split('/') : new Array();
     };
     return ViewContainer;
 }());

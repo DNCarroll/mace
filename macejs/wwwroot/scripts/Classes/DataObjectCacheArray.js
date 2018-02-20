@@ -14,19 +14,19 @@ var DataObjectCacheArray = (function () {
         if (cachingKey === void 0) { cachingKey = null; }
         if (storageState === void 0) { storageState = null; }
         if (newT === void 0) { newT = null; }
-        var _this = this;
         this.Data = new Array();
-        this._cachingKey = cachingKey;
-        this._storageState = storageState;
-        this._newT = newT;
-        if (this._cachingKey && this._storageState && this._newT) {
+        var t = this;
+        t._cachingKey = cachingKey;
+        t._storageState = storageState;
+        t._newT = newT;
+        if (t._cachingKey && t._storageState && t._newT) {
             var rehydrated;
-            switch (this._storageState) {
+            switch (t._storageState) {
                 case StorageType.local:
-                    rehydrated = localStorage.getItem(this._cachingKey);
+                    rehydrated = localStorage.getItem(t._cachingKey);
                     break;
                 case StorageType.session:
-                    rehydrated = sessionStorage.getItem(this._cachingKey);
+                    rehydrated = sessionStorage.getItem(t._cachingKey);
                     break;
                 default:
                     break;
@@ -36,11 +36,11 @@ var DataObjectCacheArray = (function () {
                 if (Is.Array(objs)) {
                     var arr = objs;
                     arr.forEach(function (o) {
-                        _this.Add(_this._newT(o));
+                        t.Add(t._newT(o));
                     });
                 }
                 else {
-                    this.Add(this._newT(objs));
+                    t.Add(t._newT(objs));
                 }
             }
         }
@@ -58,13 +58,14 @@ var DataObjectCacheArray = (function () {
         return this.Data.indexOf(obj, fromIndex);
     };
     DataObjectCacheArray.prototype.SaveCache = function () {
-        if (this._cachingKey && this._storageState) {
-            switch (this._storageState) {
+        var t = this, ck = t._cachingKey, ss = t._storageState;
+        if (ck && ss) {
+            switch (ss) {
                 case StorageType.local:
-                    localStorage.setItem(this._cachingKey, JSON.stringify(this.Data.Select(function (a) { return a.ServerObject; })));
+                    localStorage.setItem(ck, JSON.stringify(t.Data.Select(function (a) { return a.ServerObject; })));
                     break;
                 case StorageType.session:
-                    sessionStorage.setItem(this._cachingKey, JSON.stringify(this.Data.Select(function (a) { return a.ServerObject; })));
+                    sessionStorage.setItem(ck, JSON.stringify(t.Data.Select(function (a) { return a.ServerObject; })));
                     break;
                 default:
                     break;

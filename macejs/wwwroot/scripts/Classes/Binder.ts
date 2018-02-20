@@ -350,11 +350,12 @@
         if (ele.tagName === "SELECT") {
             var ds = ba.First(f => f.Attribute === "datasource"),
                 dm = ba.First(f => f.Attribute === "displaymember"),
-                vm = ba.First(f => f.Attribute === "valuemember");
-            if (ds) {
+                vm = ba.First(f => f.Attribute === "valuemember"),
+                select = (<HTMLSelectElement>ele);
+            if (ds && select.options.length == 0) {
                 var fun = new Function("return " + ds.Property),
                     data = fun();
-                (<HTMLSelectElement>ele).AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
+                select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
         var eb = ["onclick", "onchange"];

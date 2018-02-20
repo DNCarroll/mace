@@ -14,14 +14,26 @@ interface HTMLElement extends Element {
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
     RemoveDataRowElements();
     Bind(obj: any);
+    Bind(obj: any, refresh: boolean);
 }
-HTMLElement.prototype.Bind = function (obj: any) {
+HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
+    if (refresh) {
+        this.RemoveDataRowElements();
+    }
     var binder = <IBinder>this.Binder;
     if (binder) {
         if (obj instanceof ViewInstance) {
             binder.Refresh(<ViewInstance>obj);
-        } else if (obj) {
-            binder.Add(obj instanceof DataObject ? <DataObject>obj : binder.NewObject(obj));
+        }
+        else if (obj instanceof Array) {
+            var arr = <Array<any>>obj;
+            for (var i = 0; i < arr.length; i++) {
+                var tempObj = arr[i];
+                binder.Add(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+            }
+        }
+        else if (obj) {
+            binder.Add(obj instanceof DataObject ? obj : new DataObject(obj));
         }
     }
 };

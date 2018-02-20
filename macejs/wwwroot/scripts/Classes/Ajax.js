@@ -27,9 +27,6 @@ var Ajax = (function () {
         var x = t.XHttp;
         x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
         x.open(method, url, true);
-        if (t.ContentType) {
-            x.setRequestHeader("content-type", t.ContentType);
-        }
         t.setHead();
         try {
             var p = asRaw ? parameters : t.getParameters(parameters);
@@ -79,12 +76,15 @@ var Ajax = (function () {
         }
     };
     Ajax.prototype.setHead = function () {
-        var t = this;
+        var t = this, x = t.XHttp;
+        if (t.ContentType) {
+            x.setRequestHeader("content-type", t.ContentType);
+        }
         if (t.Header) {
             var h = t.Header();
             if (h) {
                 for (var p in h) {
-                    t.XHttp.setRequestHeader(p, h[p]);
+                    x.setRequestHeader(p, h[p]);
                 }
             }
         }
@@ -92,7 +92,7 @@ var Ajax = (function () {
             var gh = Ajax.GlobalHeader();
             if (gh) {
                 for (var p in gh) {
-                    t.XHttp.setRequestHeader(p, gh[p]);
+                    x.setRequestHeader(p, gh[p]);
                 }
             }
         }

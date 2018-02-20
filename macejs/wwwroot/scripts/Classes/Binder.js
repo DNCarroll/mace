@@ -131,17 +131,17 @@ var Binder = (function () {
         }
     };
     Binder.prototype.RouteBinding = function (data) {
-        var t = this, d = data;
+        var t = this, d = data, da = t.DataObjects;
         if (Is.Array(d)) {
             d.forEach(function (d) { return t.Add(t.NewObject(d)); });
         }
         else if (d) {
-            var newobject = t.NewObject(d);
-            this.DataObjects.Data.Add(newobject);
-            t.Bind(newobject);
+            var no = t.NewObject(d);
+            da.Data.Add(no);
+            t.Bind(no);
         }
-        this.SetUpMore(d);
-        this.DataObjects.SaveCache();
+        t.SetUpMore(d);
+        da.SaveCache();
         t.Dispatch(EventType.Completed);
     };
     Binder.prototype.SetUpMore = function (d) {
@@ -241,7 +241,7 @@ var Binder = (function () {
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
                 t.MoreThreshold = parseInt(more.getAttribute(dmt));
-                t.MoreElement.onclick = function () {
+                more.onclick = function () {
                     t.More();
                 };
             }
@@ -262,15 +262,15 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
-        var t = this, x = a.Sender.XHttp, td = a.Sender.GetRequestData(), rd = Is.Array(td) ? td : [td];
+        var t = this, x = a.Sender.XHttp, da = t.DataObjects, td = a.Sender.GetRequestData(), rd = Is.Array(td) ? td : [td];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
                 for (var i = 0; i < rd.length; i++) {
-                    var o = t.DataObjects.First(function (d) { return t.isPKMatch(d, rd[i]); });
+                    var o = da.First(function (d) { return t.isPKMatch(d, rd[i]); });
                     if (o) {
                         t.SetServerObjectValue(o, rd[i]);
                         o.ObjectState = ObjectState.Clean;
-                        t.DataObjects && t.DataObjects.length > 0 ? t.DataObjects.SaveCache() : null;
+                        da && da.length > 0 ? da.SaveCache() : null;
                     }
                     else {
                         t.Add(t.NewObject(rd[i]));

@@ -1,15 +1,15 @@
 var Initializer;
 (function (Initializer) {
     function Execute(e) {
-        var w = window;
+        var w = window, WL = Initializer.WindowLoaded;
         if (document.readyState === "complete") {
             windowLoaded();
-            Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+            WL ? WL(e) : null;
         }
         else {
             w.onload = function () {
                 windowLoaded();
-                Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+                WL ? WL(e) : null;
             };
         }
     }
