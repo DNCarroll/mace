@@ -135,17 +135,17 @@
     }
     RouteBinding(data: any) {
         var t = this,
-            d = data;
+            d = data, da = t.DataObjects;
         if (Is.Array(d)) {
             (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
         }
         else if (d) {
-            var newobject = t.NewObject(d);
-            this.DataObjects.Data.Add(newobject);
-            t.Bind(newobject);
+            var no = t.NewObject(d);
+            da.Data.Add(no);
+            t.Bind(no);
         }
-        this.SetUpMore(d);
-        this.DataObjects.SaveCache();
+        t.SetUpMore(d);
+        da.SaveCache();
         t.Dispatch(EventType.Completed);
     }
     SetUpMore(d: DataObjectCacheArray<IObjectState>) {
@@ -254,7 +254,7 @@
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
                 t.MoreThreshold = parseInt(more.getAttribute(dmt));
-                t.MoreElement.onclick = () => {
+                more.onclick = () => {
                     t.More();
                 }
             }
@@ -276,17 +276,17 @@
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
-        var t = this, x = a.Sender.XHttp,
+        var t = this, x = a.Sender.XHttp, da = t.DataObjects,
             td = <any>a.Sender.GetRequestData(),
             rd = Is.Array(td) ? td : [td];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
                 for (var i = 0; i < rd.length; i++) {
-                    let o = t.DataObjects.First(d => t.isPKMatch(d, rd[i]));
+                    let o = da.First(d => t.isPKMatch(d, rd[i]));
                     if (o) {
                         t.SetServerObjectValue(o, rd[i]);
                         o.ObjectState = ObjectState.Clean;
-                        t.DataObjects && t.DataObjects.length > 0 ? t.DataObjects.SaveCache() : null;
+                        da && da.length > 0 ? da.SaveCache() : null;
                     }
                     else {
                         t.Add(t.NewObject(rd[i]));
@@ -350,11 +350,12 @@
         if (ele.tagName === "SELECT") {
             var ds = ba.First(f => f.Attribute === "datasource"),
                 dm = ba.First(f => f.Attribute === "displaymember"),
-                vm = ba.First(f => f.Attribute === "valuemember");
-            if (ds) {
+                vm = ba.First(f => f.Attribute === "valuemember"),
+                select = (<HTMLSelectElement>ele);
+            if (ds && select.options.length == 0) {
                 var fun = new Function("return " + ds.Property),
                     data = fun();
-                (<HTMLSelectElement>ele).AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
+                select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
         var eb = ["onclick", "onchange"];

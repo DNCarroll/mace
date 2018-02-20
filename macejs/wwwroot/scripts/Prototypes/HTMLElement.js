@@ -5,7 +5,7 @@ HTMLElement.prototype.Bind = function (obj) {
             binder.Refresh(obj);
         }
         else if (obj) {
-            binder.Add(obj);
+            binder.Add(obj instanceof DataObject ? obj : binder.NewObject(obj));
         }
     }
 };

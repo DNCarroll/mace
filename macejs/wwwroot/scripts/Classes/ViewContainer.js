@@ -57,9 +57,10 @@ var ViewContainer = (function () {
         }
     };
     ViewContainer.prototype.Url = function (viewInstance) {
-        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters, vp = ViewContainer.VirtualPath;
+        var newUrl = "";
         if (vi.Route) {
-            return vi.Route;
+            newUrl = vi.Route;
         }
         else if (t.UrlReplacePattern !== null) {
             var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array();
@@ -81,9 +82,12 @@ var ViewContainer = (function () {
                     nu.Add(up[i]);
                 }
             }
-            return nu.join("/");
+            newUrl = nu.join("/");
         }
-        return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        if (Is.NullOrEmpty(newUrl)) {
+            newUrl = t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        }
+        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
     };
     ViewContainer.prototype.UrlTitle = function () {
         return this.Name.replace(/\//g, " ");
@@ -92,9 +96,10 @@ var ViewContainer = (function () {
         return this.UrlTitle();
     };
     ViewContainer.prototype.Parameters = function (url) {
-        url = url ? url.replace(this.Name, '') : url;
-        url = url ? url.indexOf('/') === 0 ? url.substring(1) : url : url;
-        return url ? url.split('/') : new Array();
+        var u = url;
+        u = u ? u.replace(this.Name, '') : u;
+        u = u ? u.indexOf('/') === 0 ? u.substring(1) : u : u;
+        return u ? u.split('/') : new Array();
     };
     return ViewContainer;
 }());

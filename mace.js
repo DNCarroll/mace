@@ -27,7 +27,6 @@ var Ajax = (function () {
         var x = t.XHttp;
         x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
         x.open(method, url, true);
-        x.setRequestHeader("content-type", t.ContentType);
         t.setHead();
         try {
             var p = asRaw ? parameters : t.getParameters(parameters);
@@ -77,12 +76,15 @@ var Ajax = (function () {
         }
     };
     Ajax.prototype.setHead = function () {
-        var t = this;
+        var t = this, x = t.XHttp;
+        if (t.ContentType) {
+            x.setRequestHeader("content-type", t.ContentType);
+        }
         if (t.Header) {
             var h = t.Header();
             if (h) {
                 for (var p in h) {
-                    t.XHttp.setRequestHeader(p, h[p]);
+                    x.setRequestHeader(p, h[p]);
                 }
             }
         }
@@ -90,7 +92,7 @@ var Ajax = (function () {
             var gh = Ajax.GlobalHeader();
             if (gh) {
                 for (var p in gh) {
-                    t.XHttp.setRequestHeader(p, gh[p]);
+                    x.setRequestHeader(p, gh[p]);
                 }
             }
         }
@@ -372,17 +374,17 @@ var Binder = (function () {
         }
     };
     Binder.prototype.RouteBinding = function (data) {
-        var t = this, d = data;
+        var t = this, d = data, da = t.DataObjects;
         if (Is.Array(d)) {
             d.forEach(function (d) { return t.Add(t.NewObject(d)); });
         }
         else if (d) {
-            var newobject = t.NewObject(d);
-            this.DataObjects.Data.Add(newobject);
-            t.Bind(newobject);
+            var no = t.NewObject(d);
+            da.Data.Add(no);
+            t.Bind(no);
         }
-        this.SetUpMore(d);
-        this.DataObjects.SaveCache();
+        t.SetUpMore(d);
+        da.SaveCache();
         t.Dispatch(EventType.Completed);
     };
     Binder.prototype.SetUpMore = function (d) {
@@ -482,7 +484,7 @@ var Binder = (function () {
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
                 t.MoreThreshold = parseInt(more.getAttribute(dmt));
-                t.MoreElement.onclick = function () {
+                more.onclick = function () {
                     t.More();
                 };
             }
@@ -503,15 +505,15 @@ var Binder = (function () {
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
-        var t = this, x = a.Sender.XHttp, td = a.Sender.GetRequestData(), rd = Is.Array(td) ? td : [td];
+        var t = this, x = a.Sender.XHttp, da = t.DataObjects, td = a.Sender.GetRequestData(), rd = Is.Array(td) ? td : [td];
         if (!t.isRedirecting(x)) {
             if (x.status === 200) {
                 for (var i = 0; i < rd.length; i++) {
-                    var o = t.DataObjects.First(function (d) { return t.isPKMatch(d, rd[i]); });
+                    var o = da.First(function (d) { return t.isPKMatch(d, rd[i]); });
                     if (o) {
                         t.SetServerObjectValue(o, rd[i]);
                         o.ObjectState = ObjectState.Clean;
-                        t.DataObjects && t.DataObjects.length > 0 ? t.DataObjects.SaveCache() : null;
+                        da && da.length > 0 ? da.SaveCache() : null;
                     }
                     else {
                         t.Add(t.NewObject(rd[i]));
@@ -842,19 +844,19 @@ var DataObjectCacheArray = (function () {
         if (cachingKey === void 0) { cachingKey = null; }
         if (storageState === void 0) { storageState = null; }
         if (newT === void 0) { newT = null; }
-        var _this = this;
         this.Data = new Array();
-        this._cachingKey = cachingKey;
-        this._storageState = storageState;
-        this._newT = newT;
-        if (this._cachingKey && this._storageState && this._newT) {
+        var t = this;
+        t._cachingKey = cachingKey;
+        t._storageState = storageState;
+        t._newT = newT;
+        if (t._cachingKey && t._storageState && t._newT) {
             var rehydrated;
-            switch (this._storageState) {
+            switch (t._storageState) {
                 case StorageType.local:
-                    rehydrated = localStorage.getItem(this._cachingKey);
+                    rehydrated = localStorage.getItem(t._cachingKey);
                     break;
                 case StorageType.session:
-                    rehydrated = sessionStorage.getItem(this._cachingKey);
+                    rehydrated = sessionStorage.getItem(t._cachingKey);
                     break;
                 default:
                     break;
@@ -864,11 +866,11 @@ var DataObjectCacheArray = (function () {
                 if (Is.Array(objs)) {
                     var arr = objs;
                     arr.forEach(function (o) {
-                        _this.Add(_this._newT(o));
+                        t.Add(t._newT(o));
                     });
                 }
                 else {
-                    this.Add(this._newT(objs));
+                    t.Add(t._newT(objs));
                 }
             }
         }
@@ -886,13 +888,14 @@ var DataObjectCacheArray = (function () {
         return this.Data.indexOf(obj, fromIndex);
     };
     DataObjectCacheArray.prototype.SaveCache = function () {
-        if (this._cachingKey && this._storageState) {
-            switch (this._storageState) {
+        var t = this, ck = t._cachingKey, ss = t._storageState;
+        if (ck && ss) {
+            switch (ss) {
                 case StorageType.local:
-                    localStorage.setItem(this._cachingKey, JSON.stringify(this.Data.Select(function (a) { return a.ServerObject; })));
+                    localStorage.setItem(ck, JSON.stringify(t.Data.Select(function (a) { return a.ServerObject; })));
                     break;
                 case StorageType.session:
-                    sessionStorage.setItem(this._cachingKey, JSON.stringify(this.Data.Select(function (a) { return a.ServerObject; })));
+                    sessionStorage.setItem(ck, JSON.stringify(t.Data.Select(function (a) { return a.ServerObject; })));
                     break;
                 default:
                     break;
@@ -935,10 +938,11 @@ var View = (function () {
         this.eHandlrs = new Array();
         this.binders = new Array();
         this.preload = null;
-        this.url = viewPath;
-        this._containerID = containerId;
-        this.CacheStrategy = cacheStrategy;
-        this.Cache(this.CacheStrategy);
+        var t = this;
+        t.url = viewPath;
+        t._containerID = containerId;
+        t.CacheStrategy = cacheStrategy;
+        t.Cache(t.CacheStrategy);
     }
     View.prototype.Prefix = function () {
         return "/Views/";
@@ -1194,9 +1198,10 @@ var ViewContainer = (function () {
         }
     };
     ViewContainer.prototype.Url = function (viewInstance) {
-        var t = this, vi = viewInstance, rp = viewInstance.Parameters;
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters, vp = ViewContainer.VirtualPath;
+        var newUrl = "";
         if (vi.Route) {
-            return vi.Route;
+            newUrl = vi.Route;
         }
         else if (t.UrlReplacePattern !== null) {
             var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array();
@@ -1218,9 +1223,12 @@ var ViewContainer = (function () {
                     nu.Add(up[i]);
                 }
             }
-            return nu.join("/");
+            newUrl = nu.join("/");
         }
-        return t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        if (Is.NullOrEmpty(newUrl)) {
+            newUrl = t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+        }
+        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
     };
     ViewContainer.prototype.UrlTitle = function () {
         return this.Name.replace(/\//g, " ");
@@ -1229,9 +1237,10 @@ var ViewContainer = (function () {
         return this.UrlTitle();
     };
     ViewContainer.prototype.Parameters = function (url) {
-        url = url ? url.replace(this.Name, '') : url;
-        url = url ? url.indexOf('/') === 0 ? url.substring(1) : url : url;
-        return url ? url.split('/') : new Array();
+        var u = url;
+        u = u ? u.replace(this.Name, '') : u;
+        u = u ? u.indexOf('/') === 0 ? u.substring(1) : u : u;
+        return u ? u.split('/') : new Array();
     };
     return ViewContainer;
 }());
@@ -1380,15 +1389,15 @@ var HistoryManager = new HistoryContainer.History();
 var Initializer;
 (function (Initializer) {
     function Execute(e) {
-        var w = window;
+        var w = window, WL = Initializer.WindowLoaded;
         if (document.readyState === "complete") {
             windowLoaded();
-            Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+            WL ? WL(e) : null;
         }
         else {
             w.onload = function () {
                 windowLoaded();
-                Initializer.WindowLoaded ? Initializer.WindowLoaded(e) : null;
+                WL ? WL(e) : null;
             };
         }
     }
@@ -1485,6 +1494,13 @@ var Navigate;
         vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
         if (vc) {
             var p = vc.Parameters(url), vi = new ViewInstance(p, vc, url);
+            p = vi.Parameters;
+            if (p && p.length && !Is.NullOrEmpty(ViewContainer.VirtualPath) && p[0] == ViewContainer.VirtualPath) {
+                p.splice(0, 1);
+            }
+            while (p.length && p.length > 0 && Is.NullOrEmpty(p[0])) {
+                p.splice(0, 1);
+            }
             vc.Show(vi);
             HistoryManager.Add(vi);
         }
@@ -1610,7 +1626,7 @@ HTMLElement.prototype.Bind = function (obj) {
             binder.Refresh(obj);
         }
         else if (obj) {
-            binder.Add(obj);
+            binder.Add(obj instanceof DataObject ? obj : binder.NewObject(obj));
         }
     }
 };

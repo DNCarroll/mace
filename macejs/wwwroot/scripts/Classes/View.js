@@ -15,10 +15,11 @@ var View = (function () {
         this.eHandlrs = new Array();
         this.binders = new Array();
         this.preload = null;
-        this.url = viewPath;
-        this._containerID = containerId;
-        this.CacheStrategy = cacheStrategy;
-        this.Cache(this.CacheStrategy);
+        var t = this;
+        t.url = viewPath;
+        t._containerID = containerId;
+        t.CacheStrategy = cacheStrategy;
+        t.Cache(t.CacheStrategy);
     }
     View.prototype.Prefix = function () {
         return "/Views/";

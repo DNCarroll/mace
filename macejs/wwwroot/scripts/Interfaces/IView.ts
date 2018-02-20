@@ -17,4 +17,5 @@ interface IBinder extends IEventDispatcher<IBinder> {
     SaveDirty();
     RunWhenObjectsChange: () => void;
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void);
+    NewObject(obj: any): IObjectState;
 }
