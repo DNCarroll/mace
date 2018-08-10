@@ -314,7 +314,7 @@ class Binder implements IBinder {
             if (this.DataObjects.length > 0 && this.initialLoad) {
                 t.SetUpMore(t.DataObjects);
                 t.DataObjects.forEach(obj => {
-                    t.Add(obj, true);
+                    t.add(obj, true);
                 });
                 t.Dispatch(EventType.Completed);
             }
@@ -365,7 +365,7 @@ class Binder implements IBinder {
         var t = this,
             d = data, da = t.DataObjects;
         if (Is.Array(d)) {
-            (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
+            (<Array<any>>d).forEach(d => t.add(t.NewObject(d)));
         }
         else if (d) {
             var no = t.NewObject(d);
@@ -434,7 +434,13 @@ class Binder implements IBinder {
             a.Post(api, o);
         }
     }
-    Add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false) {
+    InsertBefore(obj: IObjectState, beforeIndex: number) {
+        this.add(obj, false, beforeIndex);
+    }
+    Add(obj: IObjectState) {
+        this.add(obj);
+    }
+    add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false, beforeIndex: number = -1) {
         var t = this;
         t.prepTemplates();
         if (t.DataRowTemplates.length > 0) {
@@ -444,6 +450,9 @@ class Binder implements IBinder {
                     drf = t.DataRowFooter,
                     pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
                 be.Add(ne);
+                if (beforeIndex > -1 && beforeIndex < pe.childNodes.length) {
+                    drf = <HTMLElement>pe.children[beforeIndex];
+                }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
                 if (!shouldNotAddItsAlreadyCached) {
                     t.DataObjects.Add(obj);
@@ -517,7 +526,7 @@ class Binder implements IBinder {
                         da && da.length > 0 ? da.SaveCache() : null;
                     }
                     else {
-                        t.Add(t.NewObject(rd[i]));
+                        t.add(t.NewObject(rd[i]));
                     }
                 }
             }
@@ -586,7 +595,7 @@ class Binder implements IBinder {
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var eb = ["onclick", "onchange"];
+        var eb = ["onclick", "onchange", "onload"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(b => {
             if (!eb.First(v => v === b.Attribute) &&
@@ -594,13 +603,15 @@ class Binder implements IBinder {
                 let a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
-                    let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute;
-                    if (ea) {
+                    let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" :
+                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" :
+                            b.Attribute;
+                    if (ea && ["value", "checked"].indexOf(ea) > -1) {
                         let fun = (evt) => {
                             d.OnElementChanged.bind(d)(ele[ea], b.Property);
                         };
                         ele.addEventListener("change", fun);
-                    }
+                    }      
                 }
             }
         });
@@ -635,11 +646,11 @@ class Binder implements IBinder {
         }
     }
     private setObjPropListener(p: string, a: string, e: HTMLElement, d: IObjectState) {
-        var t = this,
+        let t = this,
             fun = (atr: string, v: any) => {
-                if (Has.Properties(e, atr)) {
-                    if (e.tagName === "INPUT" && e["type"] === "radio") {
-                        var r = e.parentElement.Get(e2 => e2["name"] === e["name"] && e2["type"] === "radio");
+                if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
+                    if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
+                        var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
                         r.forEach(r => r["checked"] = false);
                         var f = r.First(r => r["value"] === v.toString());
                         f ? f["checked"] = true : null;
@@ -656,7 +667,7 @@ class Binder implements IBinder {
                     var s = t.getStyle(atr);
                     if (s) {
                         e.style[s] = v
-                    } else {
+                    } else if (atr === "for") {
                         e.setAttribute("for", v);
                     }
                 }
@@ -1316,6 +1327,7 @@ interface IView extends IEventDispatcher<IView> {
 }
 interface IBinder extends IEventDispatcher<IBinder> {
     Add(obj: IObjectState);
+    InsertBefore(obj: IObjectState, index: number);
     Insert(obj);
     Execute: (viewInstance: ViewInstance) => void;
     Refresh: (viewInstance: ViewInstance) => void;
@@ -1396,7 +1408,7 @@ module HistoryContainer {
             history.pushState(null, title, url);
         }
         FormatUrl(url: string) {
-            url = url.replace(/[^A-z0-9_/]/g, "");
+            url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
             return url;
         }
         private eHandlrs = new Array<Listener<ViewContainer>>();
@@ -1420,19 +1432,40 @@ module HistoryContainer {
     }
 }
 var HistoryManager = new HistoryContainer.History();
+class WindowLoaded {
+    constructor(loadedEvent: (e, onCompleteCallback: () => void) => any, shouldRunBeforeNavigation: boolean) {
+        this.LoadedEvent = loadedEvent;
+        this.ShouldRunBeforeNavigation = shouldRunBeforeNavigation;
+        Initializer.WindowLoaded = this;
+    }
+    LoadedEvent: (e, onCompleteCallback: () => void) => any;
+    ShouldRunBeforeNavigation: boolean;
+}
 module Initializer {
-    export var WindowLoaded: (e: any) => any;
+    export var WindowLoaded: WindowLoaded;
     export function Execute(e?) {
-        var w = window, WL = WindowLoaded;
         if (document.readyState === "complete") {
-            windowLoaded();
-            WL ? WL(e) : null;
+            loadedWrapper(e);
         }
         else {
-            w.onload = function () {
-                windowLoaded();
-                WL ? WL(e) : null;
+            window.onload = function () {
+                loadedWrapper(e);
             };
+        }
+    }
+    function loadedWrapper(e?) {
+        var WL = WindowLoaded, wL = windowLoaded;
+        if (WL) {
+            if (WL.ShouldRunBeforeNavigation) {
+                WL.LoadedEvent(e, wL);
+            }
+            else {
+                wL();
+                WL.LoadedEvent(e, null);
+            }
+        }
+        else {
+            wL();
         }
     }
     function windowLoaded() {
@@ -1477,6 +1510,9 @@ module Is {
     export function Number(value): boolean {
         return !isNaN(parseFloat(value)) && isFinite(value);
     }
+    export function String(value): boolean {
+        return typeof value === "string";
+    }
 }
 module Has {
     export function Properties(inObject: any, ...properties): boolean {
@@ -1506,6 +1542,9 @@ module Navigate {
         HistoryManager.Add(vi);
     }
     export function Url(url: string) {
+        var vp = ViewContainer.VirtualPath;
+        url = vp && url.length > 0 ? url.replace(vp, '') : url;
+        url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
         var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
         vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
         if (vc) {
@@ -1522,6 +1561,7 @@ module Navigate {
             HistoryManager.Add(vi);
         }
     }
+
 
 }
 module ProgressManager {
@@ -1661,7 +1701,14 @@ interface HTMLElement extends Element {
     RemoveDataRowElements();
     Bind(obj: any);
     Bind(obj: any, refresh: boolean);
+    InsertBefore(obj: IObjectState, index: number);
 }
+HTMLElement.prototype.InsertBefore = function (obj: IObjectState, index: number) {
+    var binder = <IBinder>this.Binder;
+    if (binder) {
+        binder.InsertBefore(obj, index);
+    }
+};
 HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
     if (refresh) {
         this.RemoveDataRowElements();

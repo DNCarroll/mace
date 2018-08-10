@@ -17,6 +17,9 @@ var Navigate;
     }
     Navigate.Spa = Spa;
     function Url(url) {
+        var vp = ViewContainer.VirtualPath;
+        url = vp && url.length > 0 ? url.replace(vp, '') : url;
+        url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
         var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.Where(function (vc) { return !vc.IsDefault; }).First(function (d) { return d.IsUrlPatternMatch(url); });
         vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
         if (vc) {

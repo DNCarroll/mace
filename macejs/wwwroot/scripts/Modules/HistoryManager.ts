@@ -52,7 +52,7 @@
             history.pushState(null, title, url);
         }
         FormatUrl(url: string) {
-            url = url.replace(/[^A-z0-9_/]/g, "");
+            url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
             return url;
         }
         private eHandlrs = new Array<Listener<ViewContainer>>();

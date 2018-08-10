@@ -1,16 +1,37 @@
-﻿module Initializer {
-    export var WindowLoaded: (e: any) => any;
+﻿class WindowLoaded {
+    constructor(loadedEvent: (e, onCompleteCallback: () => void) => any, shouldRunBeforeNavigation: boolean) {
+        this.LoadedEvent = loadedEvent;
+        this.ShouldRunBeforeNavigation = shouldRunBeforeNavigation;
+        Initializer.WindowLoaded = this;
+    }
+    LoadedEvent: (e, onCompleteCallback: () => void) => any;
+    ShouldRunBeforeNavigation: boolean;
+}
+module Initializer {
+    export var WindowLoaded: WindowLoaded;
     export function Execute(e?) {
-        var w = window, WL = WindowLoaded;
         if (document.readyState === "complete") {
-            windowLoaded();
-            WL ? WL(e) : null;
+            loadedWrapper(e);
         }
         else {
-            w.onload = function () {
-                windowLoaded();
-                WL ? WL(e) : null;
+            window.onload = function () {
+                loadedWrapper(e);
             };
+        }
+    }
+    function loadedWrapper(e?) {
+        var WL = WindowLoaded, wL = windowLoaded;
+        if (WL) {
+            if (WL.ShouldRunBeforeNavigation) {
+                WL.LoadedEvent(e, wL);
+            }
+            else {
+                wL();
+                WL.LoadedEvent(e, null);
+            }
+        }
+        else {
+            wL();
         }
     }
     function windowLoaded() {

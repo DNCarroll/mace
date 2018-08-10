@@ -14,6 +14,10 @@ var Is;
         return !isNaN(parseFloat(value)) && isFinite(value);
     }
     Is.Number = Number;
+    function String(value) {
+        return typeof value === "string";
+    }
+    Is.String = String;
 })(Is || (Is = {}));
 var Has;
 (function (Has) {

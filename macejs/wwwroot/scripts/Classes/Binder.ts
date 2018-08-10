@@ -86,7 +86,7 @@
             if (this.DataObjects.length > 0 && this.initialLoad) {
                 t.SetUpMore(t.DataObjects);
                 t.DataObjects.forEach(obj => {
-                    t.Add(obj, true);
+                    t.add(obj, true);
                 });
                 t.Dispatch(EventType.Completed);
             }
@@ -137,7 +137,7 @@
         var t = this,
             d = data, da = t.DataObjects;
         if (Is.Array(d)) {
-            (<Array<any>>d).forEach(d => t.Add(t.NewObject(d)));
+            (<Array<any>>d).forEach(d => t.add(t.NewObject(d)));
         }
         else if (d) {
             var no = t.NewObject(d);
@@ -206,7 +206,13 @@
             a.Post(api, o);
         }
     }
-    Add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false) {
+    InsertBefore(obj: IObjectState, beforeIndex: number) {
+        this.add(obj, false, beforeIndex);
+    }
+    Add(obj: IObjectState) {
+        this.add(obj);
+    }
+    add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false, beforeIndex: number = -1) {
         var t = this;
         t.prepTemplates();
         if (t.DataRowTemplates.length > 0) {
@@ -216,6 +222,9 @@
                     drf = t.DataRowFooter,
                     pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
                 be.Add(ne);
+                if (beforeIndex > -1 && beforeIndex < pe.childNodes.length) {
+                    drf = <HTMLElement>pe.children[beforeIndex];
+                }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
                 if (!shouldNotAddItsAlreadyCached) {
                     t.DataObjects.Add(obj);
@@ -289,7 +298,7 @@
                         da && da.length > 0 ? da.SaveCache() : null;
                     }
                     else {
-                        t.Add(t.NewObject(rd[i]));
+                        t.add(t.NewObject(rd[i]));
                     }
                 }
             }
@@ -358,7 +367,7 @@
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var eb = ["onclick", "onchange"];
+        var eb = ["onclick", "onchange", "onload"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(b => {
             if (!eb.First(v => v === b.Attribute) &&
@@ -366,13 +375,15 @@
                 let a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
-                    let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute;
-                    if (ea) {
+                    let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" :
+                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" :
+                            b.Attribute;
+                    if (ea && ["value", "checked"].indexOf(ea) > -1) {
                         let fun = (evt) => {
                             d.OnElementChanged.bind(d)(ele[ea], b.Property);
                         };
                         ele.addEventListener("change", fun);
-                    }
+                    }      
                 }
             }
         });
@@ -407,11 +418,11 @@
         }
     }
     private setObjPropListener(p: string, a: string, e: HTMLElement, d: IObjectState) {
-        var t = this,
+        let t = this,
             fun = (atr: string, v: any) => {
-                if (Has.Properties(e, atr)) {
-                    if (e.tagName === "INPUT" && e["type"] === "radio") {
-                        var r = e.parentElement.Get(e2 => e2["name"] === e["name"] && e2["type"] === "radio");
+                if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
+                    if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
+                        var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
                         r.forEach(r => r["checked"] = false);
                         var f = r.First(r => r["value"] === v.toString());
                         f ? f["checked"] = true : null;
@@ -428,7 +439,7 @@
                     var s = t.getStyle(atr);
                     if (s) {
                         e.style[s] = v
-                    } else {
+                    } else if (atr === "for") {
                         e.setAttribute("for", v);
                     }
                 }
