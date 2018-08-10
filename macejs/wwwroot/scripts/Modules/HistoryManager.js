@@ -49,7 +49,7 @@ var HistoryContainer;
             history.pushState(null, title, url);
         };
         History.prototype.FormatUrl = function (url) {
-            url = url.replace(/[^A-z0-9_/]/g, "");
+            url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
             return url;
         };
         History.prototype.AddListener = function (eventType, eventHandler) {

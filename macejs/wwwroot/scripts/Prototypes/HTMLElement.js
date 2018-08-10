@@ -1,11 +1,28 @@
-HTMLElement.prototype.Bind = function (obj) {
+HTMLElement.prototype.InsertBefore = function (obj, index) {
+    var binder = this.Binder;
+    if (binder) {
+        binder.InsertBefore(obj, index);
+    }
+};
+HTMLElement.prototype.Bind = function (obj, refresh) {
+    if (refresh === void 0) { refresh = false; }
+    if (refresh) {
+        this.RemoveDataRowElements();
+    }
     var binder = this.Binder;
     if (binder) {
         if (obj instanceof ViewInstance) {
             binder.Refresh(obj);
         }
+        else if (obj instanceof Array) {
+            var arr = obj;
+            for (var i = 0; i < arr.length; i++) {
+                var tempObj = arr[i];
+                binder.Add(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+            }
+        }
         else if (obj) {
-            binder.Add(obj instanceof DataObject ? obj : binder.NewObject(obj));
+            binder.Add(obj instanceof DataObject ? obj : new DataObject(obj));
         }
     }
 };

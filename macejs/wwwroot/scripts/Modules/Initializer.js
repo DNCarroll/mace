@@ -1,19 +1,39 @@
+var WindowLoaded = (function () {
+    function WindowLoaded(loadedEvent, shouldRunBeforeNavigation) {
+        this.LoadedEvent = loadedEvent;
+        this.ShouldRunBeforeNavigation = shouldRunBeforeNavigation;
+        Initializer.WindowLoaded = this;
+    }
+    return WindowLoaded;
+}());
 var Initializer;
 (function (Initializer) {
     function Execute(e) {
-        var w = window, WL = Initializer.WindowLoaded;
         if (document.readyState === "complete") {
-            windowLoaded();
-            WL ? WL(e) : null;
+            loadedWrapper(e);
         }
         else {
-            w.onload = function () {
-                windowLoaded();
-                WL ? WL(e) : null;
+            window.onload = function () {
+                loadedWrapper(e);
             };
         }
     }
     Initializer.Execute = Execute;
+    function loadedWrapper(e) {
+        var WL = Initializer.WindowLoaded, wL = windowLoaded;
+        if (WL) {
+            if (WL.ShouldRunBeforeNavigation) {
+                WL.LoadedEvent(e, wL);
+            }
+            else {
+                wL();
+                WL.LoadedEvent(e, null);
+            }
+        }
+        else {
+            wL();
+        }
+    }
     function windowLoaded() {
         var w = window;
         setProgressElement();

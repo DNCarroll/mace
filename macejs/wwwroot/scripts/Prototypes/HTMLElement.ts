@@ -15,7 +15,14 @@ interface HTMLElement extends Element {
     RemoveDataRowElements();
     Bind(obj: any);
     Bind(obj: any, refresh: boolean);
+    InsertBefore(obj: IObjectState, index: number);
 }
+HTMLElement.prototype.InsertBefore = function (obj: IObjectState, index: number) {
+    var binder = <IBinder>this.Binder;
+    if (binder) {
+        binder.InsertBefore(obj, index);
+    }
+};
 HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
     if (refresh) {
         this.RemoveDataRowElements();

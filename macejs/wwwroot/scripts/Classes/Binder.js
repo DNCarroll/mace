@@ -82,7 +82,7 @@ var Binder = (function () {
             if (this.DataObjects.length > 0 && this.initialLoad) {
                 t.SetUpMore(t.DataObjects);
                 t.DataObjects.forEach(function (obj) {
-                    t.Add(obj, true);
+                    t.add(obj, true);
                 });
                 t.Dispatch(EventType.Completed);
             }
@@ -133,7 +133,7 @@ var Binder = (function () {
     Binder.prototype.RouteBinding = function (data) {
         var t = this, d = data, da = t.DataObjects;
         if (Is.Array(d)) {
-            d.forEach(function (d) { return t.Add(t.NewObject(d)); });
+            d.forEach(function (d) { return t.add(t.NewObject(d)); });
         }
         else if (d) {
             var no = t.NewObject(d);
@@ -199,14 +199,24 @@ var Binder = (function () {
             a.Post(api, o);
         }
     };
-    Binder.prototype.Add = function (obj, shouldNotAddItsAlreadyCached) {
+    Binder.prototype.InsertBefore = function (obj, beforeIndex) {
+        this.add(obj, false, beforeIndex);
+    };
+    Binder.prototype.Add = function (obj) {
+        this.add(obj);
+    };
+    Binder.prototype.add = function (obj, shouldNotAddItsAlreadyCached, beforeIndex) {
         if (shouldNotAddItsAlreadyCached === void 0) { shouldNotAddItsAlreadyCached = false; }
+        if (beforeIndex === void 0) { beforeIndex = -1; }
         var t = this;
         t.prepTemplates();
         if (t.DataRowTemplates.length > 0) {
             t.DataRowTemplates.forEach(function (d) {
                 var ne = d.cloneNode(true), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter, pe = t.Element.tagName === "TABLE" ? t.Element.tBodies[0] : t.Element;
                 be.Add(ne);
+                if (beforeIndex > -1 && beforeIndex < pe.childNodes.length) {
+                    drf = pe.children[beforeIndex];
+                }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
                 if (!shouldNotAddItsAlreadyCached) {
                     t.DataObjects.Add(obj);
@@ -273,7 +283,7 @@ var Binder = (function () {
                         da && da.length > 0 ? da.SaveCache() : null;
                     }
                     else {
-                        t.Add(t.NewObject(rd[i]));
+                        t.add(t.NewObject(rd[i]));
                     }
                 }
             }
@@ -330,13 +340,13 @@ var Binder = (function () {
     Binder.prototype.setListeners = function (ele, d) {
         var ba = ele.GetDataSetAttributes(), t = this;
         if (ele.tagName === "SELECT") {
-            var ds = ba.First(function (f) { return f.Attribute === "datasource"; }), dm = ba.First(function (f) { return f.Attribute === "displaymember"; }), vm = ba.First(function (f) { return f.Attribute === "valuemember"; });
-            if (ds) {
+            var ds = ba.First(function (f) { return f.Attribute === "datasource"; }), dm = ba.First(function (f) { return f.Attribute === "displaymember"; }), vm = ba.First(function (f) { return f.Attribute === "valuemember"; }), select = ele;
+            if (ds && select.options.length == 0) {
                 var fun = new Function("return " + ds.Property), data = fun();
-                ele.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
+                select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var eb = ["onclick", "onchange"];
+        var eb = ["onclick", "onchange", "onload"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(function (b) {
             if (!eb.First(function (v) { return v === b.Attribute; }) &&
@@ -344,8 +354,10 @@ var Binder = (function () {
                 var a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
-                    var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" : b.Attribute;
-                    if (ea_1) {
+                    var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" :
+                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" :
+                            b.Attribute;
+                    if (ea_1 && ["value", "checked"].indexOf(ea_1) > -1) {
                         var fun_1 = function (evt) {
                             d.OnElementChanged.bind(d)(ele[ea_1], b.Property);
                         };
@@ -385,10 +397,11 @@ var Binder = (function () {
         }
     };
     Binder.prototype.setObjPropListener = function (p, a, e, d) {
+        var _this = this;
         var t = this, fun = function (atr, v) {
-            if (Has.Properties(e, atr)) {
-                if (e.tagName === "INPUT" && e["type"] === "radio") {
-                    var r = e.parentElement.Get(function (e2) { return e2["name"] === e["name"] && e2["type"] === "radio"; });
+            if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
+                if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
+                    var r = _this.Element.Get(function (e2) { return e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked; });
                     r.forEach(function (r) { return r["checked"] = false; });
                     var f = r.First(function (r) { return r["value"] === v.toString(); });
                     f ? f["checked"] = true : null;
@@ -406,7 +419,7 @@ var Binder = (function () {
                 if (s) {
                     e.style[s] = v;
                 }
-                else {
+                else if (atr === "for") {
                     e.setAttribute("for", v);
                 }
             }

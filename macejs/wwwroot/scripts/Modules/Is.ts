@@ -10,6 +10,9 @@
     export function Number(value): boolean {
         return !isNaN(parseFloat(value)) && isFinite(value);
     }
+    export function String(value): boolean {
+        return typeof value === "string";
+    }
 }
 module Has {
     export function Properties(inObject: any, ...properties): boolean {

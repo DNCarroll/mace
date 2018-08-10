@@ -7,6 +7,7 @@
 }
 interface IBinder extends IEventDispatcher<IBinder> {
     Add(obj: IObjectState);
+    InsertBefore(obj: IObjectState, index: number);
     Insert(obj);
     Execute: (viewInstance: ViewInstance) => void;
     Refresh: (viewInstance: ViewInstance) => void;
