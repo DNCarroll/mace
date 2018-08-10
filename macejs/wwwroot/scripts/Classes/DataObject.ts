@@ -20,7 +20,7 @@
             g = function () { return o[p]; },
             s = function (v) { t.SetServerProperty(p, v); },
             odp = Object.defineProperty;
-        if (!Has.Properties(t, p)) {
+        if (t[p] === undefined) {
             odp ? odp(t, p, { 'get': g, 'set': s }) : null;
         }
     }
