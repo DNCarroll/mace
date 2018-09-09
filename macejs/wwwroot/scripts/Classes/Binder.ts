@@ -40,6 +40,9 @@
     MoreElement: HTMLElement;
     StaticProperties: Array<string>;
     NewObject(obj: any): IObjectState {
+        if (DataObject.IsDataObject(obj)) {
+            return <IObjectState>obj;
+        }
         return new DataObject(obj, null, this.StaticProperties);
     }
     Dispose() {
@@ -198,19 +201,38 @@
             t.AutomaticUpdate ? af() : f();
         }
     }
-    Insert(obj) {
+    InsertBefore(obj: any, beforeIndex: number) {
+        this.add(this.NewObject(obj), false, beforeIndex);
+    }
+    Append(obj: any) {
+        this.add(this.NewObject(obj));
+    }
+    PostAndAppend(obj: any) {
         var t = this, o = obj, api = t.Api();
+        if (DataObject.IsDataObject(obj)) {
+            o = obj.ServerObject;
+        }
         if (api) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             a.Post(api, o);
         }
     }
-    InsertBefore(obj: IObjectState, beforeIndex: number) {
-        this.add(obj, false, beforeIndex);
-    }
-    Add(obj: IObjectState) {
-        this.add(obj);
+    PostAndInsertBefore(obj: any, childIndex: number) {
+        let t = this, o = obj, api = t.Api(), i = childIndex;
+        if (DataObject.IsDataObject(obj)) {
+            o = obj.ServerObject;
+        }
+        if (api) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, (arg) => {
+                var r = arg.Sender.GetRequestData();
+                if (r) {
+                    t.add(this.NewObject(r), false, childIndex);
+                }
+            });
+            a.Post(api, o);
+        }
     }
     add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false, beforeIndex: number = -1) {
         var t = this;

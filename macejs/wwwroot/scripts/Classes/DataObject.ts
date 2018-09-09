@@ -20,7 +20,7 @@
             g = function () { return o[p]; },
             s = function (v) { t.SetServerProperty(p, v); },
             odp = Object.defineProperty;
-        if (!t[p]) {
+        if (t[p] === undefined) {
             odp ? odp(t, p, { 'get': g, 'set': s }) : null;
         }
     }
@@ -52,6 +52,9 @@
         var t = this;
         t.objectState = value;
         t.OnObjectStateChanged();
+    }
+    public static IsDataObject(object: any): object is DataObject {
+        return 'ObjectState' in object;
     }
     AddPropertyListener(p: string, a: string, h: (attribute: string, value: any) => void) {
         this.eLstenrs.Add(new PropertyListener(p, a, h));
