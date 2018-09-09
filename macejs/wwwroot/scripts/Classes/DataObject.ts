@@ -53,6 +53,9 @@
         t.objectState = value;
         t.OnObjectStateChanged();
     }
+    public static IsDataObject(object: any): object is DataObject {
+        return 'ObjectState' in object;
+    }
     AddPropertyListener(p: string, a: string, h: (attribute: string, value: any) => void) {
         this.eLstenrs.Add(new PropertyListener(p, a, h));
     }

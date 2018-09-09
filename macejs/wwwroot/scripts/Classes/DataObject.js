@@ -24,7 +24,7 @@ var DataObject = (function () {
     }
     DataObject.prototype.setProps = function (p, o) {
         var t = this, g = function () { return o[p]; }, s = function (v) { t.SetServerProperty(p, v); }, odp = Object.defineProperty;
-        if (!t[p]) {
+        if (t[p] === undefined) {
             odp ? odp(t, p, { 'get': g, 'set': s }) : null;
         }
     };
@@ -55,6 +55,9 @@ var DataObject = (function () {
         enumerable: true,
         configurable: true
     });
+    DataObject.IsDataObject = function (object) {
+        return 'ObjectState' in object;
+    };
     DataObject.prototype.AddPropertyListener = function (p, a, h) {
         this.eLstenrs.Add(new PropertyListener(p, a, h));
     };

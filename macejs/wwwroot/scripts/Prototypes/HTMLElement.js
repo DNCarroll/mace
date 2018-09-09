@@ -1,8 +1,32 @@
-HTMLElement.prototype.InsertBefore = function (obj, index) {
-    var binder = this.Binder;
-    if (binder) {
-        binder.InsertBefore(obj, index);
+HTMLElement.prototype.PostAndAppend = function (obj) {
+    var p = this, b = p.Binder;
+    if (Is.NotUndefined(b)) {
+        b.PostAndAppend(obj);
     }
+};
+HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj, index) {
+    var p = this, b = p.Binder;
+    var fc = p.First(childMatch);
+    if (fc) {
+        var i = p.IndexOf(p);
+        p.PostAndInsertBefore(obj, i);
+    }
+};
+HTMLElement.prototype.PostAndInsertBefore = function (obj, index) {
+    var p = this, b = p.Binder;
+    if (Is.NotUndefined(b)) {
+        b.PostAndInsertBefore(obj, index);
+    }
+};
+HTMLElement.prototype.IndexOf = function (child) {
+    var p = this, c = p.children;
+    var i = c.length - 1;
+    for (; i >= 0; i--) {
+        if (child == c[i]) {
+            return i;
+        }
+    }
+    return undefined;
 };
 HTMLElement.prototype.Bind = function (obj, refresh) {
     if (refresh === void 0) { refresh = false; }
@@ -18,11 +42,11 @@ HTMLElement.prototype.Bind = function (obj, refresh) {
             var arr = obj;
             for (var i = 0; i < arr.length; i++) {
                 var tempObj = arr[i];
-                binder.Add(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+                binder.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
             }
         }
         else if (obj) {
-            binder.Add(obj instanceof DataObject ? obj : new DataObject(obj));
+            binder.Append(obj instanceof DataObject ? obj : new DataObject(obj));
         }
     }
 };

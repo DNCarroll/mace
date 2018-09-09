@@ -6,9 +6,13 @@
     Cache: (strategy: CacheStrategy) => void;
 }
 interface IBinder extends IEventDispatcher<IBinder> {
-    Add(obj: IObjectState);
-    InsertBefore(obj: IObjectState, index: number);
-    Insert(obj);
+
+
+    Append(obj: any);
+    PostAndAppend(obj: any);
+    InsertBefore(obj: any, index: number);   
+    PostAndInsertBefore(obj: any, childIndex: number);
+
     Execute: (viewInstance: ViewInstance) => void;
     Refresh: (viewInstance: ViewInstance) => void;
     Dispose: () => void;
@@ -18,5 +22,6 @@ interface IBinder extends IEventDispatcher<IBinder> {
     SaveDirty();
     RunWhenObjectsChange: () => void;
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void);
-    NewObject(obj: any): IObjectState;
+    NewObject(obj: any): IObjectState;     
+    
 }

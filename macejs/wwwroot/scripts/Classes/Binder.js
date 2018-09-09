@@ -39,6 +39,9 @@ var Binder = (function () {
         return t._api;
     };
     Binder.prototype.NewObject = function (obj) {
+        if (DataObject.IsDataObject(obj)) {
+            return obj;
+        }
         return new DataObject(obj, null, this.StaticProperties);
     };
     Binder.prototype.Dispose = function () {
@@ -191,19 +194,39 @@ var Binder = (function () {
             t.AutomaticUpdate ? af() : f();
         }
     };
-    Binder.prototype.Insert = function (obj) {
+    Binder.prototype.InsertBefore = function (obj, beforeIndex) {
+        this.add(this.NewObject(obj), false, beforeIndex);
+    };
+    Binder.prototype.Append = function (obj) {
+        this.add(this.NewObject(obj));
+    };
+    Binder.prototype.PostAndAppend = function (obj) {
         var t = this, o = obj, api = t.Api();
+        if (DataObject.IsDataObject(obj)) {
+            o = obj.ServerObject;
+        }
         if (api) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             a.Post(api, o);
         }
     };
-    Binder.prototype.InsertBefore = function (obj, beforeIndex) {
-        this.add(obj, false, beforeIndex);
-    };
-    Binder.prototype.Add = function (obj) {
-        this.add(obj);
+    Binder.prototype.PostAndInsertBefore = function (obj, childIndex) {
+        var _this = this;
+        var t = this, o = obj, api = t.Api(), i = childIndex;
+        if (DataObject.IsDataObject(obj)) {
+            o = obj.ServerObject;
+        }
+        if (api) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, function (arg) {
+                var r = arg.Sender.GetRequestData();
+                if (r) {
+                    t.add(_this.NewObject(r), false, childIndex);
+                }
+            });
+            a.Post(api, o);
+        }
     };
     Binder.prototype.add = function (obj, shouldNotAddItsAlreadyCached, beforeIndex) {
         if (shouldNotAddItsAlreadyCached === void 0) { shouldNotAddItsAlreadyCached = false; }

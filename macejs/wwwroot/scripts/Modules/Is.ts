@@ -13,6 +13,9 @@
     export function String(value): boolean {
         return typeof value === "string";
     }
+    export function NotUndefined(value): boolean {
+        return value !== undefined;
+    }
 }
 module Has {
     export function Properties(inObject: any, ...properties): boolean {

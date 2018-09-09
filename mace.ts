@@ -268,6 +268,9 @@ class Binder implements IBinder {
     MoreElement: HTMLElement;
     StaticProperties: Array<string>;
     NewObject(obj: any): IObjectState {
+        if (DataObject.IsDataObject(obj)) {
+            return <IObjectState>obj;
+        }
         return new DataObject(obj, null, this.StaticProperties);
     }
     Dispose() {
@@ -426,19 +429,38 @@ class Binder implements IBinder {
             t.AutomaticUpdate ? af() : f();
         }
     }
-    Insert(obj) {
+    InsertBefore(obj: any, beforeIndex: number) {
+        this.add(this.NewObject(obj), false, beforeIndex);
+    }
+    Append(obj: any) {
+        this.add(this.NewObject(obj));
+    }
+    PostAndAppend(obj: any) {
         var t = this, o = obj, api = t.Api();
+        if (DataObject.IsDataObject(obj)) {
+            o = obj.ServerObject;
+        }
         if (api) {
             var a = new Ajax(t.WithProgress, t.DisableElement);
             a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             a.Post(api, o);
         }
     }
-    InsertBefore(obj: IObjectState, beforeIndex: number) {
-        this.add(obj, false, beforeIndex);
-    }
-    Add(obj: IObjectState) {
-        this.add(obj);
+    PostAndInsertBefore(obj: any, childIndex: number) {
+        let t = this, o = obj, api = t.Api(), i = childIndex;
+        if (DataObject.IsDataObject(obj)) {
+            o = obj.ServerObject;
+        }
+        if (api) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, (arg) => {
+                var r = arg.Sender.GetRequestData();
+                if (r) {
+                    t.add(this.NewObject(r), false, childIndex);
+                }
+            });
+            a.Post(api, o);
+        }
     }
     add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false, beforeIndex: number = -1) {
         var t = this;
@@ -754,7 +776,7 @@ class DataObject implements IObjectState {
             g = function () { return o[p]; },
             s = function (v) { t.SetServerProperty(p, v); },
             odp = Object.defineProperty;
-        if (!t[p]) {
+        if (t[p] === undefined) {
             odp ? odp(t, p, { 'get': g, 'set': s }) : null;
         }
     }
@@ -786,6 +808,9 @@ class DataObject implements IObjectState {
         var t = this;
         t.objectState = value;
         t.OnObjectStateChanged();
+    }
+    public static IsDataObject(object: any): object is DataObject {
+        return 'ObjectState' in object;
     }
     AddPropertyListener(p: string, a: string, h: (attribute: string, value: any) => void) {
         this.eLstenrs.Add(new PropertyListener(p, a, h));
@@ -1326,9 +1351,13 @@ interface IView extends IEventDispatcher<IView> {
     Cache: (strategy: CacheStrategy) => void;
 }
 interface IBinder extends IEventDispatcher<IBinder> {
-    Add(obj: IObjectState);
-    InsertBefore(obj: IObjectState, index: number);
-    Insert(obj);
+
+
+    Append(obj: any);
+    PostAndAppend(obj: any);
+    InsertBefore(obj: any, index: number);   
+    PostAndInsertBefore(obj: any, childIndex: number);
+
     Execute: (viewInstance: ViewInstance) => void;
     Refresh: (viewInstance: ViewInstance) => void;
     Dispose: () => void;
@@ -1338,7 +1367,8 @@ interface IBinder extends IEventDispatcher<IBinder> {
     SaveDirty();
     RunWhenObjectsChange: () => void;
     Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void);
-    NewObject(obj: any): IObjectState;
+    NewObject(obj: any): IObjectState;     
+    
 }
 
 interface IViewContainer {
@@ -1512,6 +1542,9 @@ module Is {
     }
     export function String(value): boolean {
         return typeof value === "string";
+    }
+    export function NotUndefined(value): boolean {
+        return value !== undefined;
     }
 }
 module Has {
@@ -1701,14 +1734,68 @@ interface HTMLElement extends Element {
     RemoveDataRowElements();
     Bind(obj: any);
     Bind(obj: any, refresh: boolean);
-    InsertBefore(obj: IObjectState, index: number);
+    IndexOf(ele: HTMLElement);
+    PostAndInsertBefore(obj: any, index: number);
+    PostAndInsertBeforeChild(childMatch: (child) => boolean, obj: any, index: number);
+    PostAndAppend(obj: any);
+    Append(obj: any);
+    InsertBefore(obj: any, index: number);
+    InsertBeforeChild(childMatch: (child) => boolean, obj: any, index: number);
 }
-HTMLElement.prototype.InsertBefore = function (obj: IObjectState, index: number) {
-    var binder = <IBinder>this.Binder;
-    if (binder) {
-        binder.InsertBefore(obj, index);
+HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any, index: number) {
+    var p = <HTMLElement>this, b = p.Binder;
+    var fc = p.First(childMatch);
+    if (fc) {
+        var i = p.IndexOf(p);
+        if (Is.NotUndefined(i)) {
+            p.InsertBefore(obj, i);
+        }
     }
-};
+}
+HTMLElement.prototype.InsertBefore = function (obj: any, index: number) {
+    var p = <HTMLElement>this, b = p.Binder;
+    if (Is.NotUndefined(b)) {
+        b.InsertBefore(obj, index);
+    }
+}
+HTMLElement.prototype.Append = function (obj: any) {
+    var p = <HTMLElement>this, b = p.Binder;
+    if (Is.NotUndefined(b)) {
+        b.Append(obj);
+    }
+}
+HTMLElement.prototype.PostAndAppend = function (obj: any) {
+    var p = <HTMLElement>this, b = p.Binder;
+    if (Is.NotUndefined(b)) {
+        b.PostAndAppend(obj);
+    }
+}
+HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any, index: number) {
+    var p = <HTMLElement>this, b = p.Binder;
+    var fc = p.First(childMatch);
+    if (fc) {
+        var i = p.IndexOf(p);
+        if (Is.NotUndefined(i)) {
+            p.PostAndInsertBefore(obj, i);
+        }
+    }
+}
+HTMLElement.prototype.PostAndInsertBefore = function (obj: any, index: number) {
+    var p = <HTMLElement>this, b = p.Binder;
+    if (Is.NotUndefined(b)) {
+        b.PostAndInsertBefore(obj, index);
+    }
+}
+HTMLElement.prototype.IndexOf = function (child: HTMLElement) {
+    var p = <HTMLElement>this, c = p.children;
+    var i = c.length - 1;
+    for (; i >= 0; i--) {
+        if (child == c[i]) {
+            return i;
+        }
+    }
+    return undefined;
+}
 HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
     if (refresh) {
         this.RemoveDataRowElements();
@@ -1722,11 +1809,11 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
             var arr = <Array<any>>obj;
             for (var i = 0; i < arr.length; i++) {
                 var tempObj = arr[i];
-                binder.Add(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+                binder.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
             }
         }
         else if (obj) {
-            binder.Add(obj instanceof DataObject ? obj : new DataObject(obj));
+            binder.Append(obj instanceof DataObject ? obj : new DataObject(obj));
         }
     }
 };

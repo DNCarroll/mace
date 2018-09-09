@@ -18,6 +18,10 @@ var Is;
         return typeof value === "string";
     }
     Is.String = String;
+    function NotUndefined(value) {
+        return value !== undefined;
+    }
+    Is.NotUndefined = NotUndefined;
 })(Is || (Is = {}));
 var Has;
 (function (Has) {
