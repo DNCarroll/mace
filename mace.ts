@@ -1740,9 +1740,9 @@ interface HTMLElement extends Element {
     PostAndAppend(obj: any);
     Append(obj: any);
     InsertBefore(obj: any, index: number);
-    InsertBeforeChild(childMatch: (child) => boolean, obj: any, index: number);
+    InsertBeforeChild(childMatch: (child) => boolean, obj: any);
 }
-HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any, index: number) {
+HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
     var fc = p.First(childMatch);
     if (fc) {
