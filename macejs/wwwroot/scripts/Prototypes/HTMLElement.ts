@@ -17,7 +17,7 @@ interface HTMLElement extends Element {
     Bind(obj: any, refresh: boolean);
     IndexOf(ele: HTMLElement);
     PostAndInsertBefore(obj: any, index: number);
-    PostAndInsertBeforeChild(childMatch: (child) => boolean, obj: any, index: number);
+    PostAndInsertBeforeChild(childMatch: (child) => boolean, obj: any);
     PostAndAppend(obj: any);
     Append(obj: any);
     InsertBefore(obj: any, index: number);
@@ -51,7 +51,7 @@ HTMLElement.prototype.PostAndAppend = function (obj: any) {
         b.PostAndAppend(obj);
     }
 }
-HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any, index: number) {
+HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
     var fc = p.First(childMatch);
     if (fc) {
