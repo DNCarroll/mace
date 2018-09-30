@@ -1,20 +1,51 @@
-HTMLElement.prototype.PostAndAppend = function (obj) {
-    var p = this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
-        b.PostAndAppend(obj);
-    }
-};
-HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj, index) {
+HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
     var p = this, b = p.Binder;
     var fc = p.First(childMatch);
     if (fc) {
-        var i = p.IndexOf(p);
-        p.PostAndInsertBefore(obj, i);
+        p = fc.parentElement;
+        var i = p.IndexOf(fc);
+        if (Is.Alive(i)) {
+            p = this;
+            p.InsertBefore(obj, i);
+        }
     }
+};
+HTMLElement.prototype.InsertBefore = function (obj, index) {
+    var p = this, b = p.Binder;
+    if (Is.Alive(b)) {
+        b.InsertBefore(obj, index);
+    }
+};
+HTMLElement.prototype.Append = function (obj) {
+    var p = this, b = p.Binder;
+    if (Is.Alive(b)) {
+        b.Append(obj);
+    }
+};
+HTMLElement.prototype.PostAndAppend = function (obj) {
+    var p = this, b = p.Binder;
+    if (Is.Alive(b)) {
+        b.PostAndAppend(obj);
+    }
+};
+HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj) {
+    var p = this, b = p.Binder;
+    var fc = p.First(childMatch);
+    if (fc) {
+        p = fc.parentElement;
+        var i = p.IndexOf(fc);
+        if (Is.Alive(i)) {
+            p = this;
+            p.PostAndInsertBefore(obj, i);
+            return;
+        }
+    }
+    p = this;
+    p.PostAndAppend(obj);
 };
 HTMLElement.prototype.PostAndInsertBefore = function (obj, index) {
     var p = this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.PostAndInsertBefore(obj, index);
     }
 };

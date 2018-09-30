@@ -325,7 +325,7 @@ var Binder = (function () {
         var t = this;
         t.prepTemplates();
         try {
-            if (this.DataObjects.length > 0 && this.initialLoad) {
+            if (t.DataObjects.length > 0 && t.initialLoad) {
                 t.SetUpMore(t.DataObjects);
                 t.DataObjects.forEach(function (obj) {
                     t.add(obj, true);
@@ -342,7 +342,7 @@ var Binder = (function () {
         catch (e) {
             alert("Failed to load data.");
         }
-        this.initialLoad = false;
+        t.initialLoad = false;
     };
     Binder.prototype.Refresh = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
@@ -380,6 +380,9 @@ var Binder = (function () {
         var t = this, d = data, da = t.DataObjects;
         if (Is.Array(d)) {
             d.forEach(function (d) { return t.add(t.NewObject(d)); });
+            if (t.DataObjects.length > 0) {
+                t.bindForm(t.DataObjects.Data[0]);
+            }
         }
         else if (d) {
             var no = t.NewObject(d);
@@ -488,11 +491,49 @@ var Binder = (function () {
                     t.DataObjects.Add(obj);
                 }
                 obj.Container = t.DataObjects.Data;
+                ne.onclick = function () {
+                    if (Is.Alive(t.OnSelectedItemChanged)) {
+                        t.OnSelectedItemChanged(obj);
+                    }
+                    t.bindForm(obj);
+                    var prev = t.SelectedObject;
+                    t.SelectedObject = obj;
+                    if (prev) {
+                        prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                    }
+                    obj.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                };
                 t.Bind(obj, be);
             });
         }
         else {
             t.Bind(obj, null);
+        }
+    };
+    Binder.prototype.HookUpForm = function () {
+        var t = this;
+        if (Is.Alive(t.FormTemplateId)) {
+            t.FormTemplate = t.FormTemplateId.Element();
+            t.FormContainter = t.FormTemplate.parentElement;
+        }
+        if (t.DataObjects.length > 0) {
+            var o = t.DataObjects.Data[0];
+            t.SelectedObject = o;
+            o.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            t.bindForm(o);
+            if (Is.Alive(t.OnSelectedItemChanged)) {
+                t.OnSelectedItemChanged(o);
+            }
+        }
+    };
+    Binder.prototype.bindForm = function (obj) {
+        var t = this;
+        if (Is.Alive(t.FormContainter) && Is.Alive(t.FormTemplate)) {
+            t.FormContainter.Clear();
+            var c = t.FormTemplate.cloneNode(true);
+            t.FormContainter.appendChild(c);
+            var eles = c.Get(function (e) { return e.HasDataSet(); });
+            t.Bind(obj, eles);
         }
     };
     Binder.prototype.prepTemplates = function () {
@@ -592,6 +633,7 @@ var Binder = (function () {
     Binder.prototype.Bind = function (o, eles) {
         if (eles === void 0) { eles = null; }
         var t = this;
+        o.Binder = t;
         if (!eles) {
             eles = t.Element.Get(function (e) { return e.HasDataSet(); });
             eles.Add(t.Element);
@@ -612,7 +654,7 @@ var Binder = (function () {
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var eb = ["onclick", "onchange", "onload"];
+        var eb = ["onclick", "onchange", "onload", "loaded"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(function (b) {
             if (!eb.First(function (v) { return v === b.Attribute; }) &&
@@ -621,9 +663,13 @@ var Binder = (function () {
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
                     var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" :
-                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" :
-                            b.Attribute;
+                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" : b.Attribute;
                     if (ea_1 && ["value", "checked"].indexOf(ea_1) > -1) {
+                        if (Is.Alive(ele.onchange)) {
+                            var temp;
+                            temp = ele.onchange;
+                            ele.removeEventListener("change", temp);
+                        }
                         var fun_1 = function (evt) {
                             d.OnElementChanged.bind(d)(ele[ea_1], b.Property);
                         };
@@ -640,10 +686,15 @@ var Binder = (function () {
                 if (body) {
                     body = body.lastIndexOf(";") === body.length - 1 ? body : body + ";";
                     var fun = new Function("sender", body);
-                    ele[a.Attribute] = function () {
+                    if (a.Attribute === "loaded") {
                         fun(ele);
-                        return;
-                    };
+                    }
+                    else {
+                        ele[a.Attribute] = function () {
+                            fun(ele);
+                            return;
+                        };
+                    }
                 }
             });
         }
@@ -755,6 +806,8 @@ var DataObject = (function () {
         if (propertiesThatShouldSubscribeToObjectStateChanged === void 0) { propertiesThatShouldSubscribeToObjectStateChanged = null; }
         if (staticProperties === void 0) { staticProperties = null; }
         this.AlternateOnEvens = true;
+        this.defaultRowClass = null;
+        this.selectedRowClass = null;
         this.changeCount = 0;
         this.changeQueued = false;
         this.eLstenrs = new Array();
@@ -785,12 +838,43 @@ var DataObject = (function () {
             var t = this, ac = t.alternatingClass != null ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
             if (ac != null) {
                 var i = t.Container.indexOf(this) + 1, ie = i % 2 == 0;
-                return ie == t.AlternateOnEvens ? ac : null;
+                return ie === t.AlternateOnEvens ? ac : null;
             }
             return null;
         },
         set: function (value) {
             this.alternatingClass = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DataObject.prototype, "DefaultRowClass", {
+        get: function () {
+            if (this.AlternatingRowClass) {
+                return this.AlternatingRowClass;
+            }
+            else {
+                return this.defaultRowClass ? this.defaultRowClass : DataObject.DefaultRowClass;
+            }
+        },
+        set: function (value) {
+            this.defaultRowClass = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DataObject.prototype, "SelectedRowClass", {
+        get: function () {
+            var t = this;
+            if (Is.Alive(t.Binder) &&
+                t === t.Binder.SelectedObject) {
+                var t = this, ac = t.selectedRowClass != null ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
+                return ac;
+            }
+            return t.DefaultRowClass;
+        },
+        set: function (value) {
+            this.selectedRowClass = value;
         },
         enumerable: true,
         configurable: true
@@ -864,6 +948,8 @@ var DataObject = (function () {
         }
     };
     DataObject.DefaultAlternatingRowClass = null;
+    DataObject.DefaultSelectedRowClass = null;
+    DataObject.DefaultRowClass = null;
     return DataObject;
 }());
 //# sourceMappingURL=DataObject.js.map
@@ -873,11 +959,6 @@ var StorageType;
     StorageType[StorageType["session"] = 1] = "session";
     StorageType[StorageType["local"] = 2] = "local";
 })(StorageType || (StorageType = {}));
-//may have a type on this deal that we want to new up
-//the default would be the DataObject
-//hide the array and provide an indexer?
-//if we make it not array its going to 
-//point out all failures
 var DataObjectCacheArray = (function () {
     function DataObjectCacheArray(cachingKey, storageState, newT) {
         if (cachingKey === void 0) { cachingKey = null; }
@@ -1033,8 +1114,9 @@ var View = (function () {
         a.Get(t.Url());
     };
     View.prototype.RequestCompleted = function (a) {
+        var t = this;
         if (a.Sender.ResponseText) {
-            this.SetHTML(a.Sender.ResponseText);
+            t.SetHTML(a.Sender.ResponseText);
         }
         a.Sender = null;
     };
@@ -1103,7 +1185,10 @@ var View = (function () {
             t.cached.removeChild(n);
             c.appendChild(n);
         }
-        setTimeout(function () { t.Dispatch(EventType.Completed); }, 20);
+        setTimeout(function () {
+            t.Dispatch(EventType.Completed);
+            t.binders.forEach(function (b) { return b.HookUpForm(); });
+        }, 20);
     };
     View.prototype.AddListener = function (eventType, eventHandler) {
         var t = this, f = t.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
@@ -1515,10 +1600,14 @@ var Is;
         return typeof value === "string";
     }
     Is.String = String;
-    function NotUndefined(value) {
-        return value !== undefined;
+    function Alive(value) {
+        return value !== undefined && value !== null;
     }
-    Is.NotUndefined = NotUndefined;
+    Is.Alive = Alive;
+    function HTMLElement(o) {
+        return Is.Alive(o["tagName"]);
+    }
+    Is.HTMLElement = HTMLElement;
 })(Is || (Is = {}));
 var Has;
 (function (Has) {
@@ -1542,13 +1631,9 @@ var Navigate;
 (function (Navigate) {
     function Spa(type, parameters) {
         if (parameters === void 0) { parameters = null; }
-        var p;
-        if (!Is.Array(parameters)) {
-            p = new Array();
+        var p = Is.Array(parameters) ? parameters : new Array();
+        if (Is.Alive(parameters) && !Is.Array(parameters)) {
             p.Add(parameters);
-        }
-        else {
-            p = parameters;
         }
         p = p && p.length == 1 && p[0] === "" ? null : p;
         var vc = Reflection.NewObject(type), vi = new ViewInstance(p, vc);
@@ -1689,23 +1774,54 @@ Date.prototype.ToyyyymmddHHMMss = function () {
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };
 //# sourceMappingURL=Date.js.map
-HTMLElement.prototype.PostAndAppend = function (obj) {
-    var p = this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
-        b.PostAndAppend(obj);
-    }
-};
-HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj, index) {
+HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
     var p = this, b = p.Binder;
     var fc = p.First(childMatch);
     if (fc) {
-        var i = p.IndexOf(p);
-        p.PostAndInsertBefore(obj, i);
+        p = fc.parentElement;
+        var i = p.IndexOf(fc);
+        if (Is.Alive(i)) {
+            p = this;
+            p.InsertBefore(obj, i);
+        }
     }
+};
+HTMLElement.prototype.InsertBefore = function (obj, index) {
+    var p = this, b = p.Binder;
+    if (Is.Alive(b)) {
+        b.InsertBefore(obj, index);
+    }
+};
+HTMLElement.prototype.Append = function (obj) {
+    var p = this, b = p.Binder;
+    if (Is.Alive(b)) {
+        b.Append(obj);
+    }
+};
+HTMLElement.prototype.PostAndAppend = function (obj) {
+    var p = this, b = p.Binder;
+    if (Is.Alive(b)) {
+        b.PostAndAppend(obj);
+    }
+};
+HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj) {
+    var p = this, b = p.Binder;
+    var fc = p.First(childMatch);
+    if (fc) {
+        p = fc.parentElement;
+        var i = p.IndexOf(fc);
+        if (Is.Alive(i)) {
+            p = this;
+            p.PostAndInsertBefore(obj, i);
+            return;
+        }
+    }
+    p = this;
+    p.PostAndAppend(obj);
 };
 HTMLElement.prototype.PostAndInsertBefore = function (obj, index) {
     var p = this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.PostAndInsertBefore(obj, index);
     }
 };

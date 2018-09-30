@@ -3,11 +3,6 @@
     session,
     local
 }
-//may have a type on this deal that we want to new up
-//the default would be the DataObject
-//hide the array and provide an indexer?
-//if we make it not array its going to 
-//point out all failures
 class DataObjectCacheArray<T extends IObjectState>
 {
     constructor(cachingKey: string = null, storageState: StorageType = null, newT: (obj: any) => T = null) {

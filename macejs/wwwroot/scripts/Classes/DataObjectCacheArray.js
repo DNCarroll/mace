@@ -4,11 +4,6 @@ var StorageType;
     StorageType[StorageType["session"] = 1] = "session";
     StorageType[StorageType["local"] = 2] = "local";
 })(StorageType || (StorageType = {}));
-//may have a type on this deal that we want to new up
-//the default would be the DataObject
-//hide the array and provide an indexer?
-//if we make it not array its going to 
-//point out all failures
 var DataObjectCacheArray = (function () {
     function DataObjectCacheArray(cachingKey, storageState, newT) {
         if (cachingKey === void 0) { cachingKey = null; }

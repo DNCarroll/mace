@@ -1,5 +1,7 @@
 ﻿class DataObject implements IObjectState {
-    static DefaultAlternatingRowClass: string = null;
+    public static DefaultAlternatingRowClass: string = null;
+    public static DefaultSelectedRowClass: string = null;
+    public static DefaultRowClass: string = null;
     constructor(serverObject: any,
         propertiesThatShouldSubscribeToObjectStateChanged: Array<string> = null,
         staticProperties: Array<string> = null) {
@@ -26,6 +28,7 @@
     }
     SubscribeToObjectStateChange: Array<string>;
     Container: Array<IObjectState>;
+    Binder: Binder;
     private alternatingClass: string;
     AlternateOnEvens: boolean = true;
     set AlternatingRowClass(value: string) {
@@ -36,9 +39,34 @@
         if (ac != null) {
             var i = t.Container.indexOf(this) + 1,
                 ie = i % 2 == 0;
-            return ie == t.AlternateOnEvens ? ac : null;
+            return ie === t.AlternateOnEvens ? ac : null;
         }
         return null;
+    }
+    defaultRowClass: string = null;
+    get DefaultRowClass(): string {
+        if (this.AlternatingRowClass) {
+            return this.AlternatingRowClass;
+        }
+        else {
+            return this.defaultRowClass ? this.defaultRowClass : DataObject.DefaultRowClass;
+        }
+    }
+    set DefaultRowClass(value: string) {
+        this.defaultRowClass = value;
+    }
+    selectedRowClass: string = null;
+    get SelectedRowClass(): string {
+        var t = this;
+        if (Is.Alive(t.Binder) &&
+            t === t.Binder.SelectedObject) {
+            var t = this, ac = t.selectedRowClass != null ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
+            return ac;
+        }
+        return t.DefaultRowClass;
+    }
+    set SelectedRowClass(value: string) {
+        this.selectedRowClass = value;
     }
     private changeCount: number = 0;
     private changeQueued: boolean = false;

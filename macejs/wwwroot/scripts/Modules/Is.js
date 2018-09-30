@@ -18,10 +18,14 @@ var Is;
         return typeof value === "string";
     }
     Is.String = String;
-    function NotUndefined(value) {
-        return value !== undefined;
+    function Alive(value) {
+        return value !== undefined && value !== null;
     }
-    Is.NotUndefined = NotUndefined;
+    Is.Alive = Alive;
+    function HTMLElement(o) {
+        return Is.Alive(o["tagName"]);
+    }
+    Is.HTMLElement = HTMLElement;
 })(Is || (Is = {}));
 var Has;
 (function (Has) {

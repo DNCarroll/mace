@@ -29,7 +29,7 @@ class View implements IView {
     private countBindersReported: number;
     private cached: HTMLElement
     private eHandlrs = new Array<Listener<IView>>();
-    private binders = new Array<IBinder>();
+    private binders = new Array<Binder>();
     ViewInstance: ViewInstance;
     private preload: IPreViewLoad = null;
     get Preload() {
@@ -51,7 +51,7 @@ class View implements IView {
     Show(viewInstance: ViewInstance) {
         var t = this;
         t.ViewInstance = viewInstance;
-        t.binders = new Array<IBinder>();
+        t.binders = new Array<Binder>();
         t.binders.forEach(b => b.RemoveListeners(EventType.Any));
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     }
@@ -64,8 +64,9 @@ class View implements IView {
         a.Get(t.Url());
     }
     RequestCompleted(a: CustomEventArg<Ajax>) {
+        let t = this;
         if (a.Sender.ResponseText) {
-            this.SetHTML(a.Sender.ResponseText);
+            t.SetHTML(a.Sender.ResponseText);
         }
         a.Sender = null;
     }
@@ -82,7 +83,7 @@ class View implements IView {
                         let a = e.getAttribute("data-binder");
                         if (a) {
                             let fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
-                            e.Binder = <IBinder>fun();
+                            e.Binder = <Binder>fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;
                             t.binders.Add(e.Binder);
@@ -110,7 +111,7 @@ class View implements IView {
             t.Dispatch(EventType.Completed);
         }
     }
-    OnBinderComplete(a: ICustomEventArg<IBinder>) {
+    OnBinderComplete(a: ICustomEventArg<Binder>) {
         var t = this;
         if (a.EventType === EventType.Completed) {
             t.countBindersReported = t.countBindersReported + 1;
@@ -133,7 +134,10 @@ class View implements IView {
             t.cached.removeChild(n);
             c.appendChild(n);
         }
-        setTimeout(() => { t.Dispatch(EventType.Completed); }, 20);
+        setTimeout(() => {
+            t.Dispatch(EventType.Completed);
+            t.binders.forEach(b => b.HookUpForm());
+        }, 20);
     }
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
         var t = this,

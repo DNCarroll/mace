@@ -71,8 +71,9 @@ var View = (function () {
         a.Get(t.Url());
     };
     View.prototype.RequestCompleted = function (a) {
+        var t = this;
         if (a.Sender.ResponseText) {
-            this.SetHTML(a.Sender.ResponseText);
+            t.SetHTML(a.Sender.ResponseText);
         }
         a.Sender = null;
     };
@@ -141,7 +142,10 @@ var View = (function () {
             t.cached.removeChild(n);
             c.appendChild(n);
         }
-        setTimeout(function () { t.Dispatch(EventType.Completed); }, 20);
+        setTimeout(function () {
+            t.Dispatch(EventType.Completed);
+            t.binders.forEach(function (b) { return b.HookUpForm(); });
+        }, 20);
     };
     View.prototype.AddListener = function (eventType, eventHandler) {
         var t = this, f = t.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });

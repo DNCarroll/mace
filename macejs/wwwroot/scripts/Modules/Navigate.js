@@ -2,13 +2,9 @@ var Navigate;
 (function (Navigate) {
     function Spa(type, parameters) {
         if (parameters === void 0) { parameters = null; }
-        var p;
-        if (!Is.Array(parameters)) {
-            p = new Array();
+        var p = Is.Array(parameters) ? parameters : new Array();
+        if (Is.Alive(parameters) && !Is.Array(parameters)) {
             p.Add(parameters);
-        }
-        else {
-            p = parameters;
         }
         p = p && p.length == 1 && p[0] === "" ? null : p;
         var vc = Reflection.NewObject(type), vi = new ViewInstance(p, vc);
