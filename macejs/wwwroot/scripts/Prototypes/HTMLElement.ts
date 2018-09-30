@@ -6,7 +6,7 @@ interface HTMLElement extends Element {
     Set(objectProperties): HTMLElement;
     HasDataSet: () => boolean;
     GetDataSetAttributes: () => { Attribute: string; Property: any; }[];
-    Binder: IBinder;
+    Binder: Binder;
     DataObject: IObjectState;
     Delete();
     Save();
@@ -17,7 +17,7 @@ interface HTMLElement extends Element {
     Bind(obj: any, refresh: boolean);
     IndexOf(ele: HTMLElement);
     PostAndInsertBefore(obj: any, index: number);
-    PostAndInsertBeforeChild(childMatch: (child) => boolean, obj: any, index: number);
+    PostAndInsertBeforeChild(childMatch: (child) => boolean, obj: any);
     PostAndAppend(obj: any);
     Append(obj: any);
     InsertBefore(obj: any, index: number);
@@ -27,43 +27,50 @@ HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boole
     var p = <HTMLElement>this, b = p.Binder;
     var fc = p.First(childMatch);
     if (fc) {
-        var i = p.IndexOf(p);
-        if (Is.NotUndefined(i)) {
+        p = fc.parentElement;
+        var i = p.IndexOf(fc);
+        if (Is.Alive(i)) {
+            p = <HTMLElement>this;
             p.InsertBefore(obj, i);
         }
     }
 }
 HTMLElement.prototype.InsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.InsertBefore(obj, index);
     }
 }
 HTMLElement.prototype.Append = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.Append(obj);
     }
 }
 HTMLElement.prototype.PostAndAppend = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.PostAndAppend(obj);
     }
 }
-HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any, index: number) {
+HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
     var fc = p.First(childMatch);
     if (fc) {
-        var i = p.IndexOf(p);
-        if (Is.NotUndefined(i)) {
+        p = fc.parentElement;
+        var i = p.IndexOf(fc);
+        if (Is.Alive(i)) {
+            p = <HTMLElement>this;
             p.PostAndInsertBefore(obj, i);
+            return;
         }
     }
+    p = <HTMLElement>this;
+    p.PostAndAppend(obj);
 }
 HTMLElement.prototype.PostAndInsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.PostAndInsertBefore(obj, index);
     }
 }
@@ -81,7 +88,7 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
     if (refresh) {
         this.RemoveDataRowElements();
     }
-    var binder = <IBinder>this.Binder;
+    var binder = <Binder>this.Binder;
     if (binder) {
         if (obj instanceof ViewInstance) {
             binder.Refresh(<ViewInstance>obj);

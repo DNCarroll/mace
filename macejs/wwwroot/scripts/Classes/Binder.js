@@ -82,7 +82,7 @@ var Binder = (function () {
         var t = this;
         t.prepTemplates();
         try {
-            if (this.DataObjects.length > 0 && this.initialLoad) {
+            if (t.DataObjects.length > 0 && t.initialLoad) {
                 t.SetUpMore(t.DataObjects);
                 t.DataObjects.forEach(function (obj) {
                     t.add(obj, true);
@@ -99,7 +99,7 @@ var Binder = (function () {
         catch (e) {
             alert("Failed to load data.");
         }
-        this.initialLoad = false;
+        t.initialLoad = false;
     };
     Binder.prototype.Refresh = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
@@ -137,6 +137,9 @@ var Binder = (function () {
         var t = this, d = data, da = t.DataObjects;
         if (Is.Array(d)) {
             d.forEach(function (d) { return t.add(t.NewObject(d)); });
+            if (t.DataObjects.length > 0) {
+                t.bindForm(t.DataObjects.Data[0]);
+            }
         }
         else if (d) {
             var no = t.NewObject(d);
@@ -245,11 +248,49 @@ var Binder = (function () {
                     t.DataObjects.Add(obj);
                 }
                 obj.Container = t.DataObjects.Data;
+                ne.onclick = function () {
+                    if (Is.Alive(t.OnSelectedItemChanged)) {
+                        t.OnSelectedItemChanged(obj);
+                    }
+                    t.bindForm(obj);
+                    var prev = t.SelectedObject;
+                    t.SelectedObject = obj;
+                    if (prev) {
+                        prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                    }
+                    obj.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                };
                 t.Bind(obj, be);
             });
         }
         else {
             t.Bind(obj, null);
+        }
+    };
+    Binder.prototype.HookUpForm = function () {
+        var t = this;
+        if (Is.Alive(t.FormTemplateId)) {
+            t.FormTemplate = t.FormTemplateId.Element();
+            t.FormContainter = t.FormTemplate.parentElement;
+        }
+        if (t.DataObjects.length > 0) {
+            var o = t.DataObjects.Data[0];
+            t.SelectedObject = o;
+            o.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            t.bindForm(o);
+            if (Is.Alive(t.OnSelectedItemChanged)) {
+                t.OnSelectedItemChanged(o);
+            }
+        }
+    };
+    Binder.prototype.bindForm = function (obj) {
+        var t = this;
+        if (Is.Alive(t.FormContainter) && Is.Alive(t.FormTemplate)) {
+            t.FormContainter.Clear();
+            var c = t.FormTemplate.cloneNode(true);
+            t.FormContainter.appendChild(c);
+            var eles = c.Get(function (e) { return e.HasDataSet(); });
+            t.Bind(obj, eles);
         }
     };
     Binder.prototype.prepTemplates = function () {
@@ -349,6 +390,7 @@ var Binder = (function () {
     Binder.prototype.Bind = function (o, eles) {
         if (eles === void 0) { eles = null; }
         var t = this;
+        o.Binder = t;
         if (!eles) {
             eles = t.Element.Get(function (e) { return e.HasDataSet(); });
             eles.Add(t.Element);
@@ -369,7 +411,7 @@ var Binder = (function () {
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var eb = ["onclick", "onchange", "onload"];
+        var eb = ["onclick", "onchange", "onload", "loaded"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(function (b) {
             if (!eb.First(function (v) { return v === b.Attribute; }) &&
@@ -378,9 +420,13 @@ var Binder = (function () {
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
                     var ea_1 = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" :
-                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" :
-                            b.Attribute;
+                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" : b.Attribute;
                     if (ea_1 && ["value", "checked"].indexOf(ea_1) > -1) {
+                        if (Is.Alive(ele.onchange)) {
+                            var temp;
+                            temp = ele.onchange;
+                            ele.removeEventListener("change", temp);
+                        }
                         var fun_1 = function (evt) {
                             d.OnElementChanged.bind(d)(ele[ea_1], b.Property);
                         };
@@ -397,10 +443,15 @@ var Binder = (function () {
                 if (body) {
                     body = body.lastIndexOf(";") === body.length - 1 ? body : body + ";";
                     var fun = new Function("sender", body);
-                    ele[a.Attribute] = function () {
+                    if (a.Attribute === "loaded") {
                         fun(ele);
-                        return;
-                    };
+                    }
+                    else {
+                        ele[a.Attribute] = function () {
+                            fun(ele);
+                            return;
+                        };
+                    }
                 }
             });
         }

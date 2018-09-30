@@ -3,6 +3,8 @@ var DataObject = (function () {
         if (propertiesThatShouldSubscribeToObjectStateChanged === void 0) { propertiesThatShouldSubscribeToObjectStateChanged = null; }
         if (staticProperties === void 0) { staticProperties = null; }
         this.AlternateOnEvens = true;
+        this.defaultRowClass = null;
+        this.selectedRowClass = null;
         this.changeCount = 0;
         this.changeQueued = false;
         this.eLstenrs = new Array();
@@ -33,12 +35,43 @@ var DataObject = (function () {
             var t = this, ac = t.alternatingClass != null ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
             if (ac != null) {
                 var i = t.Container.indexOf(this) + 1, ie = i % 2 == 0;
-                return ie == t.AlternateOnEvens ? ac : null;
+                return ie === t.AlternateOnEvens ? ac : null;
             }
             return null;
         },
         set: function (value) {
             this.alternatingClass = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DataObject.prototype, "DefaultRowClass", {
+        get: function () {
+            if (this.AlternatingRowClass) {
+                return this.AlternatingRowClass;
+            }
+            else {
+                return this.defaultRowClass ? this.defaultRowClass : DataObject.DefaultRowClass;
+            }
+        },
+        set: function (value) {
+            this.defaultRowClass = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DataObject.prototype, "SelectedRowClass", {
+        get: function () {
+            var t = this;
+            if (Is.Alive(t.Binder) &&
+                t === t.Binder.SelectedObject) {
+                var t = this, ac = t.selectedRowClass != null ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
+                return ac;
+            }
+            return t.DefaultRowClass;
+        },
+        set: function (value) {
+            this.selectedRowClass = value;
         },
         enumerable: true,
         configurable: true
@@ -112,6 +145,8 @@ var DataObject = (function () {
         }
     };
     DataObject.DefaultAlternatingRowClass = null;
+    DataObject.DefaultSelectedRowClass = null;
+    DataObject.DefaultRowClass = null;
     return DataObject;
 }());
 //# sourceMappingURL=DataObject.js.map

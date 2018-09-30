@@ -13,8 +13,11 @@
     export function String(value): boolean {
         return typeof value === "string";
     }
-    export function NotUndefined(value): boolean {
-        return value !== undefined;
+    export function Alive(value): boolean {
+        return value !== undefined && value !== null;
+    }
+    export function HTMLElement(o): boolean {
+        return Is.Alive(o["tagName"]);
     }
 }
 module Has {

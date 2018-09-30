@@ -1,4 +1,4 @@
-﻿class Binder implements IBinder {
+﻿class Binder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
     constructor(primaryKeys: Array<string> = null, api: string = null, autoUpdate: boolean = false, TypeObject: { new(obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
@@ -29,8 +29,9 @@
     WithProgress: boolean = true;
     DisableElement: any;
     Element: HTMLElement;
-    private eventHandlers = new Array<Listener<IBinder>>();
+    private eventHandlers = new Array<Listener<Binder>>();
     DataObjects: DataObjectCacheArray<IObjectState> = new DataObjectCacheArray<IObjectState>();
+    OnSelectedItemChanged: (obj: IObjectState) => void;
     AutomaticUpdate: boolean = true;
     AutomaticSelect: boolean = true;
     DataRowTemplates = new Array<HTMLElement>();
@@ -82,11 +83,14 @@
         return null;
     }
     initialLoad = true;
+    FormTemplateId: string;
+    private FormTemplate: HTMLElement;
+    private FormContainter: HTMLElement;
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
         t.prepTemplates();
         try {
-            if (this.DataObjects.length > 0 && this.initialLoad) {
+            if (t.DataObjects.length > 0 && t.initialLoad) {
                 t.SetUpMore(t.DataObjects);
                 t.DataObjects.forEach(obj => {
                     t.add(obj, true);
@@ -102,7 +106,7 @@
         } catch (e) {
             alert("Failed to load data.");
         }
-        this.initialLoad = false;
+        t.initialLoad = false;
     }
     Refresh(viewInstance: ViewInstance = null) {
         this.loadFromVI(viewInstance);
@@ -141,6 +145,9 @@
             d = data, da = t.DataObjects;
         if (Is.Array(d)) {
             (<Array<any>>d).forEach(d => t.add(t.NewObject(d)));
+            if (t.DataObjects.length > 0) {
+                t.bindForm(t.DataObjects.Data[0]);
+            }
         }
         else if (d) {
             var no = t.NewObject(d);
@@ -235,7 +242,7 @@
         }
     }
     add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false, beforeIndex: number = -1) {
-        var t = this;
+        let t = this;
         t.prepTemplates();
         if (t.DataRowTemplates.length > 0) {
             t.DataRowTemplates.forEach(d => {
@@ -243,7 +250,9 @@
                     be = ne.Get(e => e.HasDataSet()),
                     drf = t.DataRowFooter,
                     pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
+
                 be.Add(ne);
+
                 if (beforeIndex > -1 && beforeIndex < pe.childNodes.length) {
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
@@ -252,11 +261,50 @@
                     t.DataObjects.Add(obj);
                 }
                 obj.Container = t.DataObjects.Data;
+                ne.onclick = () => {
+                    if (Is.Alive(t.OnSelectedItemChanged)) {
+                        t.OnSelectedItemChanged(obj);
+                    }
+                    t.bindForm(obj);
+                    var prev = t.SelectedObject;
+                    t.SelectedObject = obj;
+                    if (prev) {
+                        prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                    }
+                    obj.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                };
+
                 t.Bind(obj, be);
             });
         }
         else {
             t.Bind(obj, null);
+        }
+    }
+    HookUpForm() {
+        var t = this;
+        if (Is.Alive(t.FormTemplateId)) {
+            t.FormTemplate = t.FormTemplateId.Element();
+            t.FormContainter = t.FormTemplate.parentElement;
+        }
+        if (t.DataObjects.length > 0) {
+            var o = t.DataObjects.Data[0];
+            t.SelectedObject = o;
+            o.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            t.bindForm(o);
+            if (Is.Alive(t.OnSelectedItemChanged)) {
+                t.OnSelectedItemChanged(o);
+            }
+        }
+    }
+    bindForm(obj: IObjectState) {
+        var t = this;
+        if (Is.Alive(t.FormContainter) && Is.Alive(t.FormTemplate)) {
+            t.FormContainter.Clear();
+            var c = <HTMLElement>t.FormTemplate.cloneNode(true);
+            t.FormContainter.appendChild(c);
+            var eles = c.Get(e => e.HasDataSet());
+            t.Bind(obj, eles);
         }
     }
     private prepTemplates() {
@@ -365,10 +413,12 @@
     }
     Bind(o: IObjectState, eles: Array<HTMLElement> = null) {
         var t = this;
+        o.Binder = t;
         if (!eles) {
             eles = t.Element.Get(e => e.HasDataSet());
             eles.Add(t.Element);
         }
+
         o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(e => {
             e.DataObject = o;
@@ -389,7 +439,7 @@
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var eb = ["onclick", "onchange", "onload"];
+        var eb = ["onclick", "onchange", "onload", "loaded"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(b => {
             if (!eb.First(v => v === b.Attribute) &&
@@ -398,14 +448,19 @@
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
                     let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" :
-                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" :
-                            b.Attribute;
+                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" : b.Attribute;
                     if (ea && ["value", "checked"].indexOf(ea) > -1) {
+                        if (Is.Alive(ele.onchange)) {
+                            var temp: (evt) => void;
+                            temp = ele.onchange;
+                            ele.removeEventListener("change", temp);
+                        }
+
                         let fun = (evt) => {
                             d.OnElementChanged.bind(d)(ele[ea], b.Property);
                         };
                         ele.addEventListener("change", fun);
-                    }      
+                    }
                 }
             }
         });
@@ -417,10 +472,15 @@
                 if (body) {
                     body = body.lastIndexOf(";") === body.length - 1 ? body : body + ";";
                     var fun = new Function("sender", body);
-                    ele[a.Attribute] = () => {
+                    if (a.Attribute === "loaded") {
                         fun(ele);
-                        return;
-                    };
+                    }
+                    else {
+                        ele[a.Attribute] = () => {
+                            fun(ele);
+                            return;
+                        };
+                    }
                 }
             });
         }
@@ -486,13 +546,13 @@
         this.selectedObject = value;
     }
 
-    AddListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
+    AddListener(et: EventType, eh: (eventArg: ICustomEventArg<Binder>) => void) {
         var f = this.eventHandlers.First(h => h.EventType === et && h.EventHandler === eh);
         if (!f) {
             this.eventHandlers.Add(new Listener(et, eh));
         }
     }
-    RemoveListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
+    RemoveListener(et: EventType, eh: (eventArg: ICustomEventArg<Binder>) => void) {
         this.eventHandlers.Remove(l => l.EventType === et && eh === eh);
     }
     RemoveListeners(et: EventType = EventType.Any) {
@@ -500,7 +560,7 @@
     }
     Dispatch(et: EventType) {
         var l = this.eventHandlers.Where(e => e.EventType === et);
-        l.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, et)));
+        l.forEach(l => l.EventHandler(new CustomEventArg<Binder>(this, et)));
     }
     More() {
         var t = this,

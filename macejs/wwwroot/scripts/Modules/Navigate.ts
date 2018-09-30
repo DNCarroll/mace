@@ -1,12 +1,8 @@
 ﻿module Navigate {
     export function Spa<T extends IViewContainer>(type: { new(): T; }, parameters: any = null) {
-        var p: Array<any>;
-        if (!Is.Array(parameters)) {
-            p = new Array<any>();
+        var p = Is.Array(parameters) ? <Array<any>>parameters : new Array<any>();
+        if (Is.Alive(parameters) && !Is.Array(parameters)) {
             p.Add(parameters)
-        }
-        else {
-            p = <Array<any>>parameters;
         }
         p = p && p.length == 1 && p[0] === "" ? null : p;
         var vc = Reflection.NewObject(type),
@@ -34,6 +30,4 @@
             HistoryManager.Add(vi);
         }
     }
-
-
 }

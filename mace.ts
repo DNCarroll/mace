@@ -226,7 +226,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
     }
 }
-class Binder implements IBinder {
+class Binder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
     constructor(primaryKeys: Array<string> = null, api: string = null, autoUpdate: boolean = false, TypeObject: { new(obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
@@ -257,8 +257,9 @@ class Binder implements IBinder {
     WithProgress: boolean = true;
     DisableElement: any;
     Element: HTMLElement;
-    private eventHandlers = new Array<Listener<IBinder>>();
+    private eventHandlers = new Array<Listener<Binder>>();
     DataObjects: DataObjectCacheArray<IObjectState> = new DataObjectCacheArray<IObjectState>();
+    OnSelectedItemChanged: (obj: IObjectState) => void;
     AutomaticUpdate: boolean = true;
     AutomaticSelect: boolean = true;
     DataRowTemplates = new Array<HTMLElement>();
@@ -310,11 +311,14 @@ class Binder implements IBinder {
         return null;
     }
     initialLoad = true;
+    FormTemplateId: string;
+    private FormTemplate: HTMLElement;
+    private FormContainter: HTMLElement;
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
         t.prepTemplates();
         try {
-            if (this.DataObjects.length > 0 && this.initialLoad) {
+            if (t.DataObjects.length > 0 && t.initialLoad) {
                 t.SetUpMore(t.DataObjects);
                 t.DataObjects.forEach(obj => {
                     t.add(obj, true);
@@ -330,7 +334,7 @@ class Binder implements IBinder {
         } catch (e) {
             alert("Failed to load data.");
         }
-        this.initialLoad = false;
+        t.initialLoad = false;
     }
     Refresh(viewInstance: ViewInstance = null) {
         this.loadFromVI(viewInstance);
@@ -369,6 +373,9 @@ class Binder implements IBinder {
             d = data, da = t.DataObjects;
         if (Is.Array(d)) {
             (<Array<any>>d).forEach(d => t.add(t.NewObject(d)));
+            if (t.DataObjects.length > 0) {
+                t.bindForm(t.DataObjects.Data[0]);
+            }
         }
         else if (d) {
             var no = t.NewObject(d);
@@ -463,7 +470,7 @@ class Binder implements IBinder {
         }
     }
     add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false, beforeIndex: number = -1) {
-        var t = this;
+        let t = this;
         t.prepTemplates();
         if (t.DataRowTemplates.length > 0) {
             t.DataRowTemplates.forEach(d => {
@@ -471,7 +478,9 @@ class Binder implements IBinder {
                     be = ne.Get(e => e.HasDataSet()),
                     drf = t.DataRowFooter,
                     pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
+
                 be.Add(ne);
+
                 if (beforeIndex > -1 && beforeIndex < pe.childNodes.length) {
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
@@ -480,11 +489,50 @@ class Binder implements IBinder {
                     t.DataObjects.Add(obj);
                 }
                 obj.Container = t.DataObjects.Data;
+                ne.onclick = () => {
+                    if (Is.Alive(t.OnSelectedItemChanged)) {
+                        t.OnSelectedItemChanged(obj);
+                    }
+                    t.bindForm(obj);
+                    var prev = t.SelectedObject;
+                    t.SelectedObject = obj;
+                    if (prev) {
+                        prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                    }
+                    obj.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                };
+
                 t.Bind(obj, be);
             });
         }
         else {
             t.Bind(obj, null);
+        }
+    }
+    HookUpForm() {
+        var t = this;
+        if (Is.Alive(t.FormTemplateId)) {
+            t.FormTemplate = t.FormTemplateId.Element();
+            t.FormContainter = t.FormTemplate.parentElement;
+        }
+        if (t.DataObjects.length > 0) {
+            var o = t.DataObjects.Data[0];
+            t.SelectedObject = o;
+            o.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            t.bindForm(o);
+            if (Is.Alive(t.OnSelectedItemChanged)) {
+                t.OnSelectedItemChanged(o);
+            }
+        }
+    }
+    bindForm(obj: IObjectState) {
+        var t = this;
+        if (Is.Alive(t.FormContainter) && Is.Alive(t.FormTemplate)) {
+            t.FormContainter.Clear();
+            var c = <HTMLElement>t.FormTemplate.cloneNode(true);
+            t.FormContainter.appendChild(c);
+            var eles = c.Get(e => e.HasDataSet());
+            t.Bind(obj, eles);
         }
     }
     private prepTemplates() {
@@ -593,10 +641,12 @@ class Binder implements IBinder {
     }
     Bind(o: IObjectState, eles: Array<HTMLElement> = null) {
         var t = this;
+        o.Binder = t;
         if (!eles) {
             eles = t.Element.Get(e => e.HasDataSet());
             eles.Add(t.Element);
         }
+
         o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(e => {
             e.DataObject = o;
@@ -617,7 +667,7 @@ class Binder implements IBinder {
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
         }
-        var eb = ["onclick", "onchange", "onload"];
+        var eb = ["onclick", "onchange", "onload", "loaded"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(b => {
             if (!eb.First(v => v === b.Attribute) &&
@@ -626,14 +676,19 @@ class Binder implements IBinder {
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
                     let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" :
-                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" :
-                            b.Attribute;
+                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" : b.Attribute;
                     if (ea && ["value", "checked"].indexOf(ea) > -1) {
+                        if (Is.Alive(ele.onchange)) {
+                            var temp: (evt) => void;
+                            temp = ele.onchange;
+                            ele.removeEventListener("change", temp);
+                        }
+
                         let fun = (evt) => {
                             d.OnElementChanged.bind(d)(ele[ea], b.Property);
                         };
                         ele.addEventListener("change", fun);
-                    }      
+                    }
                 }
             }
         });
@@ -645,10 +700,15 @@ class Binder implements IBinder {
                 if (body) {
                     body = body.lastIndexOf(";") === body.length - 1 ? body : body + ";";
                     var fun = new Function("sender", body);
-                    ele[a.Attribute] = () => {
+                    if (a.Attribute === "loaded") {
                         fun(ele);
-                        return;
-                    };
+                    }
+                    else {
+                        ele[a.Attribute] = () => {
+                            fun(ele);
+                            return;
+                        };
+                    }
                 }
             });
         }
@@ -714,13 +774,13 @@ class Binder implements IBinder {
         this.selectedObject = value;
     }
 
-    AddListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
+    AddListener(et: EventType, eh: (eventArg: ICustomEventArg<Binder>) => void) {
         var f = this.eventHandlers.First(h => h.EventType === et && h.EventHandler === eh);
         if (!f) {
             this.eventHandlers.Add(new Listener(et, eh));
         }
     }
-    RemoveListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
+    RemoveListener(et: EventType, eh: (eventArg: ICustomEventArg<Binder>) => void) {
         this.eventHandlers.Remove(l => l.EventType === et && eh === eh);
     }
     RemoveListeners(et: EventType = EventType.Any) {
@@ -728,7 +788,7 @@ class Binder implements IBinder {
     }
     Dispatch(et: EventType) {
         var l = this.eventHandlers.Where(e => e.EventType === et);
-        l.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, et)));
+        l.forEach(l => l.EventHandler(new CustomEventArg<Binder>(this, et)));
     }
     More() {
         var t = this,
@@ -755,7 +815,9 @@ class Binder implements IBinder {
     }
 }
 class DataObject implements IObjectState {
-    static DefaultAlternatingRowClass: string = null;
+    public static DefaultAlternatingRowClass: string = null;
+    public static DefaultSelectedRowClass: string = null;
+    public static DefaultRowClass: string = null;
     constructor(serverObject: any,
         propertiesThatShouldSubscribeToObjectStateChanged: Array<string> = null,
         staticProperties: Array<string> = null) {
@@ -782,6 +844,7 @@ class DataObject implements IObjectState {
     }
     SubscribeToObjectStateChange: Array<string>;
     Container: Array<IObjectState>;
+    Binder: Binder;
     private alternatingClass: string;
     AlternateOnEvens: boolean = true;
     set AlternatingRowClass(value: string) {
@@ -792,9 +855,34 @@ class DataObject implements IObjectState {
         if (ac != null) {
             var i = t.Container.indexOf(this) + 1,
                 ie = i % 2 == 0;
-            return ie == t.AlternateOnEvens ? ac : null;
+            return ie === t.AlternateOnEvens ? ac : null;
         }
         return null;
+    }
+    defaultRowClass: string = null;
+    get DefaultRowClass(): string {
+        if (this.AlternatingRowClass) {
+            return this.AlternatingRowClass;
+        }
+        else {
+            return this.defaultRowClass ? this.defaultRowClass : DataObject.DefaultRowClass;
+        }
+    }
+    set DefaultRowClass(value: string) {
+        this.defaultRowClass = value;
+    }
+    selectedRowClass: string = null;
+    get SelectedRowClass(): string {
+        var t = this;
+        if (Is.Alive(t.Binder) &&
+            t === t.Binder.SelectedObject) {
+            var t = this, ac = t.selectedRowClass != null ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
+            return ac;
+        }
+        return t.DefaultRowClass;
+    }
+    set SelectedRowClass(value: string) {
+        this.selectedRowClass = value;
     }
     private changeCount: number = 0;
     private changeQueued: boolean = false;
@@ -866,11 +954,6 @@ enum StorageType {
     session,
     local
 }
-//may have a type on this deal that we want to new up
-//the default would be the DataObject
-//hide the array and provide an indexer?
-//if we make it not array its going to 
-//point out all failures
 class DataObjectCacheArray<T extends IObjectState>
 {
     constructor(cachingKey: string = null, storageState: StorageType = null, newT: (obj: any) => T = null) {
@@ -979,7 +1062,7 @@ class View implements IView {
     private countBindersReported: number;
     private cached: HTMLElement
     private eHandlrs = new Array<Listener<IView>>();
-    private binders = new Array<IBinder>();
+    private binders = new Array<Binder>();
     ViewInstance: ViewInstance;
     private preload: IPreViewLoad = null;
     get Preload() {
@@ -1001,7 +1084,7 @@ class View implements IView {
     Show(viewInstance: ViewInstance) {
         var t = this;
         t.ViewInstance = viewInstance;
-        t.binders = new Array<IBinder>();
+        t.binders = new Array<Binder>();
         t.binders.forEach(b => b.RemoveListeners(EventType.Any));
         t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
     }
@@ -1014,8 +1097,9 @@ class View implements IView {
         a.Get(t.Url());
     }
     RequestCompleted(a: CustomEventArg<Ajax>) {
+        let t = this;
         if (a.Sender.ResponseText) {
-            this.SetHTML(a.Sender.ResponseText);
+            t.SetHTML(a.Sender.ResponseText);
         }
         a.Sender = null;
     }
@@ -1032,7 +1116,7 @@ class View implements IView {
                         let a = e.getAttribute("data-binder");
                         if (a) {
                             let fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
-                            e.Binder = <IBinder>fun();
+                            e.Binder = <Binder>fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;
                             t.binders.Add(e.Binder);
@@ -1060,7 +1144,7 @@ class View implements IView {
             t.Dispatch(EventType.Completed);
         }
     }
-    OnBinderComplete(a: ICustomEventArg<IBinder>) {
+    OnBinderComplete(a: ICustomEventArg<Binder>) {
         var t = this;
         if (a.EventType === EventType.Completed) {
             t.countBindersReported = t.countBindersReported + 1;
@@ -1083,7 +1167,10 @@ class View implements IView {
             t.cached.removeChild(n);
             c.appendChild(n);
         }
-        setTimeout(() => { t.Dispatch(EventType.Completed); }, 20);
+        setTimeout(() => {
+            t.Dispatch(EventType.Completed);
+            t.binders.forEach(b => b.HookUpForm());
+        }, 20);
     }
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
         var t = this,
@@ -1337,6 +1424,7 @@ interface IObjectState extends IPropertyChangedDispatcher {
     SetServerProperty(propertyName: string, value: any);
     Container: Array<IObjectState>;
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean);
+    Binder: Binder;
 }
 enum ObjectState {
     Dirty,
@@ -1350,27 +1438,6 @@ interface IView extends IEventDispatcher<IView> {
     CacheStrategy: CacheStrategy;
     Cache: (strategy: CacheStrategy) => void;
 }
-interface IBinder extends IEventDispatcher<IBinder> {
-
-
-    Append(obj: any);
-    PostAndAppend(obj: any);
-    InsertBefore(obj: any, index: number);   
-    PostAndInsertBefore(obj: any, childIndex: number);
-
-    Execute: (viewInstance: ViewInstance) => void;
-    Refresh: (viewInstance: ViewInstance) => void;
-    Dispose: () => void;
-    Element: HTMLElement;
-    DataObjects: DataObjectCacheArray<IObjectState>;
-    Save(obj: IObjectState);
-    SaveDirty();
-    RunWhenObjectsChange: () => void;
-    Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void);
-    NewObject(obj: any): IObjectState;     
-    
-}
-
 interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
     IsDefault: boolean;
@@ -1543,8 +1610,11 @@ module Is {
     export function String(value): boolean {
         return typeof value === "string";
     }
-    export function NotUndefined(value): boolean {
-        return value !== undefined;
+    export function Alive(value): boolean {
+        return value !== undefined && value !== null;
+    }
+    export function HTMLElement(o): boolean {
+        return Is.Alive(o["tagName"]);
     }
 }
 module Has {
@@ -1560,13 +1630,9 @@ module Has {
 }
 module Navigate {
     export function Spa<T extends IViewContainer>(type: { new(): T; }, parameters: any = null) {
-        var p: Array<any>;
-        if (!Is.Array(parameters)) {
-            p = new Array<any>();
+        var p = Is.Array(parameters) ? <Array<any>>parameters : new Array<any>();
+        if (Is.Alive(parameters) && !Is.Array(parameters)) {
             p.Add(parameters)
-        }
-        else {
-            p = <Array<any>>parameters;
         }
         p = p && p.length == 1 && p[0] === "" ? null : p;
         var vc = Reflection.NewObject(type),
@@ -1594,8 +1660,6 @@ module Navigate {
             HistoryManager.Add(vi);
         }
     }
-
-
 }
 module ProgressManager {
     export var ProgressElement: HTMLElement = null;
@@ -1725,7 +1789,7 @@ interface HTMLElement extends Element {
     Set(objectProperties): HTMLElement;
     HasDataSet: () => boolean;
     GetDataSetAttributes: () => { Attribute: string; Property: any; }[];
-    Binder: IBinder;
+    Binder: Binder;
     DataObject: IObjectState;
     Delete();
     Save();
@@ -1736,7 +1800,7 @@ interface HTMLElement extends Element {
     Bind(obj: any, refresh: boolean);
     IndexOf(ele: HTMLElement);
     PostAndInsertBefore(obj: any, index: number);
-    PostAndInsertBeforeChild(childMatch: (child) => boolean, obj: any, index: number);
+    PostAndInsertBeforeChild(childMatch: (child) => boolean, obj: any);
     PostAndAppend(obj: any);
     Append(obj: any);
     InsertBefore(obj: any, index: number);
@@ -1746,43 +1810,50 @@ HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boole
     var p = <HTMLElement>this, b = p.Binder;
     var fc = p.First(childMatch);
     if (fc) {
-        var i = p.IndexOf(p);
-        if (Is.NotUndefined(i)) {
+        p = fc.parentElement;
+        var i = p.IndexOf(fc);
+        if (Is.Alive(i)) {
+            p = <HTMLElement>this;
             p.InsertBefore(obj, i);
         }
     }
 }
 HTMLElement.prototype.InsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.InsertBefore(obj, index);
     }
 }
 HTMLElement.prototype.Append = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.Append(obj);
     }
 }
 HTMLElement.prototype.PostAndAppend = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.PostAndAppend(obj);
     }
 }
-HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any, index: number) {
+HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
     var fc = p.First(childMatch);
     if (fc) {
-        var i = p.IndexOf(p);
-        if (Is.NotUndefined(i)) {
+        p = fc.parentElement;
+        var i = p.IndexOf(fc);
+        if (Is.Alive(i)) {
+            p = <HTMLElement>this;
             p.PostAndInsertBefore(obj, i);
+            return;
         }
     }
+    p = <HTMLElement>this;
+    p.PostAndAppend(obj);
 }
 HTMLElement.prototype.PostAndInsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
-    if (Is.NotUndefined(b)) {
+    if (Is.Alive(b)) {
         b.PostAndInsertBefore(obj, index);
     }
 }
@@ -1800,7 +1871,7 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
     if (refresh) {
         this.RemoveDataRowElements();
     }
-    var binder = <IBinder>this.Binder;
+    var binder = <Binder>this.Binder;
     if (binder) {
         if (obj instanceof ViewInstance) {
             binder.Refresh(<ViewInstance>obj);
