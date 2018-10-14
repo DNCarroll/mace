@@ -4,7 +4,24 @@ interface String {
     CreateElement(objectProperties?): HTMLElement;
     CreateElementFromHtml(): HTMLElement;
     IsStyle(): boolean;
+    RemoveSpecialCharacters(replaceWithCharacter?: string): string;
 }
+String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter?: string) {
+    var s = <string>this, p: string = null, r: string = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
+    for (var i = 0; i < s.length; i++) {
+        let c = s.charAt(i);
+        let m = c.match(/\w/);
+        if ((c === rc && p !== rc) || (m && m.length > 0)) {
+            r += c;
+            p = c;
+        }
+        else if (c === " " && p !== rc) {
+            p = rc;
+            r += p;
+        }
+    }
+    return r;
+};
 String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };

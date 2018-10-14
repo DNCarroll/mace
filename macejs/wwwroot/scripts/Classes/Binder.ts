@@ -8,6 +8,9 @@
         t.AutomaticUpdate = autoUpdate;
         if (TypeObject) {
             t.NewObject = (obj: any) => {
+                if (DataObject.IsDataObject(obj)) {
+                    return obj;
+                }
                 return new TypeObject(obj);
             };
         }
@@ -33,6 +36,7 @@
     DataObjects: DataObjectCacheArray<IObjectState> = new DataObjectCacheArray<IObjectState>();
     OnSelectedItemChanged: (obj: IObjectState) => void;
     AutomaticUpdate: boolean = true;
+    AutomaticDelete: boolean = true;
     AutomaticSelect: boolean = true;
     DataRowTemplates = new Array<HTMLElement>();
     DataRowFooter: HTMLElement;
@@ -78,7 +82,7 @@
                 }
             }
             vp && vp.length === 0 ? p.forEach(o => np.Add(o)) : null;
-            return "/" + np.join("/");
+            return (np[0].indexOf("http") == -1 ? "/" : "") + np.join("/");
         }
         return null;
     }
@@ -114,6 +118,7 @@
     private loadFromVI(vi: ViewInstance) {
         var t = this;
         t.prepTemplates();
+        vi = !Is.Alive(vi) ? HistoryManager.CurrentViewInstance() : vi;
         if (vi.RefreshBinding) {
             t.DataObjects = new DataObjectCacheArray<IObjectState>();
             t.Element.RemoveDataRowElements();
@@ -183,14 +188,15 @@
                 f = () => {
                     var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));
-                    td.slice(i);
+                    //because we dont know what htey are doing with the row they maybe sending them back as changes
+                    //td.slice(i);
                     td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
                 },
                 afc = (arg: CustomEventArg<Ajax>) => {
                     var err = () => {
                         var x = arg.Sender.XHttp, s = x.status;
                         if (!t.isRedirecting(x)) {
-                            if ([204, 404].indexOf(s) > -1) {
+                            if ([204, 404, 200].indexOf(s) > -1) {
                                 f();
                             }
                             else {
@@ -205,7 +211,7 @@
                     a.AddListener(EventType.Any, afc);
                     a.Delete(t.Api(), o.ServerObject);
                 };
-            t.AutomaticUpdate ? af() : f();
+            t.AutomaticDelete ? af() : f();
         }
     }
     InsertBefore(obj: any, beforeIndex: number) {
@@ -346,12 +352,14 @@
         this.AutomaticUpdate ? this.Save(o) : null;
     }
     Save(obj: IObjectState) {
-        var t = this, o = obj, api = t.Api();
-        if (api && o.ObjectState === ObjectState.Dirty) {
-            var a = new Ajax(t.WithProgress, t.DisableElement);
-            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            o.ObjectState = ObjectState.Cleaning;
-            a.Put(api, o.ServerObject);
+        if (!Is.Alive(t) || !Is.Alive(t.Api)) {
+            var t = this, o = obj, api = t.Api();
+            if (api && o.ObjectState === ObjectState.Dirty) {
+                var a = new Ajax(t.WithProgress, t.DisableElement);
+                a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+                o.ObjectState = ObjectState.Cleaning;
+                a.Put(api, o.ServerObject);
+            }
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
@@ -380,7 +388,7 @@
     SaveDirty() {
         var t = this,
             a = t.Api(),
-            d = t.DataObjects;
+            d = t.DataObjects.Data;
         if (a && d && d.length > 0) {
             var c = d.Where(o => o.ObjectState === ObjectState.Dirty).Select(o => o.ServerObject),
                 aj = new Ajax(t.WithProgress, t.DisableElement);
@@ -404,9 +412,11 @@
     }
     isPKMatch(d: IObjectState, incoming: any): boolean {
         var t = this;
-        for (var i = 0; i < t.PrimaryKeys.length; i++) {
-            if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
-                return false;
+        if (t != null && t.PrimaryKeys != null) {
+            for (var i = 0; i < t.PrimaryKeys.length; i++) {
+                if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
+                    return false;
+                }
             }
         }
         return true;

@@ -11,6 +11,7 @@ var Binder = (function () {
         this.eventHandlers = new Array();
         this.DataObjects = new DataObjectCacheArray();
         this.AutomaticUpdate = true;
+        this.AutomaticDelete = true;
         this.AutomaticSelect = true;
         this.DataRowTemplates = new Array();
         this.initialLoad = true;
@@ -21,6 +22,9 @@ var Binder = (function () {
         t.AutomaticUpdate = autoUpdate;
         if (TypeObject) {
             t.NewObject = function (obj) {
+                if (DataObject.IsDataObject(obj)) {
+                    return obj;
+                }
                 return new TypeObject(obj);
             };
         }
@@ -73,7 +77,7 @@ var Binder = (function () {
                 }
             }
             vp && vp.length === 0 ? p.forEach(function (o) { return np.Add(o); }) : null;
-            return "/" + np.join("/");
+            return (np[0].indexOf("http") == -1 ? "/" : "") + np.join("/");
         }
         return null;
     };
@@ -108,6 +112,7 @@ var Binder = (function () {
     Binder.prototype.loadFromVI = function (vi) {
         var t = this;
         t.prepTemplates();
+        vi = !Is.Alive(vi) ? HistoryManager.CurrentViewInstance() : vi;
         if (vi.RefreshBinding) {
             t.DataObjects = new DataObjectCacheArray();
             t.Element.RemoveDataRowElements();
@@ -174,13 +179,14 @@ var Binder = (function () {
             var a = new Ajax(t.WithProgress, t.DisableElement), f = function () {
                 var es = t.Element.Get(function (e) { return e.DataObject === o; }), td = t.DataObjects.Data, i = td.indexOf(o);
                 es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
-                td.slice(i);
+                //because we dont know what htey are doing with the row they maybe sending them back as changes
+                //td.slice(i);
                 td.forEach(function (o) { return o.InstigatePropertyChangedListeners("AlternatingRowClass", false); });
             }, afc = function (arg) {
                 var err = function () {
                     var x = arg.Sender.XHttp, s = x.status;
                     if (!t.isRedirecting(x)) {
-                        if ([204, 404].indexOf(s) > -1) {
+                        if ([204, 404, 200].indexOf(s) > -1) {
                             f();
                         }
                         else {
@@ -194,7 +200,7 @@ var Binder = (function () {
                 a.AddListener(EventType.Any, afc);
                 a.Delete(t.Api(), o.ServerObject);
             };
-            t.AutomaticUpdate ? af() : f();
+            t.AutomaticDelete ? af() : f();
         }
     };
     Binder.prototype.InsertBefore = function (obj, beforeIndex) {
@@ -327,12 +333,14 @@ var Binder = (function () {
         this.AutomaticUpdate ? this.Save(o) : null;
     };
     Binder.prototype.Save = function (obj) {
-        var t = this, o = obj, api = t.Api();
-        if (api && o.ObjectState === ObjectState.Dirty) {
-            var a = new Ajax(t.WithProgress, t.DisableElement);
-            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            o.ObjectState = ObjectState.Cleaning;
-            a.Put(api, o.ServerObject);
+        if (!Is.Alive(t) || !Is.Alive(t.Api)) {
+            var t = this, o = obj, api = t.Api();
+            if (api && o.ObjectState === ObjectState.Dirty) {
+                var a = new Ajax(t.WithProgress, t.DisableElement);
+                a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+                o.ObjectState = ObjectState.Cleaning;
+                a.Put(api, o.ServerObject);
+            }
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
@@ -357,7 +365,7 @@ var Binder = (function () {
         }
     };
     Binder.prototype.SaveDirty = function () {
-        var t = this, a = t.Api(), d = t.DataObjects;
+        var t = this, a = t.Api(), d = t.DataObjects.Data;
         if (a && d && d.length > 0) {
             var c = d.Where(function (o) { return o.ObjectState === ObjectState.Dirty; }).Select(function (o) { return o.ServerObject; }), aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
@@ -380,9 +388,11 @@ var Binder = (function () {
     };
     Binder.prototype.isPKMatch = function (d, incoming) {
         var t = this;
-        for (var i = 0; i < t.PrimaryKeys.length; i++) {
-            if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
-                return false;
+        if (t != null && t.PrimaryKeys != null) {
+            for (var i = 0; i < t.PrimaryKeys.length; i++) {
+                if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
+                    return false;
+                }
             }
         }
         return true;
