@@ -236,6 +236,9 @@ class Binder {
         t.AutomaticUpdate = autoUpdate;
         if (TypeObject) {
             t.NewObject = (obj: any) => {
+                if (DataObject.IsDataObject(obj)) {
+                    return obj;
+                }
                 return new TypeObject(obj);
             };
         }
@@ -261,6 +264,7 @@ class Binder {
     DataObjects: DataObjectCacheArray<IObjectState> = new DataObjectCacheArray<IObjectState>();
     OnSelectedItemChanged: (obj: IObjectState) => void;
     AutomaticUpdate: boolean = true;
+    AutomaticDelete: boolean = true;
     AutomaticSelect: boolean = true;
     DataRowTemplates = new Array<HTMLElement>();
     DataRowFooter: HTMLElement;
@@ -306,7 +310,7 @@ class Binder {
                 }
             }
             vp && vp.length === 0 ? p.forEach(o => np.Add(o)) : null;
-            return "/" + np.join("/");
+            return (np[0].indexOf("http") == -1 ? "/" : "") + np.join("/");
         }
         return null;
     }
@@ -342,6 +346,7 @@ class Binder {
     private loadFromVI(vi: ViewInstance) {
         var t = this;
         t.prepTemplates();
+        vi = !Is.Alive(vi) ? HistoryManager.CurrentViewInstance() : vi;
         if (vi.RefreshBinding) {
             t.DataObjects = new DataObjectCacheArray<IObjectState>();
             t.Element.RemoveDataRowElements();
@@ -411,14 +416,15 @@ class Binder {
                 f = () => {
                     var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));
-                    td.slice(i);
+                    //because we dont know what htey are doing with the row they maybe sending them back as changes
+                    //td.slice(i);
                     td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
                 },
                 afc = (arg: CustomEventArg<Ajax>) => {
                     var err = () => {
                         var x = arg.Sender.XHttp, s = x.status;
                         if (!t.isRedirecting(x)) {
-                            if ([204, 404].indexOf(s) > -1) {
+                            if ([204, 404, 200].indexOf(s) > -1) {
                                 f();
                             }
                             else {
@@ -433,7 +439,7 @@ class Binder {
                     a.AddListener(EventType.Any, afc);
                     a.Delete(t.Api(), o.ServerObject);
                 };
-            t.AutomaticUpdate ? af() : f();
+            t.AutomaticDelete ? af() : f();
         }
     }
     InsertBefore(obj: any, beforeIndex: number) {
@@ -574,12 +580,14 @@ class Binder {
         this.AutomaticUpdate ? this.Save(o) : null;
     }
     Save(obj: IObjectState) {
-        var t = this, o = obj, api = t.Api();
-        if (api && o.ObjectState === ObjectState.Dirty) {
-            var a = new Ajax(t.WithProgress, t.DisableElement);
-            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-            o.ObjectState = ObjectState.Cleaning;
-            a.Put(api, o.ServerObject);
+        if (!Is.Alive(t) || !Is.Alive(t.Api)) {
+            var t = this, o = obj, api = t.Api();
+            if (api && o.ObjectState === ObjectState.Dirty) {
+                var a = new Ajax(t.WithProgress, t.DisableElement);
+                a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+                o.ObjectState = ObjectState.Cleaning;
+                a.Put(api, o.ServerObject);
+            }
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
@@ -608,7 +616,7 @@ class Binder {
     SaveDirty() {
         var t = this,
             a = t.Api(),
-            d = t.DataObjects;
+            d = t.DataObjects.Data;
         if (a && d && d.length > 0) {
             var c = d.Where(o => o.ObjectState === ObjectState.Dirty).Select(o => o.ServerObject),
                 aj = new Ajax(t.WithProgress, t.DisableElement);
@@ -632,9 +640,11 @@ class Binder {
     }
     isPKMatch(d: IObjectState, incoming: any): boolean {
         var t = this;
-        for (var i = 0; i < t.PrimaryKeys.length; i++) {
-            if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
-                return false;
+        if (t != null && t.PrimaryKeys != null) {
+            for (var i = 0; i < t.PrimaryKeys.length; i++) {
+                if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
+                    return false;
+                }
             }
         }
         return true;
@@ -1170,7 +1180,7 @@ class View implements IView {
         setTimeout(() => {
             t.Dispatch(EventType.Completed);
             t.binders.forEach(b => b.HookUpForm());
-        }, 20);
+        }, 100);
     }
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
         var t = this,
@@ -1894,7 +1904,8 @@ HTMLElement.prototype.RemoveDataRowElements = function () {
     dr.forEach(r => r.parentElement.removeChild(r));
 };
 HTMLElement.prototype.SaveDirty = function () {
-    var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
+    let t = <HTMLElement>this,
+        p = Is.Alive(t.Binder) ? t : t.Ancestor(p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.SaveDirty();
     }
@@ -2055,7 +2066,24 @@ interface String {
     CreateElement(objectProperties?): HTMLElement;
     CreateElementFromHtml(): HTMLElement;
     IsStyle(): boolean;
+    RemoveSpecialCharacters(replaceWithCharacter?: string): string;
 }
+String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter?: string) {
+    var s = <string>this, p: string = null, r: string = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
+    for (var i = 0; i < s.length; i++) {
+        let c = s.charAt(i);
+        let m = c.match(/\w/);
+        if ((c === rc && p !== rc) || (m && m.length > 0)) {
+            r += c;
+            p = c;
+        }
+        else if (c === " " && p !== rc) {
+            p = rc;
+            r += p;
+        }
+    }
+    return r;
+};
 String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };

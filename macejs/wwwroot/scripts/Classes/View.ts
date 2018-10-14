@@ -137,7 +137,7 @@ class View implements IView {
         setTimeout(() => {
             t.Dispatch(EventType.Completed);
             t.binders.forEach(b => b.HookUpForm());
-        }, 20);
+        }, 100);
     }
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
         var t = this,

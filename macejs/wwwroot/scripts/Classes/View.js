@@ -145,7 +145,7 @@ var View = (function () {
         setTimeout(function () {
             t.Dispatch(EventType.Completed);
             t.binders.forEach(function (b) { return b.HookUpForm(); });
-        }, 20);
+        }, 100);
     };
     View.prototype.AddListener = function (eventType, eventHandler) {
         var t = this, f = t.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });

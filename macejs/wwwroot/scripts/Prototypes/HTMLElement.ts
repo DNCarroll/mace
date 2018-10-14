@@ -111,7 +111,8 @@ HTMLElement.prototype.RemoveDataRowElements = function () {
     dr.forEach(r => r.parentElement.removeChild(r));
 };
 HTMLElement.prototype.SaveDirty = function () {
-    var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
+    let t = <HTMLElement>this,
+        p = Is.Alive(t.Binder) ? t : t.Ancestor(p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.SaveDirty();
     }

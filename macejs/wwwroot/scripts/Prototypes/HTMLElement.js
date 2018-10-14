@@ -87,7 +87,7 @@ HTMLElement.prototype.RemoveDataRowElements = function () {
     dr.forEach(function (r) { return r.parentElement.removeChild(r); });
 };
 HTMLElement.prototype.SaveDirty = function () {
-    var t = this, p = t.Ancestor(function (p) { return p.Binder != null; });
+    var t = this, p = Is.Alive(t.Binder) ? t : t.Ancestor(function (p) { return Is.Alive(p.Binder); });
     if (p && p.Binder) {
         p.Binder.SaveDirty();
     }
