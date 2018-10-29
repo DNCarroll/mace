@@ -96,6 +96,7 @@ class Ajax implements IEventDispatcher<Ajax>{
     private getParameters(parameters: any): string {
         var r = "", p = parameters;
         if (p && this.ContentType === "application/json; charset=utf-8") {
+            p = DataObject.IsDataObject(p) ? p["ServerObject"] : p;
             r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
                 .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
                 .replace(/<script/ig, "")
@@ -323,7 +324,7 @@ class Binder {
         t.prepTemplates();
         try {
             if (t.DataObjects.length > 0 && t.initialLoad) {
-                t.SetUpMore(t.DataObjects);
+                t.SetUpMore(t.DataObjects.Data);
                 t.DataObjects.forEach(obj => {
                     t.add(obj, true);
                 });
@@ -341,6 +342,8 @@ class Binder {
         t.initialLoad = false;
     }
     Refresh(viewInstance: ViewInstance = null) {
+        var vi = viewInstance ? viewInstance : HistoryManager.CurrentViewInstance();
+        vi.RefreshBinding = true;
         this.loadFromVI(viewInstance);
     }
     private loadFromVI(vi: ViewInstance) {
@@ -349,7 +352,7 @@ class Binder {
         vi = !Is.Alive(vi) ? HistoryManager.CurrentViewInstance() : vi;
         if (vi.RefreshBinding) {
             t.DataObjects = new DataObjectCacheArray<IObjectState>();
-            t.Element.RemoveDataRowElements();
+            t.Element.ClearBoundElements();
         }
         var a = new Ajax(t.WithProgress, t.DisableElement),
             url = t.GetApiForAjax(vi.Parameters);
@@ -389,13 +392,19 @@ class Binder {
         }
         t.SetUpMore(d);
         da.SaveCache();
+        var vi = HistoryManager.CurrentViewInstance();
+        if (vi && vi.RefreshBinding) {
+            t.HookUpForm();
+            vi.RefreshBinding = false;
+        }
         t.Dispatch(EventType.Completed);
+
     }
-    SetUpMore(d: DataObjectCacheArray<IObjectState>) {
+    SetUpMore(d: Array<any>) {
         var t = this,
             tm = t.MoreElement, tms = "none";
         if (tm) {
-            tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
+            tms = d.length > 0 && d.length % t.MoreThreshold === 0 ? "inline" : tms;
             tm.style.display = tms;
         }
     }
@@ -1304,7 +1313,47 @@ abstract class ViewContainer implements IViewContainer {
             if (this.ContainerLoaded !== null) {
                 this.ContainerLoaded();
             }
+            this.Views.forEach(v => {
+                this.LoadSubViews(v.ContainerID());
+            });
         }
+    }
+    LoadSubViews(eleId: string) {
+        var subviews = eleId.Element().Get(e => Is.Alive(e.dataset.subview));
+        subviews.forEach(s => {
+            var a = new Ajax(false);
+            a.AddListener(EventType.Any, (arg) => {
+                var r = arg.Sender.ResponseText;
+                s.innerHTML = r;
+                var ele = s.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
+                if (ele.length > 0) {
+                    ele.forEach(e => {
+                        try {
+                            let a = e.getAttribute("data-binder");
+                            if (a) {
+                                let fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
+                                e.Binder = <Binder>fun();
+                                e.Binder.Element = e;
+                            }
+                        }
+                        catch (e) {
+                            window.Exception(e);
+                        }
+                    });
+                    ele.forEach(e => {
+                        if (e.Binder) {
+                            try {
+                                e.Binder.Refresh();
+                            }
+                            catch (ex) {
+                                window.Exception(ex);
+                            }
+                        }
+                    });
+                }
+            });
+            a.Get(s.dataset.subview);
+        });
     }
     Url(viewInstance: ViewInstance): string {
         var t = this, vi = viewInstance, rp = viewInstance.Parameters, vp = ViewContainer.VirtualPath;
@@ -1330,10 +1379,19 @@ abstract class ViewContainer implements IViewContainer {
                     nu.Add(up[i]);
                 }
             }
+            for (var i = 0; i < nu.length; i++) {
+                nu[i] = encodeURIComponent(nu[i]);
+            }
             newUrl = nu.join("/");
         }
         if (Is.NullOrEmpty(newUrl)) {
-            newUrl = t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+            var ecrp = new Array<string>();
+            if (rp) {
+                for (var i = 0; i < rp.length; i++) {
+                    ecrp.Add(encodeURIComponent(rp[i]));
+                }
+            }
+            newUrl = t.Name + (ecrp.length > 0 ? "/" + ecrp.join("/") : "");
         }
         return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
     }
@@ -1503,7 +1561,7 @@ module HistoryContainer {
                 h = history,
                 u = vc.Url(vi);
             if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
@@ -1514,6 +1572,8 @@ module HistoryContainer {
             document.title = documentTitle ? documentTitle : title;
             history.pushState(null, title, url);
         }
+        //this method isnt used anymore but it maybe needed still
+        //the "g" is absolutely wrong
         FormatUrl(url: string) {
             url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
             return url;
@@ -1805,7 +1865,7 @@ interface HTMLElement extends Element {
     Save();
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
-    RemoveDataRowElements();
+    ClearBoundElements();
     Bind(obj: any);
     Bind(obj: any, refresh: boolean);
     IndexOf(ele: HTMLElement);
@@ -1815,6 +1875,17 @@ interface HTMLElement extends Element {
     Append(obj: any);
     InsertBefore(obj: any, index: number);
     InsertBeforeChild(childMatch: (child) => boolean, obj: any);
+    Input(): HTMLInputElement;
+    Input(predicate: (item: HTMLInputElement) => boolean): HTMLInputElement;
+}
+HTMLElement.prototype.Input = function (predicate: (item: HTMLInputElement) => boolean = null) {
+    var p = <HTMLElement>this;
+    if (predicate) {
+        return <HTMLInputElement>p.First(e => e.tagName === "INPUT" && predicate(<HTMLInputElement>e));
+    }
+    else {
+        return <HTMLInputElement>p.First(e => e.tagName === "INPUT");
+    }
 }
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
@@ -1898,10 +1969,9 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
         }
     }
 };
-HTMLElement.prototype.RemoveDataRowElements = function () {
+HTMLElement.prototype.ClearBoundElements = function () {
     var t = <HTMLElement>this;
-    var dr = t.Get(e => e.getAttribute("data-template") != null);
-    dr.forEach(r => r.parentElement.removeChild(r));
+    t.Get(e => e.getAttribute("data-template") != null).forEach(r => r.parentElement.removeChild(r));
 };
 HTMLElement.prototype.SaveDirty = function () {
     let t = <HTMLElement>this,

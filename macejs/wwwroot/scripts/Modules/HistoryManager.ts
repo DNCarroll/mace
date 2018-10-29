@@ -40,7 +40,7 @@
                 h = history,
                 u = vc.Url(vi);
             if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
@@ -51,6 +51,8 @@
             document.title = documentTitle ? documentTitle : title;
             history.pushState(null, title, url);
         }
+        //this method isnt used anymore but it maybe needed still
+        //the "g" is absolutely wrong
         FormatUrl(url: string) {
             url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
             return url;

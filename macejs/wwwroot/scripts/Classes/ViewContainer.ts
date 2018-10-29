@@ -47,7 +47,47 @@ abstract class ViewContainer implements IViewContainer {
             if (this.ContainerLoaded !== null) {
                 this.ContainerLoaded();
             }
+            this.Views.forEach(v => {
+                this.LoadSubViews(v.ContainerID());
+            });
         }
+    }
+    LoadSubViews(eleId: string) {
+        var subviews = eleId.Element().Get(e => Is.Alive(e.dataset.subview));
+        subviews.forEach(s => {
+            var a = new Ajax(false);
+            a.AddListener(EventType.Any, (arg) => {
+                var r = arg.Sender.ResponseText;
+                s.innerHTML = r;
+                var ele = s.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
+                if (ele.length > 0) {
+                    ele.forEach(e => {
+                        try {
+                            let a = e.getAttribute("data-binder");
+                            if (a) {
+                                let fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
+                                e.Binder = <Binder>fun();
+                                e.Binder.Element = e;
+                            }
+                        }
+                        catch (e) {
+                            window.Exception(e);
+                        }
+                    });
+                    ele.forEach(e => {
+                        if (e.Binder) {
+                            try {
+                                e.Binder.Refresh();
+                            }
+                            catch (ex) {
+                                window.Exception(ex);
+                            }
+                        }
+                    });
+                }
+            });
+            a.Get(s.dataset.subview);
+        });
     }
     Url(viewInstance: ViewInstance): string {
         var t = this, vi = viewInstance, rp = viewInstance.Parameters, vp = ViewContainer.VirtualPath;
@@ -73,10 +113,19 @@ abstract class ViewContainer implements IViewContainer {
                     nu.Add(up[i]);
                 }
             }
+            for (var i = 0; i < nu.length; i++) {
+                nu[i] = encodeURIComponent(nu[i]);
+            }
             newUrl = nu.join("/");
         }
         if (Is.NullOrEmpty(newUrl)) {
-            newUrl = t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+            var ecrp = new Array<string>();
+            if (rp) {
+                for (var i = 0; i < rp.length; i++) {
+                    ecrp.Add(encodeURIComponent(rp[i]));
+                }
+            }
+            newUrl = t.Name + (ecrp.length > 0 ? "/" + ecrp.join("/") : "");
         }
         return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
     }
