@@ -100,6 +100,7 @@ var Ajax = (function () {
     Ajax.prototype.getParameters = function (parameters) {
         var r = "", p = parameters;
         if (p && this.ContentType === "application/json; charset=utf-8") {
+            p = DataObject.IsDataObject(p) ? p["ServerObject"] : p;
             r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
                 .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
                 .replace(/<script/ig, "")

@@ -45,6 +45,7 @@ var ViewContainer = (function () {
         return false;
     };
     ViewContainer.prototype.ViewLoadCompleted = function (a) {
+        var _this = this;
         if (a.EventType === EventType.Completed) {
             this.NumberViewsShown = this.NumberViewsShown + 1;
         }
@@ -54,7 +55,47 @@ var ViewContainer = (function () {
             if (this.ContainerLoaded !== null) {
                 this.ContainerLoaded();
             }
+            this.Views.forEach(function (v) {
+                _this.LoadSubViews(v.ContainerID());
+            });
         }
+    };
+    ViewContainer.prototype.LoadSubViews = function (eleId) {
+        var subviews = eleId.Element().Get(function (e) { return Is.Alive(e.dataset.subview); });
+        subviews.forEach(function (s) {
+            var a = new Ajax(false);
+            a.AddListener(EventType.Any, function (arg) {
+                var r = arg.Sender.ResponseText;
+                s.innerHTML = r;
+                var ele = s.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
+                if (ele.length > 0) {
+                    ele.forEach(function (e) {
+                        try {
+                            var a_1 = e.getAttribute("data-binder");
+                            if (a_1) {
+                                var fun = new Function("return new " + a_1 + (a_1.indexOf("Binder(") == 0 ? "" : "()"));
+                                e.Binder = fun();
+                                e.Binder.Element = e;
+                            }
+                        }
+                        catch (e) {
+                            window.Exception(e);
+                        }
+                    });
+                    ele.forEach(function (e) {
+                        if (e.Binder) {
+                            try {
+                                e.Binder.Refresh();
+                            }
+                            catch (ex) {
+                                window.Exception(ex);
+                            }
+                        }
+                    });
+                }
+            });
+            a.Get(s.dataset.subview);
+        });
     };
     ViewContainer.prototype.Url = function (viewInstance) {
         var t = this, vi = viewInstance, rp = viewInstance.Parameters, vp = ViewContainer.VirtualPath;
@@ -82,10 +123,19 @@ var ViewContainer = (function () {
                     nu.Add(up[i]);
                 }
             }
+            for (var i = 0; i < nu.length; i++) {
+                nu[i] = encodeURIComponent(nu[i]);
+            }
             newUrl = nu.join("/");
         }
         if (Is.NullOrEmpty(newUrl)) {
-            newUrl = t.Name + (rp && rp.length > 0 ? "/" + rp.join("/") : "");
+            var ecrp = new Array();
+            if (rp) {
+                for (var i = 0; i < rp.length; i++) {
+                    ecrp.Add(encodeURIComponent(rp[i]));
+                }
+            }
+            newUrl = t.Name + (ecrp.length > 0 ? "/" + ecrp.join("/") : "");
         }
         return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
     };

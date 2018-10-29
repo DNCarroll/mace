@@ -95,7 +95,7 @@
         t.prepTemplates();
         try {
             if (t.DataObjects.length > 0 && t.initialLoad) {
-                t.SetUpMore(t.DataObjects);
+                t.SetUpMore(t.DataObjects.Data);
                 t.DataObjects.forEach(obj => {
                     t.add(obj, true);
                 });
@@ -113,6 +113,8 @@
         t.initialLoad = false;
     }
     Refresh(viewInstance: ViewInstance = null) {
+        var vi = viewInstance ? viewInstance : HistoryManager.CurrentViewInstance();
+        vi.RefreshBinding = true;
         this.loadFromVI(viewInstance);
     }
     private loadFromVI(vi: ViewInstance) {
@@ -121,7 +123,7 @@
         vi = !Is.Alive(vi) ? HistoryManager.CurrentViewInstance() : vi;
         if (vi.RefreshBinding) {
             t.DataObjects = new DataObjectCacheArray<IObjectState>();
-            t.Element.RemoveDataRowElements();
+            t.Element.ClearBoundElements();
         }
         var a = new Ajax(t.WithProgress, t.DisableElement),
             url = t.GetApiForAjax(vi.Parameters);
@@ -161,13 +163,19 @@
         }
         t.SetUpMore(d);
         da.SaveCache();
+        var vi = HistoryManager.CurrentViewInstance();
+        if (vi && vi.RefreshBinding) {
+            t.HookUpForm();
+            vi.RefreshBinding = false;
+        }
         t.Dispatch(EventType.Completed);
+
     }
-    SetUpMore(d: DataObjectCacheArray<IObjectState>) {
+    SetUpMore(d: Array<any>) {
         var t = this,
             tm = t.MoreElement, tms = "none";
         if (tm) {
-            tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
+            tms = d.length > 0 && d.length % t.MoreThreshold === 0 ? "inline" : tms;
             tm.style.display = tms;
         }
     }

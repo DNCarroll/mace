@@ -1,3 +1,13 @@
+HTMLElement.prototype.Input = function (predicate) {
+    if (predicate === void 0) { predicate = null; }
+    var p = this;
+    if (predicate) {
+        return p.First(function (e) { return e.tagName === "INPUT" && predicate(e); });
+    }
+    else {
+        return p.First(function (e) { return e.tagName === "INPUT"; });
+    }
+};
 HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
     var p = this, b = p.Binder;
     var fc = p.First(childMatch);
@@ -81,10 +91,9 @@ HTMLElement.prototype.Bind = function (obj, refresh) {
         }
     }
 };
-HTMLElement.prototype.RemoveDataRowElements = function () {
+HTMLElement.prototype.ClearBoundElements = function () {
     var t = this;
-    var dr = t.Get(function (e) { return e.getAttribute("data-template") != null; });
-    dr.forEach(function (r) { return r.parentElement.removeChild(r); });
+    t.Get(function (e) { return e.getAttribute("data-template") != null; }).forEach(function (r) { return r.parentElement.removeChild(r); });
 };
 HTMLElement.prototype.SaveDirty = function () {
     var t = this, p = Is.Alive(t.Binder) ? t : t.Ancestor(function (p) { return Is.Alive(p.Binder); });

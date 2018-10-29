@@ -12,7 +12,7 @@ interface HTMLElement extends Element {
     Save();
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
-    RemoveDataRowElements();
+    ClearBoundElements();
     Bind(obj: any);
     Bind(obj: any, refresh: boolean);
     IndexOf(ele: HTMLElement);
@@ -22,6 +22,17 @@ interface HTMLElement extends Element {
     Append(obj: any);
     InsertBefore(obj: any, index: number);
     InsertBeforeChild(childMatch: (child) => boolean, obj: any);
+    Input(): HTMLInputElement;
+    Input(predicate: (item: HTMLInputElement) => boolean): HTMLInputElement;
+}
+HTMLElement.prototype.Input = function (predicate: (item: HTMLInputElement) => boolean = null) {
+    var p = <HTMLElement>this;
+    if (predicate) {
+        return <HTMLInputElement>p.First(e => e.tagName === "INPUT" && predicate(<HTMLInputElement>e));
+    }
+    else {
+        return <HTMLInputElement>p.First(e => e.tagName === "INPUT");
+    }
 }
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
@@ -105,10 +116,9 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
         }
     }
 };
-HTMLElement.prototype.RemoveDataRowElements = function () {
+HTMLElement.prototype.ClearBoundElements = function () {
     var t = <HTMLElement>this;
-    var dr = t.Get(e => e.getAttribute("data-template") != null);
-    dr.forEach(r => r.parentElement.removeChild(r));
+    t.Get(e => e.getAttribute("data-template") != null).forEach(r => r.parentElement.removeChild(r));
 };
 HTMLElement.prototype.SaveDirty = function () {
     let t = <HTMLElement>this,

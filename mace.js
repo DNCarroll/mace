@@ -100,6 +100,7 @@ var Ajax = (function () {
     Ajax.prototype.getParameters = function (parameters) {
         var r = "", p = parameters;
         if (p && this.ContentType === "application/json; charset=utf-8") {
+            p = DataObject.IsDataObject(p) ? p["ServerObject"] : p;
             r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
                 .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
                 .replace(/<script/ig, "")
@@ -330,7 +331,7 @@ var Binder = (function () {
         t.prepTemplates();
         try {
             if (t.DataObjects.length > 0 && t.initialLoad) {
-                t.SetUpMore(t.DataObjects);
+                t.SetUpMore(t.DataObjects.Data);
                 t.DataObjects.forEach(function (obj) {
                     t.add(obj, true);
                 });
@@ -350,6 +351,8 @@ var Binder = (function () {
     };
     Binder.prototype.Refresh = function (viewInstance) {
         if (viewInstance === void 0) { viewInstance = null; }
+        var vi = viewInstance ? viewInstance : HistoryManager.CurrentViewInstance();
+        vi.RefreshBinding = true;
         this.loadFromVI(viewInstance);
     };
     Binder.prototype.loadFromVI = function (vi) {
@@ -358,7 +361,7 @@ var Binder = (function () {
         vi = !Is.Alive(vi) ? HistoryManager.CurrentViewInstance() : vi;
         if (vi.RefreshBinding) {
             t.DataObjects = new DataObjectCacheArray();
-            t.Element.RemoveDataRowElements();
+            t.Element.ClearBoundElements();
         }
         var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
@@ -396,12 +399,17 @@ var Binder = (function () {
         }
         t.SetUpMore(d);
         da.SaveCache();
+        var vi = HistoryManager.CurrentViewInstance();
+        if (vi && vi.RefreshBinding) {
+            t.HookUpForm();
+            vi.RefreshBinding = false;
+        }
         t.Dispatch(EventType.Completed);
     };
     Binder.prototype.SetUpMore = function (d) {
         var t = this, tm = t.MoreElement, tms = "none";
         if (tm) {
-            tms = t.DataObjects.length % t.MoreThreshold === 0 && d.length > 0 ? "inline" : tms;
+            tms = d.length > 0 && d.length % t.MoreThreshold === 0 ? "inline" : tms;
             tm.style.display = tms;
         }
     };
@@ -963,6 +971,496 @@ var DataObject = (function () {
     return DataObject;
 }());
 //# sourceMappingURL=DataObject.js.map
+var StorageType;
+(function (StorageType) {
+    StorageType[StorageType["none"] = 0] = "none";
+    StorageType[StorageType["session"] = 1] = "session";
+    StorageType[StorageType["local"] = 2] = "local";
+})(StorageType || (StorageType = {}));
+var DataObjectCacheArray = (function () {
+    function DataObjectCacheArray(cachingKey, storageState, newT) {
+        if (cachingKey === void 0) { cachingKey = null; }
+        if (storageState === void 0) { storageState = null; }
+        if (newT === void 0) { newT = null; }
+        this.Data = new Array();
+        var t = this;
+        t._cachingKey = cachingKey;
+        t._storageState = storageState;
+        t._newT = newT;
+        if (t._cachingKey && t._storageState && t._newT) {
+            var rehydrated;
+            switch (t._storageState) {
+                case StorageType.local:
+                    rehydrated = localStorage.getItem(t._cachingKey);
+                    break;
+                case StorageType.session:
+                    rehydrated = sessionStorage.getItem(t._cachingKey);
+                    break;
+                default:
+                    break;
+            }
+            if (!Is.NullOrEmpty(rehydrated)) {
+                var objs = JSON.parse(rehydrated);
+                if (Is.Array(objs)) {
+                    var arr = objs;
+                    arr.forEach(function (o) {
+                        t.Add(t._newT(o));
+                    });
+                }
+                else {
+                    t.Add(t._newT(objs));
+                }
+            }
+        }
+    }
+    //Delete
+    //these would have to be on the prototype cant just add them here
+    DataObjectCacheArray.prototype.Add = function (obj) {
+        this.Data.push(obj);
+    };
+    DataObjectCacheArray.prototype.slice = function (i) {
+        this.Data.slice(i);
+        this.SaveCache();
+    };
+    DataObjectCacheArray.prototype.indexOf = function (obj, fromIndex) {
+        return this.Data.indexOf(obj, fromIndex);
+    };
+    DataObjectCacheArray.prototype.SaveCache = function () {
+        var t = this, ck = t._cachingKey, ss = t._storageState;
+        if (ck && ss) {
+            switch (ss) {
+                case StorageType.local:
+                    localStorage.setItem(ck, JSON.stringify(t.Data.Select(function (a) { return a.ServerObject; })));
+                    break;
+                case StorageType.session:
+                    sessionStorage.setItem(ck, JSON.stringify(t.Data.Select(function (a) { return a.ServerObject; })));
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+    DataObjectCacheArray.prototype.forEach = function (callBack) {
+        this.Data.forEach(callBack);
+    };
+    Object.defineProperty(DataObjectCacheArray.prototype, "length", {
+        get: function () {
+            return this.Data.length;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    DataObjectCacheArray.prototype.First = function (func) {
+        return this.Data.First(func);
+    };
+    DataObjectCacheArray.prototype.Where = function (func) {
+        return this.Data.Where(func);
+    };
+    return DataObjectCacheArray;
+}());
+//# sourceMappingURL=DataObjectCacheArray.js.map
+var CacheStrategy;
+(function (CacheStrategy) {
+    CacheStrategy[CacheStrategy["None"] = 0] = "None";
+    CacheStrategy[CacheStrategy["ViewAndPreload"] = 1] = "ViewAndPreload";
+    CacheStrategy[CacheStrategy["View"] = 2] = "View";
+    CacheStrategy[CacheStrategy["Preload"] = 3] = "Preload";
+})(CacheStrategy || (CacheStrategy = {}));
+var View = (function () {
+    function View(cacheStrategy, containerId, viewPath) {
+        if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.View; }
+        if (containerId === void 0) { containerId = "content"; }
+        if (viewPath === void 0) { viewPath = null; }
+        this.CacheStrategy = CacheStrategy.None;
+        this._containerID = null;
+        this.eHandlrs = new Array();
+        this.binders = new Array();
+        this.preload = null;
+        var t = this;
+        t.url = viewPath;
+        t._containerID = containerId;
+        t.CacheStrategy = cacheStrategy;
+        t.Cache(t.CacheStrategy);
+    }
+    View.prototype.Prefix = function () {
+        return "/Views/";
+    };
+    View.prototype.Url = function () {
+        if (!this.url) {
+            var n = Reflection.GetName(this.constructor).replace("View", "");
+            this.url = this.Prefix() + n + ".html";
+        }
+        return this.url;
+    };
+    ;
+    View.prototype.ContainerID = function () { return this._containerID; };
+    ;
+    Object.defineProperty(View.prototype, "Preload", {
+        get: function () {
+            return this.preload;
+        },
+        set: function (value) {
+            this.preload = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    View.prototype.Cache = function (strategy) {
+        if (strategy === void 0) { strategy = CacheStrategy.ViewAndPreload; }
+        var t = this;
+        if (t.Preload &&
+            (strategy === CacheStrategy.ViewAndPreload || strategy === CacheStrategy.Preload)) {
+            t.Preload.Execute(function () { });
+        }
+        if (strategy === CacheStrategy.View || strategy === CacheStrategy.ViewAndPreload) {
+            t.postPreloaded(true);
+        }
+    };
+    View.prototype.Show = function (viewInstance) {
+        var t = this;
+        t.ViewInstance = viewInstance;
+        t.binders = new Array();
+        t.binders.forEach(function (b) { return b.RemoveListeners(EventType.Any); });
+        t.Preload ? t.Preload.Execute(t.postPreloaded.bind(this)) : t.postPreloaded();
+    };
+    View.prototype.postPreloaded = function (dontSetHtml) {
+        if (dontSetHtml === void 0) { dontSetHtml = false; }
+        var t = this, a = new Ajax();
+        if (!dontSetHtml) {
+            a.AddListener(EventType.Completed, t.RequestCompleted.bind(this));
+        }
+        a.Get(t.Url());
+    };
+    View.prototype.RequestCompleted = function (a) {
+        var t = this;
+        if (a.Sender.ResponseText) {
+            t.SetHTML(a.Sender.ResponseText);
+        }
+        a.Sender = null;
+    };
+    View.prototype.SetHTML = function (html) {
+        var _this = this;
+        var t = this, c = t.ContainerID().Element();
+        if (!Is.NullOrEmpty(c)) {
+            t.cached = "div".CreateElement({ "innerHTML": html });
+            var ele = t.cached.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
+            t.countBindersReported = 0;
+            if (ele.length > 0) {
+                ele.forEach(function (e) {
+                    try {
+                        var a = e.getAttribute("data-binder");
+                        if (a) {
+                            var fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
+                            e.Binder = fun();
+                            e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(_this));
+                            e.Binder.Element = e;
+                            t.binders.Add(e.Binder);
+                        }
+                    }
+                    catch (e) {
+                        window.Exception(e);
+                    }
+                });
+                ele.forEach(function (e) {
+                    if (e.Binder) {
+                        try {
+                            e.Binder.Execute(t.ViewInstance);
+                        }
+                        catch (ex) {
+                            window.Exception(ex);
+                        }
+                    }
+                });
+            }
+            else {
+                t.MoveStuffFromCacheToReal();
+            }
+        }
+        else {
+            t.Dispatch(EventType.Completed);
+        }
+    };
+    View.prototype.OnBinderComplete = function (a) {
+        var _this = this;
+        var t = this;
+        if (a.EventType === EventType.Completed) {
+            t.countBindersReported = t.countBindersReported + 1;
+            if (t.binders.length === t.countBindersReported) {
+                t.MoveStuffFromCacheToReal();
+                t.binders.forEach(function (b) {
+                    b.RemoveListener(EventType.Completed, t.OnBinderComplete.bind(_this));
+                });
+            }
+        }
+    };
+    View.prototype.MoveStuffFromCacheToReal = function () {
+        var t = this, c = t.ContainerID().Element();
+        var be = c.Get(function (e) { return e.Binder != null; });
+        be.forEach(function (e) { return e.Binder.Dispose(); });
+        c.Clear();
+        while (t.cached.childNodes.length > 0) {
+            var n = t.cached.childNodes[0];
+            t.cached.removeChild(n);
+            c.appendChild(n);
+        }
+        setTimeout(function () {
+            t.Dispatch(EventType.Completed);
+            t.binders.forEach(function (b) { return b.HookUpForm(); });
+        }, 100);
+    };
+    View.prototype.AddListener = function (eventType, eventHandler) {
+        var t = this, f = t.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });
+        if (!f) {
+            t.eHandlrs.Add(new Listener(eventType, eventHandler));
+        }
+    };
+    View.prototype.RemoveListener = function (eventType, eventHandler) {
+        this.eHandlrs.Remove(function (l) { return l.EventType === eventType && eventHandler === eventHandler; });
+    };
+    View.prototype.RemoveListeners = function (eventType) {
+        this.eHandlrs.Remove(function (l) { return l.EventType === eventType; });
+    };
+    View.prototype.Dispatch = function (eventType) {
+        var _this = this;
+        var l = this.eHandlrs.Where(function (e) { return e.EventType === eventType; });
+        l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
+    };
+    return View;
+}());
+var DataLoaders = (function () {
+    function DataLoaders() {
+        var dataLoaders = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            dataLoaders[_i] = arguments[_i];
+        }
+        this.completedCount = 0;
+        this._dataLoaders = dataLoaders;
+    }
+    DataLoaders.prototype.Execute = function (callback) {
+        var _this = this;
+        var t = this;
+        t._callback = callback;
+        t.completedCount = 0;
+        t._dataLoaders.forEach(function (d) { return d.Execute(t.Completed.bind(_this)); });
+    };
+    DataLoaders.prototype.Completed = function () {
+        var t = this;
+        t.completedCount++;
+        if (t.completedCount === t._dataLoaders.length) {
+            t._callback();
+        }
+    };
+    return DataLoaders;
+}());
+var DataLoader = (function () {
+    function DataLoader(dataUrl, dataCallBack, shouldTryLoad, parameters) {
+        if (shouldTryLoad === void 0) { shouldTryLoad = null; }
+        if (parameters === void 0) { parameters = null; }
+        this._parameters = null;
+        var t = this;
+        t._dataCallBack = dataCallBack;
+        t._dataUrl = dataUrl;
+        t._shouldTryLoad = shouldTryLoad;
+    }
+    DataLoader.prototype.Execute = function (completed) {
+        var t = this;
+        t._completed = completed;
+        if (!t._shouldTryLoad || t._shouldTryLoad()) {
+            var ajax = new Ajax();
+            ajax.AddListener(EventType.Completed, t._ajaxCompleted.bind(this));
+            ajax.Get(t._dataUrl, t._parameters);
+        }
+        else {
+            t._completed();
+        }
+    };
+    DataLoader.prototype._ajaxCompleted = function (arg) {
+        this._dataCallBack(arg);
+        this._completed();
+    };
+    return DataLoader;
+}());
+//# sourceMappingURL=View.js.map
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var ViewContainers = new Array();
+var ViewContainer = (function () {
+    function ViewContainer() {
+        this.UrlPattern = null;
+        this.UrlReplacePattern = null;
+        this.ContainerLoaded = null;
+        this.Views = new Array();
+        this.IsDefault = false;
+        var n = Reflection.GetName(this.constructor);
+        this.Name = n.replace("ViewContainer", "");
+        this.Name = this.Name.replace("Container", "");
+        ViewContainers.push(this);
+    }
+    ViewContainer.prototype.Show = function (route) {
+        var rp = route.Parameters, t = this;
+        if (rp && rp.length == 1 && t.IsDefault) {
+            route.Parameters = new Array();
+        }
+        t.NumberViewsShown = 0;
+        ProgressManager.Show();
+        t.Views.forEach(function (s) {
+            s.AddListener(EventType.Completed, t.ViewLoadCompleted.bind(t));
+            s.Show(route);
+        });
+    };
+    ViewContainer.prototype.IsUrlPatternMatch = function (url) {
+        if (!Is.NullOrEmpty(url)) {
+            url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
+            var p = this.UrlPattern ? this.UrlPattern() : "^" + this.Name;
+            if (p) {
+                var regex = new RegExp(p, 'i');
+                return url.match(regex) ? true : false;
+            }
+        }
+        return false;
+    };
+    ViewContainer.prototype.ViewLoadCompleted = function (a) {
+        var _this = this;
+        if (a.EventType === EventType.Completed) {
+            this.NumberViewsShown = this.NumberViewsShown + 1;
+        }
+        if (this.NumberViewsShown === this.Views.length) {
+            ProgressManager.Hide();
+            window.scrollTo(0, 0);
+            if (this.ContainerLoaded !== null) {
+                this.ContainerLoaded();
+            }
+            this.Views.forEach(function (v) {
+                _this.LoadSubViews(v.ContainerID());
+            });
+        }
+    };
+    ViewContainer.prototype.LoadSubViews = function (eleId) {
+        var subviews = eleId.Element().Get(function (e) { return Is.Alive(e.dataset.subview); });
+        subviews.forEach(function (s) {
+            var a = new Ajax(false);
+            a.AddListener(EventType.Any, function (arg) {
+                var r = arg.Sender.ResponseText;
+                s.innerHTML = r;
+                var ele = s.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
+                if (ele.length > 0) {
+                    ele.forEach(function (e) {
+                        try {
+                            var a_1 = e.getAttribute("data-binder");
+                            if (a_1) {
+                                var fun = new Function("return new " + a_1 + (a_1.indexOf("Binder(") == 0 ? "" : "()"));
+                                e.Binder = fun();
+                                e.Binder.Element = e;
+                            }
+                        }
+                        catch (e) {
+                            window.Exception(e);
+                        }
+                    });
+                    ele.forEach(function (e) {
+                        if (e.Binder) {
+                            try {
+                                e.Binder.Refresh();
+                            }
+                            catch (ex) {
+                                window.Exception(ex);
+                            }
+                        }
+                    });
+                }
+            });
+            a.Get(s.dataset.subview);
+        });
+    };
+    ViewContainer.prototype.Url = function (viewInstance) {
+        var t = this, vi = viewInstance, rp = viewInstance.Parameters, vp = ViewContainer.VirtualPath;
+        var newUrl = "";
+        if (vi.Route) {
+            newUrl = vi.Route;
+        }
+        else if (t.UrlReplacePattern !== null) {
+            var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array();
+            for (var i = 0; i < up.length; i++) {
+                var p = up[i];
+                if (p.indexOf("(?:") == 0) {
+                    if (!rp) {
+                        break;
+                    }
+                    if (pi < rp.length) {
+                        nu.Add(rp[pi]);
+                    }
+                    else {
+                        break;
+                    }
+                    pi++;
+                }
+                else {
+                    nu.Add(up[i]);
+                }
+            }
+            for (var i = 0; i < nu.length; i++) {
+                nu[i] = encodeURIComponent(nu[i]);
+            }
+            newUrl = nu.join("/");
+        }
+        if (Is.NullOrEmpty(newUrl)) {
+            var ecrp = new Array();
+            if (rp) {
+                for (var i = 0; i < rp.length; i++) {
+                    ecrp.Add(encodeURIComponent(rp[i]));
+                }
+            }
+            newUrl = t.Name + (ecrp.length > 0 ? "/" + ecrp.join("/") : "");
+        }
+        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
+    };
+    ViewContainer.prototype.UrlTitle = function () {
+        return this.Name.replace(/\//g, " ");
+    };
+    ViewContainer.prototype.DocumentTitle = function (route) {
+        return this.UrlTitle();
+    };
+    ViewContainer.prototype.Parameters = function (url) {
+        var u = url;
+        u = u ? u.replace(this.Name, '') : u;
+        u = u ? u.indexOf('/') === 0 ? u.substring(1) : u : u;
+        return u ? u.split('/') : new Array();
+    };
+    return ViewContainer;
+}());
+var SingleViewContainer = (function (_super) {
+    __extends(SingleViewContainer, _super);
+    function SingleViewContainer(cacheStrategy, containerId, isDefault) {
+        if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.View; }
+        if (containerId === void 0) { containerId = "content"; }
+        if (isDefault === void 0) { isDefault = false; }
+        var _this = _super.call(this) || this;
+        var t = _this;
+        t.IsDefault = isDefault;
+        t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
+        return _this;
+    }
+    return SingleViewContainer;
+}(ViewContainer));
+//# sourceMappingURL=ViewContainer.js.map
+var ViewInstance = (function () {
+    function ViewInstance(parameters, viewContainer, route) {
+        if (route === void 0) { route = null; }
+        this.Route = route;
+        this.Parameters = parameters;
+        this.ViewContainer = viewContainer;
+    }
+    return ViewInstance;
+}());
+//# sourceMappingURL=ViewInstance.js.map
 var EventType;
 (function (EventType) {
     EventType[EventType["Any"] = 0] = "Any";
@@ -1041,7 +1539,7 @@ var HistoryContainer;
         History.prototype.ManageRouteInfo = function (viewInstance) {
             var vi = viewInstance, vc = vi.ViewContainer, t = vc.UrlTitle(vi), dt = vc.DocumentTitle(vi), h = history, u = vc.Url(vi);
             if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
@@ -1053,6 +1551,8 @@ var HistoryContainer;
             document.title = documentTitle ? documentTitle : title;
             history.pushState(null, title, url);
         };
+        //this method isnt used anymore but it maybe needed still
+        //the "g" is absolutely wrong
         History.prototype.FormatUrl = function (url) {
             url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
             return url;
@@ -1344,6 +1844,16 @@ Date.prototype.ToyyyymmddHHMMss = function () {
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };
 //# sourceMappingURL=Date.js.map
+HTMLElement.prototype.Input = function (predicate) {
+    if (predicate === void 0) { predicate = null; }
+    var p = this;
+    if (predicate) {
+        return p.First(function (e) { return e.tagName === "INPUT" && predicate(e); });
+    }
+    else {
+        return p.First(function (e) { return e.tagName === "INPUT"; });
+    }
+};
 HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
     var p = this, b = p.Binder;
     var fc = p.First(childMatch);
@@ -1427,10 +1937,9 @@ HTMLElement.prototype.Bind = function (obj, refresh) {
         }
     }
 };
-HTMLElement.prototype.RemoveDataRowElements = function () {
+HTMLElement.prototype.ClearBoundElements = function () {
     var t = this;
-    var dr = t.Get(function (e) { return e.getAttribute("data-template") != null; });
-    dr.forEach(function (r) { return r.parentElement.removeChild(r); });
+    t.Get(function (e) { return e.getAttribute("data-template") != null; }).forEach(function (r) { return r.parentElement.removeChild(r); });
 };
 HTMLElement.prototype.SaveDirty = function () {
     var t = this, p = Is.Alive(t.Binder) ? t : t.Ancestor(function (p) { return Is.Alive(p.Binder); });
