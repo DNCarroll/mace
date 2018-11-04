@@ -2,17 +2,18 @@ interface Window {
     Exception(parameters: any);
 }
 Window.prototype.Exception = function (parameters: any) {
-    if (Is.Array(parameters)) {
+    var a = alert, p = parameters;
+    if (Is.Array(p)) {
         var o = {};
-        for (var i = 0; i < parameters.length; i++) {
-            o["parameter" + i] = parameters[i];
+        for (var i = 0; i < p.length; i++) {
+            o["parameter" + i] = p[i];
         }
-        alert(JSON.stringify(o));
+        a(JSON.stringify(o));
     }
-    else if (parameters.length > 1) {
-        alert(JSON.stringify(parameters[0]));
+    else if (p.length > 1) {
+        a(JSON.stringify(p[0]));
     }
     else {
-        alert(parameters.toString());
+        a(p.toString());
     }
 };

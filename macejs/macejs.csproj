@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\scripts\Classes\DataObjectCacheArray.ts" />
+    <Content Remove="wwwroot\scripts\Modules\Autofill.ts" />
     <Content Remove="wwwroot\scripts\Modules\Navigate.ts" />
   </ItemGroup>
   <ItemGroup>
@@ -26,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="wwwroot\scripts\Classes\DataObjectCacheArray.ts" />
+    <TypeScriptCompile Include="wwwroot\scripts\Modules\Autofill.ts" />
     <TypeScriptCompile Include="wwwroot\scripts\Modules\Navigate.ts" />
   </ItemGroup>
 

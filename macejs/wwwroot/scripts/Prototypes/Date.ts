@@ -14,14 +14,15 @@ Date.prototype.Add = function (y?: number, m?: number, d?: number, h?: number, m
         t.getMinutes() + mm, t.getSeconds() + s, t.getMilliseconds());
 };
 Date.prototype.ToyyyymmddHHMMss = function () {
+    var t = this;
     var f = (v: number) => {
         return (v <= 9 ? '0' : '') + v.toString();
     };
-    var d = f(this.getDate()),
-        m = f(this.getMonth() + 1),
-        y = this.getFullYear(),
-        h = f(this.getHours()),
-        M = f(this.getMinutes()),
-        s = f(this.getSeconds());
+    var d = f(t.getDate()),
+        m = f(t.getMonth() + 1),
+        y = t.getFullYear(),
+        h = f(t.getHours()),
+        M = f(t.getMinutes()),
+        s = f(t.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };

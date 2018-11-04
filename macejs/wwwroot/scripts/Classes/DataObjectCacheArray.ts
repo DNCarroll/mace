@@ -10,20 +10,11 @@ class DataObjectCacheArray<T extends IObjectState>
         t._cachingKey = cachingKey;
         t._storageState = storageState;
         t._newT = newT;
-        if (t._cachingKey && t._storageState && t._newT) {
-            var rehydrated: string;
-            switch (t._storageState) {
-                case StorageType.local:
-                    rehydrated = localStorage.getItem(t._cachingKey);
-                    break;
-                case StorageType.session:
-                    rehydrated = sessionStorage.getItem(t._cachingKey);
-                    break;
-                default:
-                    break;
-            }
-            if (!Is.NullOrEmpty(rehydrated)) {
-                var objs = JSON.parse(rehydrated);
+        if (t._cachingKey && t._storageState && t._newT) {            
+            var gim = t._storageState === StorageType.local ? localStorage.getItem : sessionStorage.getItem;
+            var reHy = gim(t._cachingKey);
+            if (!Is.NullOrEmpty(reHy)) {
+                var objs = JSON.parse(reHy);
                 if (Is.Array(objs)) {
                     var arr = <Array<any>>objs;
                     arr.forEach(o => {
@@ -39,9 +30,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Data: Array<T> = new Array<T>();
     _cachingKey: string;
     _storageState: StorageType;
-    _newT: (obj: any) => T;
-    //Delete
-    //these would have to be on the prototype cant just add them here
+    _newT: (obj: any) => T;    
     Add(obj: T) {
         this.Data.push(obj);
     }
@@ -55,16 +44,8 @@ class DataObjectCacheArray<T extends IObjectState>
     SaveCache() {
         var t = this, ck = t._cachingKey, ss = t._storageState;
         if (ck && ss) {
-            switch (ss) {
-                case StorageType.local:
-                    localStorage.setItem(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
-                    break;
-                case StorageType.session:
-                    sessionStorage.setItem(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
-                    break;
-                default:
-                    break;
-            }
+            var sim = ss === StorageType.local ? localStorage.setItem : sessionStorage.setItem;
+            sim(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
         }
     }
     forEach(callBack: (value: T, index: number, array: T[]) => void) {

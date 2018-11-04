@@ -1,12 +1,8 @@
 HTMLElement.prototype.Input = function (predicate) {
     if (predicate === void 0) { predicate = null; }
     var p = this;
-    if (predicate) {
-        return p.First(function (e) { return e.tagName === "INPUT" && predicate(e); });
-    }
-    else {
-        return p.First(function (e) { return e.tagName === "INPUT"; });
-    }
+    return predicate ? p.First(function (e) { return e.tagName === "INPUT" && predicate(e); }) :
+        p.First(function (e) { return e.tagName === "INPUT"; });
 };
 HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
     var p = this, b = p.Binder;
@@ -74,20 +70,20 @@ HTMLElement.prototype.Bind = function (obj, refresh) {
     if (refresh) {
         this.RemoveDataRowElements();
     }
-    var binder = this.Binder;
-    if (binder) {
+    var b = this.Binder;
+    if (b) {
         if (obj instanceof ViewInstance) {
-            binder.Refresh(obj);
+            b.Refresh(obj);
         }
         else if (obj instanceof Array) {
             var arr = obj;
             for (var i = 0; i < arr.length; i++) {
                 var tempObj = arr[i];
-                binder.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+                b.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
             }
         }
         else if (obj) {
-            binder.Append(obj instanceof DataObject ? obj : new DataObject(obj));
+            b.Append(obj instanceof DataObject ? obj : new DataObject(obj));
         }
     }
 };

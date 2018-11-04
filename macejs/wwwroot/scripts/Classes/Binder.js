@@ -15,6 +15,7 @@ var Binder = (function () {
         this.AutomaticSelect = true;
         this.DataRowTemplates = new Array();
         this.initialLoad = true;
+        this.FormTemplates = new Array();
         this.RunWhenObjectsChange = null;
         var p = primaryKeys, t = this;
         t.StaticProperties = staticProperties;
@@ -145,7 +146,7 @@ var Binder = (function () {
         if (Is.Array(d)) {
             d.forEach(function (d) { return t.add(t.NewObject(d)); });
             if (t.DataObjects.length > 0) {
-                t.bindForm(t.DataObjects.Data[0]);
+                t.ResetSelectedObject();
             }
         }
         else if (d) {
@@ -157,7 +158,7 @@ var Binder = (function () {
         da.SaveCache();
         var vi = HistoryManager.CurrentViewInstance();
         if (vi && vi.RefreshBinding) {
-            t.HookUpForm();
+            t.ResetSelectedObject();
             vi.RefreshBinding = false;
         }
         t.Dispatch(EventType.Completed);
@@ -186,8 +187,6 @@ var Binder = (function () {
             var a = new Ajax(t.WithProgress, t.DisableElement), f = function () {
                 var es = t.Element.Get(function (e) { return e.DataObject === o; }), td = t.DataObjects.Data, i = td.indexOf(o);
                 es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
-                //because we dont know what htey are doing with the row they maybe sending them back as changes
-                //td.slice(i);
                 td.forEach(function (o) { return o.InstigatePropertyChangedListeners("AlternatingRowClass", false); });
             }, afc = function (arg) {
                 var err = function () {
@@ -247,10 +246,10 @@ var Binder = (function () {
     Binder.prototype.add = function (obj, shouldNotAddItsAlreadyCached, beforeIndex) {
         if (shouldNotAddItsAlreadyCached === void 0) { shouldNotAddItsAlreadyCached = false; }
         if (beforeIndex === void 0) { beforeIndex = -1; }
-        var t = this;
+        var t = this, drt = t.DataRowTemplates;
         t.prepTemplates();
-        if (t.DataRowTemplates.length > 0) {
-            t.DataRowTemplates.forEach(function (d) {
+        if (drt.length > 0) {
+            drt.forEach(function (d) {
                 var ne = d.cloneNode(true), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter, pe = t.Element.tagName === "TABLE" ? t.Element.tBodies[0] : t.Element;
                 be.Add(ne);
                 if (beforeIndex > -1 && beforeIndex < pe.childNodes.length) {
@@ -262,53 +261,24 @@ var Binder = (function () {
                 }
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = function () {
-                    if (Is.Alive(t.OnSelectedItemChanged)) {
-                        t.OnSelectedItemChanged(obj);
-                    }
-                    t.bindForm(obj);
-                    var prev = t.SelectedObject;
                     t.SelectedObject = obj;
-                    if (prev) {
-                        prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
-                    }
-                    obj.InstigatePropertyChangedListeners("SelectedRowClass", false);
                 };
                 t.Bind(obj, be);
+                if (beforeIndex > -1) {
+                    t.SelectedObject = obj;
+                }
             });
         }
         else {
             t.Bind(obj, null);
         }
     };
-    Binder.prototype.HookUpForm = function () {
-        var t = this;
-        if (Is.Alive(t.FormTemplateId)) {
-            t.FormTemplate = t.FormTemplateId.Element();
-            t.FormContainter = t.FormTemplate.parentElement;
-        }
-        if (t.DataObjects.length > 0) {
-            var o = t.DataObjects.Data[0];
-            t.SelectedObject = o;
-            o.InstigatePropertyChangedListeners("SelectedRowClass", false);
-            t.bindForm(o);
-            if (Is.Alive(t.OnSelectedItemChanged)) {
-                t.OnSelectedItemChanged(o);
-            }
-        }
-    };
-    Binder.prototype.bindForm = function (obj) {
-        var t = this;
-        if (Is.Alive(t.FormContainter) && Is.Alive(t.FormTemplate)) {
-            t.FormContainter.Clear();
-            var c = t.FormTemplate.cloneNode(true);
-            t.FormContainter.appendChild(c);
-            var eles = c.Get(function (e) { return e.HasDataSet(); });
-            t.Bind(obj, eles);
-        }
+    Binder.prototype.ResetSelectedObject = function () {
+        this.SelectedObject = this.selectedObject;
     };
     Binder.prototype.prepTemplates = function () {
-        var t = this;
-        if (t.DataRowTemplates.length === 0) {
+        var t = this, drt = t.DataRowTemplates;
+        if (drt.length === 0) {
             var e = t.Element.tagName === "TABLE" ? t.Element.tBodies[0].children : t.Element.children, r = new Array(), li = 0;
             for (var i = 0; i < e.length; i++) {
                 if (e[i].getAttribute("data-template") != null) {
@@ -319,7 +289,7 @@ var Binder = (function () {
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
                 e[e.length - 1] : null;
             r.forEach(function (r) {
-                t.DataRowTemplates.Add(r);
+                drt.Add(r);
                 r.parentElement.removeChild(r);
             });
             var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(function (m) { return m.HasDataSet() && m.getAttribute(dmk) != null &&
@@ -372,9 +342,9 @@ var Binder = (function () {
         }
     };
     Binder.prototype.SaveDirty = function () {
-        var t = this, a = t.Api(), d = t.DataObjects.Data;
+        var t = this, a = t.Api(), d = t.DataObjects.Data.Where(function (o) { return o.ObjectState === ObjectState.Dirty; });
         if (a && d && d.length > 0) {
-            var c = d.Where(function (o) { return o.ObjectState === ObjectState.Dirty; }).Select(function (o) { return o.ServerObject; }), aj = new Ajax(t.WithProgress, t.DisableElement);
+            var c = d.Select(function (o) { return o.ServerObject; }), aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             aj.Submit("PUT", t.Api() + "/SaveDirty", c);
             d.forEach(function (o) { return o.ObjectState = ObjectState.Cleaning; });
@@ -431,7 +401,8 @@ var Binder = (function () {
         var eb = ["onclick", "onchange", "onload", "loaded"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(function (b) {
-            if (!eb.First(function (v) { return v === b.Attribute; }) &&
+            if (!Autofill.IsAutoFill(ele, d) &&
+                !eb.First(function (v) { return v === b.Attribute; }) &&
                 !ntwb.First(function (v) { return v === b.Attribute; })) {
                 var a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
@@ -530,7 +501,36 @@ var Binder = (function () {
             return this.selectedObject;
         },
         set: function (value) {
-            this.selectedObject = value;
+            var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates;
+            value = !value && t.DataObjects.Data && t.DataObjects.Data.length > 0 ? t.DataObjects.Data[0] : value;
+            if (value) {
+                var prev = t.SelectedObject;
+                if (prev) {
+                    prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                }
+                if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
+                    ftids.forEach(function (ft) {
+                        var fte = ft.Element();
+                        var nt = {
+                            Template: fte,
+                            Container: fte.parentElement
+                        };
+                        fts.Add(nt);
+                    });
+                }
+                t.selectedObject = value;
+                t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                if (Is.Alive(t.OnSelectedItemChanged)) {
+                    t.OnSelectedItemChanged(t.selectedObject);
+                }
+                fts.forEach(function (ft) {
+                    ft.Container.Clear();
+                    var c = ft.Template.cloneNode(true);
+                    ft.Container.appendChild(c);
+                    var eles = c.Get(function (e) { return e.HasDataSet(); });
+                    t.Bind(t.selectedObject, eles);
+                });
+            }
         },
         enumerable: true,
         configurable: true
