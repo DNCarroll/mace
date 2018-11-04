@@ -13,11 +13,11 @@ var Navigate;
     }
     Navigate.Spa = Spa;
     function Url(url) {
-        var vp = ViewContainer.VirtualPath;
+        var vp = ViewContainer.VirtualPath, vcs = ViewContainers;
         url = vp && url.length > 0 ? url.replace(vp, '') : url;
         url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
-        var vc = url.length === 0 ? ViewContainers.First(function (vc) { return vc.IsDefault; }) : ViewContainers.Where(function (vc) { return !vc.IsDefault; }).First(function (d) { return d.IsUrlPatternMatch(url); });
-        vc = vc == null ? ViewContainers.First(function (d) { return d.IsDefault; }) : vc;
+        var vc = url.length === 0 ? vcs.First(function (vc) { return vc.IsDefault; }) : vcs.Where(function (vc) { return !vc.IsDefault; }).First(function (d) { return d.IsUrlPatternMatch(url); });
+        vc = vc == null ? vcs.First(function (d) { return d.IsDefault; }) : vc;
         if (vc) {
             var p = vc.Parameters(url), vi = new ViewInstance(p, vc, url);
             p = vi.Parameters;

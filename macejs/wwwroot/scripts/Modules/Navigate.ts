@@ -11,11 +11,11 @@
         HistoryManager.Add(vi);
     }
     export function Url(url: string) {
-        var vp = ViewContainer.VirtualPath;
+        var vp = ViewContainer.VirtualPath, vcs = ViewContainers;
         url = vp && url.length > 0 ? url.replace(vp, '') : url;
         url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
-        var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
-        vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
+        var vc: IViewContainer = url.length === 0 ? vcs.First(vc => vc.IsDefault) : vcs.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
+        vc = vc == null ? vcs.First(d => d.IsDefault) : vc;
         if (vc) {
             var p = vc.Parameters(url),
                 vi = new ViewInstance(p, vc, url);

@@ -38,17 +38,18 @@ abstract class ViewContainer implements IViewContainer {
         return false;
     }
     ViewLoadCompleted(a: ICustomEventArg<IView>) {
+        var t = this, nvs = t.NumberViewsShown
         if (a.EventType === EventType.Completed) {
-            this.NumberViewsShown = this.NumberViewsShown + 1;
+            t.NumberViewsShown = t.NumberViewsShown + 1;
         }
-        if (this.NumberViewsShown === this.Views.length) {
+        if (t.NumberViewsShown === t.Views.length) {
             ProgressManager.Hide();
             window.scrollTo(0, 0);
-            if (this.ContainerLoaded !== null) {
-                this.ContainerLoaded();
+            if (t.ContainerLoaded !== null) {
+                t.ContainerLoaded();
             }
-            this.Views.forEach(v => {
-                this.LoadSubViews(v.ContainerID());
+            t.Views.forEach(v => {
+                t.LoadSubViews(v.ContainerID());
             });
         }
     }

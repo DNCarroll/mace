@@ -3,6 +3,12 @@ var HistoryContainer;
     var History = (function () {
         function History() {
             this.ViewInstances = new Array();
+            //this method isnt used anymore but it maybe needed still
+            //the "g" is absolutely wrong
+            //FormatUrl(url: string) {
+            //    url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
+            //    return url;
+            //}
             this.eHandlrs = new Array();
         }
         History.prototype.CurrentViewInstance = function () {
@@ -29,9 +35,6 @@ var HistoryContainer;
                 t.ManageRouteInfo(i);
                 t.Dispatch(EventType.Completed);
             }
-            else {
-                //do nothing?
-            }
         };
         History.prototype.ManageRouteInfo = function (viewInstance) {
             var vi = viewInstance, vc = vi.ViewContainer, t = vc.UrlTitle(vi), dt = vc.DocumentTitle(vi), h = history, u = vc.Url(vi);
@@ -47,12 +50,6 @@ var HistoryContainer;
             if (documentTitle === void 0) { documentTitle = null; }
             document.title = documentTitle ? documentTitle : title;
             history.pushState(null, title, url);
-        };
-        //this method isnt used anymore but it maybe needed still
-        //the "g" is absolutely wrong
-        History.prototype.FormatUrl = function (url) {
-            url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
-            return url;
         };
         History.prototype.AddListener = function (eventType, eventHandler) {
             var t = this, f = t.eHandlrs.First(function (h) { return h.EventType === eventType && h.EventHandler === eventHandler; });

@@ -27,12 +27,8 @@ interface HTMLElement extends Element {
 }
 HTMLElement.prototype.Input = function (predicate: (item: HTMLInputElement) => boolean = null) {
     var p = <HTMLElement>this;
-    if (predicate) {
-        return <HTMLInputElement>p.First(e => e.tagName === "INPUT" && predicate(<HTMLInputElement>e));
-    }
-    else {
-        return <HTMLInputElement>p.First(e => e.tagName === "INPUT");
-    }
+    return predicate ? <HTMLInputElement>p.First(e => e.tagName === "INPUT" && predicate(<HTMLInputElement>e)) :
+                       <HTMLInputElement>p.First(e => e.tagName === "INPUT");
 }
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
@@ -99,20 +95,20 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
     if (refresh) {
         this.RemoveDataRowElements();
     }
-    var binder = <Binder>this.Binder;
-    if (binder) {
+    var b = <Binder>this.Binder;
+    if (b) {
         if (obj instanceof ViewInstance) {
-            binder.Refresh(<ViewInstance>obj);
+            b.Refresh(<ViewInstance>obj);
         }
         else if (obj instanceof Array) {
             var arr = <Array<any>>obj;
             for (var i = 0; i < arr.length; i++) {
                 var tempObj = arr[i];
-                binder.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+                b.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
             }
         }
         else if (obj) {
-            binder.Append(obj instanceof DataObject ? obj : new DataObject(obj));
+            b.Append(obj instanceof DataObject ? obj : new DataObject(obj));
         }
     }
 };

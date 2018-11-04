@@ -136,7 +136,7 @@ class View implements IView {
         }
         setTimeout(() => {
             t.Dispatch(EventType.Completed);
-            t.binders.forEach(b => b.HookUpForm());
+            t.binders.forEach(b => b.ResetSelectedObject());
         }, 100);
     }
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
@@ -157,8 +157,6 @@ class View implements IView {
         l.forEach(l => l.EventHandler(new CustomEventArg<IView>(this, eventType)));
     }
 }
-//thinking is could have a generic type that could 
-//be set for the preload
 interface IPreViewLoad {
     Execute(callback: () => void): void;
 }

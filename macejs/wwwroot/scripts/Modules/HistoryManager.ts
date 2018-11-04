@@ -28,9 +28,6 @@
                 t.ManageRouteInfo(i);
                 t.Dispatch(EventType.Completed);
             }
-            else {
-                //do nothing?
-            }
         }
         ManageRouteInfo(viewInstance: ViewInstance) {
             var vi = viewInstance,
@@ -53,10 +50,10 @@
         }
         //this method isnt used anymore but it maybe needed still
         //the "g" is absolutely wrong
-        FormatUrl(url: string) {
-            url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
-            return url;
-        }
+        //FormatUrl(url: string) {
+        //    url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
+        //    return url;
+        //}
         private eHandlrs = new Array<Listener<ViewContainer>>();
         AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<ViewContainer>) => void) {
             var t = this,

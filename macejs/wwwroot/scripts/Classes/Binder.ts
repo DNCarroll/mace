@@ -87,9 +87,8 @@
         return null;
     }
     initialLoad = true;
-    FormTemplateId: string;
-    private FormTemplate: HTMLElement;
-    private FormContainter: HTMLElement;
+    FormTemplateIds: Array<string>;
+    private FormTemplates = new Array<{ Template: HTMLElement, Container: HTMLElement }>();
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
         t.prepTemplates();
@@ -153,7 +152,7 @@
         if (Is.Array(d)) {
             (<Array<any>>d).forEach(d => t.add(t.NewObject(d)));
             if (t.DataObjects.length > 0) {
-                t.bindForm(t.DataObjects.Data[0]);
+                t.ResetSelectedObject();
             }
         }
         else if (d) {
@@ -165,7 +164,7 @@
         da.SaveCache();
         var vi = HistoryManager.CurrentViewInstance();
         if (vi && vi.RefreshBinding) {
-            t.HookUpForm();
+            t.ResetSelectedObject();
             vi.RefreshBinding = false;
         }
         t.Dispatch(EventType.Completed);
@@ -195,9 +194,7 @@
             var a = new Ajax(t.WithProgress, t.DisableElement),
                 f = () => {
                     var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
-                    es.forEach(e2 => e2.parentElement.removeChild(e2));
-                    //because we dont know what htey are doing with the row they maybe sending them back as changes
-                    //td.slice(i);
+                    es.forEach(e2 => e2.parentElement.removeChild(e2));                    
                     td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
                 },
                 afc = (arg: CustomEventArg<Ajax>) => {
@@ -256,17 +253,15 @@
         }
     }
     add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false, beforeIndex: number = -1) {
-        let t = this;
+        let t = this, drt = t.DataRowTemplates;
         t.prepTemplates();
-        if (t.DataRowTemplates.length > 0) {
-            t.DataRowTemplates.forEach(d => {
+        if (drt.length > 0) {
+            drt.forEach(d => {
                 let ne = <HTMLElement>d.cloneNode(true),
                     be = ne.Get(e => e.HasDataSet()),
                     drf = t.DataRowFooter,
                     pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
-
                 be.Add(ne);
-
                 if (beforeIndex > -1 && beforeIndex < pe.childNodes.length) {
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
@@ -276,54 +271,25 @@
                 }
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = () => {
-                    if (Is.Alive(t.OnSelectedItemChanged)) {
-                        t.OnSelectedItemChanged(obj);
-                    }
-                    t.bindForm(obj);
-                    var prev = t.SelectedObject;
                     t.SelectedObject = obj;
-                    if (prev) {
-                        prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
-                    }
-                    obj.InstigatePropertyChangedListeners("SelectedRowClass", false);
                 };
 
                 t.Bind(obj, be);
+                if (beforeIndex > -1) {
+                    t.SelectedObject = obj;
+                }
             });
         }
         else {
             t.Bind(obj, null);
         }
     }
-    HookUpForm() {
-        var t = this;
-        if (Is.Alive(t.FormTemplateId)) {
-            t.FormTemplate = t.FormTemplateId.Element();
-            t.FormContainter = t.FormTemplate.parentElement;
-        }
-        if (t.DataObjects.length > 0) {
-            var o = t.DataObjects.Data[0];
-            t.SelectedObject = o;
-            o.InstigatePropertyChangedListeners("SelectedRowClass", false);
-            t.bindForm(o);
-            if (Is.Alive(t.OnSelectedItemChanged)) {
-                t.OnSelectedItemChanged(o);
-            }
-        }
-    }
-    bindForm(obj: IObjectState) {
-        var t = this;
-        if (Is.Alive(t.FormContainter) && Is.Alive(t.FormTemplate)) {
-            t.FormContainter.Clear();
-            var c = <HTMLElement>t.FormTemplate.cloneNode(true);
-            t.FormContainter.appendChild(c);
-            var eles = c.Get(e => e.HasDataSet());
-            t.Bind(obj, eles);
-        }
+    ResetSelectedObject() {
+        this.SelectedObject = this.selectedObject;
     }
     private prepTemplates() {
-        var t = this;
-        if (t.DataRowTemplates.length === 0) {
+        var t = this, drt = t.DataRowTemplates;
+        if (drt.length === 0) {
             var e = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0].children : t.Element.children,
                 r = new Array<HTMLElement>(),
                 li = 0;
@@ -336,7 +302,7 @@
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
                 <HTMLElement>e[e.length - 1] : null;
             r.forEach(r => {
-                t.DataRowTemplates.Add(r);
+                drt.Add(r);
                 r.parentElement.removeChild(r);
             });
             var dmk = "data-morekeys",
@@ -396,9 +362,9 @@
     SaveDirty() {
         var t = this,
             a = t.Api(),
-            d = t.DataObjects.Data;
+            d = t.DataObjects.Data.Where(o => o.ObjectState === ObjectState.Dirty);
         if (a && d && d.length > 0) {
-            var c = d.Where(o => o.ObjectState === ObjectState.Dirty).Select(o => o.ServerObject),
+            var c = d.Select(o => o.ServerObject),
                 aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             aj.Submit("PUT", t.Api() + "/SaveDirty", c);
@@ -460,7 +426,8 @@
         var eb = ["onclick", "onchange", "onload", "loaded"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(b => {
-            if (!eb.First(v => v === b.Attribute) &&
+            if (!Autofill.IsAutoFill(ele, d) &&
+                !eb.First(v => v === b.Attribute) &&
                 !ntwb.First(v => v === b.Attribute)) {
                 let a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
@@ -561,7 +528,36 @@
         return this.selectedObject;
     }
     set SelectedObject(value) {
-        this.selectedObject = value;
+        var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates;
+        value = !value && t.DataObjects.Data && t.DataObjects.Data.length > 0 ? t.DataObjects.Data[0] : value;
+        if (value) {
+            var prev = t.SelectedObject;
+            if (prev) {
+                prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            }
+            if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
+                ftids.forEach(ft => {
+                    var fte = ft.Element();
+                    var nt = {
+                        Template: fte,
+                        Container: fte.parentElement
+                    };
+                    fts.Add(nt);
+                });
+            }
+            t.selectedObject = value;
+            t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            if (Is.Alive(t.OnSelectedItemChanged)) {
+                t.OnSelectedItemChanged(t.selectedObject);
+            }
+            fts.forEach(ft => {
+                ft.Container.Clear();
+                var c = <HTMLElement>ft.Template.cloneNode(true);
+                ft.Container.appendChild(c);
+                var eles = c.Get(e => e.HasDataSet());
+                t.Bind(t.selectedObject, eles);
+            });
+        }
     }
 
     AddListener(et: EventType, eh: (eventArg: ICustomEventArg<Binder>) => void) {

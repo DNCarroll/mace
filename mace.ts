@@ -316,9 +316,8 @@ class Binder {
         return null;
     }
     initialLoad = true;
-    FormTemplateId: string;
-    private FormTemplate: HTMLElement;
-    private FormContainter: HTMLElement;
+    FormTemplateIds: Array<string>;
+    private FormTemplates = new Array<{ Template: HTMLElement, Container: HTMLElement }>();
     Execute(viewInstance: ViewInstance = null) {
         var t = this;
         t.prepTemplates();
@@ -382,7 +381,7 @@ class Binder {
         if (Is.Array(d)) {
             (<Array<any>>d).forEach(d => t.add(t.NewObject(d)));
             if (t.DataObjects.length > 0) {
-                t.bindForm(t.DataObjects.Data[0]);
+                t.ResetSelectedObject();
             }
         }
         else if (d) {
@@ -394,7 +393,7 @@ class Binder {
         da.SaveCache();
         var vi = HistoryManager.CurrentViewInstance();
         if (vi && vi.RefreshBinding) {
-            t.HookUpForm();
+            t.ResetSelectedObject();
             vi.RefreshBinding = false;
         }
         t.Dispatch(EventType.Completed);
@@ -424,9 +423,7 @@ class Binder {
             var a = new Ajax(t.WithProgress, t.DisableElement),
                 f = () => {
                     var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
-                    es.forEach(e2 => e2.parentElement.removeChild(e2));
-                    //because we dont know what htey are doing with the row they maybe sending them back as changes
-                    //td.slice(i);
+                    es.forEach(e2 => e2.parentElement.removeChild(e2));                    
                     td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
                 },
                 afc = (arg: CustomEventArg<Ajax>) => {
@@ -485,17 +482,15 @@ class Binder {
         }
     }
     add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false, beforeIndex: number = -1) {
-        let t = this;
+        let t = this, drt = t.DataRowTemplates;
         t.prepTemplates();
-        if (t.DataRowTemplates.length > 0) {
-            t.DataRowTemplates.forEach(d => {
+        if (drt.length > 0) {
+            drt.forEach(d => {
                 let ne = <HTMLElement>d.cloneNode(true),
                     be = ne.Get(e => e.HasDataSet()),
                     drf = t.DataRowFooter,
                     pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
-
                 be.Add(ne);
-
                 if (beforeIndex > -1 && beforeIndex < pe.childNodes.length) {
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
@@ -505,54 +500,25 @@ class Binder {
                 }
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = () => {
-                    if (Is.Alive(t.OnSelectedItemChanged)) {
-                        t.OnSelectedItemChanged(obj);
-                    }
-                    t.bindForm(obj);
-                    var prev = t.SelectedObject;
                     t.SelectedObject = obj;
-                    if (prev) {
-                        prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
-                    }
-                    obj.InstigatePropertyChangedListeners("SelectedRowClass", false);
                 };
 
                 t.Bind(obj, be);
+                if (beforeIndex > -1) {
+                    t.SelectedObject = obj;
+                }
             });
         }
         else {
             t.Bind(obj, null);
         }
     }
-    HookUpForm() {
-        var t = this;
-        if (Is.Alive(t.FormTemplateId)) {
-            t.FormTemplate = t.FormTemplateId.Element();
-            t.FormContainter = t.FormTemplate.parentElement;
-        }
-        if (t.DataObjects.length > 0) {
-            var o = t.DataObjects.Data[0];
-            t.SelectedObject = o;
-            o.InstigatePropertyChangedListeners("SelectedRowClass", false);
-            t.bindForm(o);
-            if (Is.Alive(t.OnSelectedItemChanged)) {
-                t.OnSelectedItemChanged(o);
-            }
-        }
-    }
-    bindForm(obj: IObjectState) {
-        var t = this;
-        if (Is.Alive(t.FormContainter) && Is.Alive(t.FormTemplate)) {
-            t.FormContainter.Clear();
-            var c = <HTMLElement>t.FormTemplate.cloneNode(true);
-            t.FormContainter.appendChild(c);
-            var eles = c.Get(e => e.HasDataSet());
-            t.Bind(obj, eles);
-        }
+    ResetSelectedObject() {
+        this.SelectedObject = this.selectedObject;
     }
     private prepTemplates() {
-        var t = this;
-        if (t.DataRowTemplates.length === 0) {
+        var t = this, drt = t.DataRowTemplates;
+        if (drt.length === 0) {
             var e = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0].children : t.Element.children,
                 r = new Array<HTMLElement>(),
                 li = 0;
@@ -565,7 +531,7 @@ class Binder {
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
                 <HTMLElement>e[e.length - 1] : null;
             r.forEach(r => {
-                t.DataRowTemplates.Add(r);
+                drt.Add(r);
                 r.parentElement.removeChild(r);
             });
             var dmk = "data-morekeys",
@@ -625,9 +591,9 @@ class Binder {
     SaveDirty() {
         var t = this,
             a = t.Api(),
-            d = t.DataObjects.Data;
+            d = t.DataObjects.Data.Where(o => o.ObjectState === ObjectState.Dirty);
         if (a && d && d.length > 0) {
-            var c = d.Where(o => o.ObjectState === ObjectState.Dirty).Select(o => o.ServerObject),
+            var c = d.Select(o => o.ServerObject),
                 aj = new Ajax(t.WithProgress, t.DisableElement);
             aj.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
             aj.Submit("PUT", t.Api() + "/SaveDirty", c);
@@ -689,7 +655,8 @@ class Binder {
         var eb = ["onclick", "onchange", "onload", "loaded"];
         var ntwb = ["binder", "datasource", "displaymember", "valuemember"];
         ba.forEach(b => {
-            if (!eb.First(v => v === b.Attribute) &&
+            if (!Autofill.IsAutoFill(ele, d) &&
+                !eb.First(v => v === b.Attribute) &&
                 !ntwb.First(v => v === b.Attribute)) {
                 let a = t.getAttribute(b.Attribute), tn = ele.tagName;
                 t.setObjPropListener(b.Property, a, ele, d);
@@ -790,7 +757,36 @@ class Binder {
         return this.selectedObject;
     }
     set SelectedObject(value) {
-        this.selectedObject = value;
+        var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates;
+        value = !value && t.DataObjects.Data && t.DataObjects.Data.length > 0 ? t.DataObjects.Data[0] : value;
+        if (value) {
+            var prev = t.SelectedObject;
+            if (prev) {
+                prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            }
+            if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
+                ftids.forEach(ft => {
+                    var fte = ft.Element();
+                    var nt = {
+                        Template: fte,
+                        Container: fte.parentElement
+                    };
+                    fts.Add(nt);
+                });
+            }
+            t.selectedObject = value;
+            t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            if (Is.Alive(t.OnSelectedItemChanged)) {
+                t.OnSelectedItemChanged(t.selectedObject);
+            }
+            fts.forEach(ft => {
+                ft.Container.Clear();
+                var c = <HTMLElement>ft.Template.cloneNode(true);
+                ft.Container.appendChild(c);
+                var eles = c.Get(e => e.HasDataSet());
+                t.Bind(t.selectedObject, eles);
+            });
+        }
     }
 
     AddListener(et: EventType, eh: (eventArg: ICustomEventArg<Binder>) => void) {
@@ -980,20 +976,11 @@ class DataObjectCacheArray<T extends IObjectState>
         t._cachingKey = cachingKey;
         t._storageState = storageState;
         t._newT = newT;
-        if (t._cachingKey && t._storageState && t._newT) {
-            var rehydrated: string;
-            switch (t._storageState) {
-                case StorageType.local:
-                    rehydrated = localStorage.getItem(t._cachingKey);
-                    break;
-                case StorageType.session:
-                    rehydrated = sessionStorage.getItem(t._cachingKey);
-                    break;
-                default:
-                    break;
-            }
-            if (!Is.NullOrEmpty(rehydrated)) {
-                var objs = JSON.parse(rehydrated);
+        if (t._cachingKey && t._storageState && t._newT) {            
+            var gim = t._storageState === StorageType.local ? localStorage.getItem : sessionStorage.getItem;
+            var reHy = gim(t._cachingKey);
+            if (!Is.NullOrEmpty(reHy)) {
+                var objs = JSON.parse(reHy);
                 if (Is.Array(objs)) {
                     var arr = <Array<any>>objs;
                     arr.forEach(o => {
@@ -1009,9 +996,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Data: Array<T> = new Array<T>();
     _cachingKey: string;
     _storageState: StorageType;
-    _newT: (obj: any) => T;
-    //Delete
-    //these would have to be on the prototype cant just add them here
+    _newT: (obj: any) => T;    
     Add(obj: T) {
         this.Data.push(obj);
     }
@@ -1025,16 +1010,8 @@ class DataObjectCacheArray<T extends IObjectState>
     SaveCache() {
         var t = this, ck = t._cachingKey, ss = t._storageState;
         if (ck && ss) {
-            switch (ss) {
-                case StorageType.local:
-                    localStorage.setItem(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
-                    break;
-                case StorageType.session:
-                    sessionStorage.setItem(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
-                    break;
-                default:
-                    break;
-            }
+            var sim = ss === StorageType.local ? localStorage.setItem : sessionStorage.setItem;
+            sim(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
         }
     }
     forEach(callBack: (value: T, index: number, array: T[]) => void) {
@@ -1188,7 +1165,7 @@ class View implements IView {
         }
         setTimeout(() => {
             t.Dispatch(EventType.Completed);
-            t.binders.forEach(b => b.HookUpForm());
+            t.binders.forEach(b => b.ResetSelectedObject());
         }, 100);
     }
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
@@ -1209,8 +1186,6 @@ class View implements IView {
         l.forEach(l => l.EventHandler(new CustomEventArg<IView>(this, eventType)));
     }
 }
-//thinking is could have a generic type that could 
-//be set for the preload
 interface IPreViewLoad {
     Execute(callback: () => void): void;
 }
@@ -1304,17 +1279,18 @@ abstract class ViewContainer implements IViewContainer {
         return false;
     }
     ViewLoadCompleted(a: ICustomEventArg<IView>) {
+        var t = this, nvs = t.NumberViewsShown
         if (a.EventType === EventType.Completed) {
-            this.NumberViewsShown = this.NumberViewsShown + 1;
+            t.NumberViewsShown = t.NumberViewsShown + 1;
         }
-        if (this.NumberViewsShown === this.Views.length) {
+        if (t.NumberViewsShown === t.Views.length) {
             ProgressManager.Hide();
             window.scrollTo(0, 0);
-            if (this.ContainerLoaded !== null) {
-                this.ContainerLoaded();
+            if (t.ContainerLoaded !== null) {
+                t.ContainerLoaded();
             }
-            this.Views.forEach(v => {
-                this.LoadSubViews(v.ContainerID());
+            t.Views.forEach(v => {
+                t.LoadSubViews(v.ContainerID());
             });
         }
     }
@@ -1519,6 +1495,138 @@ interface IViewContainer {
     Name: string;
     Parameters: (url: string) => Array<string>;
 }
+module Autofill {
+
+    var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember",
+        afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember";
+
+    export function IsAutoFill(ele: HTMLElement, obj: IObjectState): boolean {
+        var ret = Is.Alive(ele.dataset[afapi] && (ele.dataset[afvm] || ele.dataset[afdm])) && ele.tagName === "INPUT" && ele["type"] === "text";
+        ret ? initialize(ele, obj) : null;
+        return ret;
+    }
+
+    function initialize(ele: HTMLElement, obj: IObjectState) {
+        let i = <HTMLInputElement>ele;
+        i.onkeypress = null;
+        i.onclick = () => {
+            SetCaretPosition(i, 0);
+        };
+        i.onkeyup = () => {
+            var code = (event["keyCode"] ? event["keyCode"] : event["which"]);
+            if (i.value.length === 0 && code === 8) {
+                SetValue(i);
+            }
+        };
+        i.onkeypress = () => {
+            KeyPress(event);
+        };
+        i.value = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
+    }
+    function SetCaretPosition(e: HTMLInputElement, caretPos) {
+        if (e != null) {
+            if (e.selectionStart) {
+                e.focus();
+                e.setSelectionRange(caretPos, e.value.length);
+            }
+            else {
+                e.focus();
+            }
+        }
+    }
+    export function SetValue(ele: HTMLElement) {
+        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele : ele.parentElement.Input(i => Is.Alive(i.dataset[afapi]));
+
+        var dc = s[eleC],
+            ds = s.dataset,
+            f = ds[afva],
+            lf = LookupFields(s),
+            arr = <Array<any>>dc,
+            found = arr.First(o => o[lf.DM] === s.value);
+
+        if (Is.Alive(f)) {
+            var dob = <DataObject>s.DataObject;
+            if (dob) {
+                if (s.value.length === 0) {
+                    dob[f] = null;
+                }
+                else if (found) {
+                    dob[f] = found[lf.VM];
+                    if (s.dataset[afodm]) {
+                        dob[s.dataset[afodm]] = found[lf.DM];
+                    }
+                }
+            }
+        }
+
+        let m = s.dataset[afc];
+        if (m) {
+            m = m + "(obj);";
+            let fun = new Function("obj", m);
+            fun(found);
+        }
+    }
+    function LookupFields(s: HTMLInputElement): { VM: string, DM: string } {
+        var r = { VM: "", DM: "" },
+            ds = s.dataset;
+        r.DM = ds[afdm] ? ds[afdm] : ds[afvm];
+        r.VM = ds[afvm] ? ds[afvm] : ds[afdm];
+        return r;
+    }
+    function KeyPress(event) {
+
+        var code = (event.keyCode ? event.keyCode : event.which);
+        let k = event.char ? event.char : event.key,
+            s = <HTMLInputElement>event.target,
+            lf = LookupFields(s);
+
+        if (s[b] === true) {
+            return true;
+        }
+
+        var l = s.value.length,
+            tl = s.dataset[afl] ? parseInt(s.dataset[afl]) : 3;
+        let v: string;
+        if (code === 13) {
+            SetValue(s);
+        }
+        else if (l === tl) {
+            s[b] = true;
+            v = s.value + k;
+            s["pv"] = v
+            var a = new Ajax(false);
+
+            a.AddListener(EventType.Any, (arg) => {
+                var ret = arg.Sender.GetRequestData();
+                s[eleC] = ret;
+                if (ret && ret.length > 0) {
+                    s.value = ret[0][lf.DM];
+                }
+                SetCaretPosition(s, 4);
+                s[b] = false;
+            });
+            var api = s.dataset[afapi];
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            a.Get(api + v);
+        }
+        else if (l > (tl + 1)) {
+            v = s["pv"] + k;
+            l = v.length;
+            s["pv"] = v;
+            setTimeout(() => {
+                var arr = <Array<any>>s[eleC];
+                if (arr) {
+                    var found = arr.First(o => o[lf.DM].toLowerCase().indexOf(v.toLowerCase()) > -1);
+                    if (found) {
+                        s.value = found[lf.DM];
+                    }
+                    SetCaretPosition(s, l)
+                }
+            }, 10);
+            return true;
+        }
+    }
+}
 module HistoryContainer {
     export class History implements IEventDispatcher<ViewContainer> {
         private ViewInstances = new Array<ViewInstance>();
@@ -1549,9 +1657,6 @@ module HistoryContainer {
                 t.ManageRouteInfo(i);
                 t.Dispatch(EventType.Completed);
             }
-            else {
-                //do nothing?
-            }
         }
         ManageRouteInfo(viewInstance: ViewInstance) {
             var vi = viewInstance,
@@ -1574,10 +1679,10 @@ module HistoryContainer {
         }
         //this method isnt used anymore but it maybe needed still
         //the "g" is absolutely wrong
-        FormatUrl(url: string) {
-            url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
-            return url;
-        }
+        //FormatUrl(url: string) {
+        //    url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
+        //    return url;
+        //}
         private eHandlrs = new Array<Listener<ViewContainer>>();
         AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<ViewContainer>) => void) {
             var t = this,
@@ -1621,14 +1726,14 @@ module Initializer {
         }
     }
     function loadedWrapper(e?) {
-        var WL = WindowLoaded, wL = windowLoaded;
+        var WL = WindowLoaded, wL = windowLoaded, le = WL.LoadedEvent;
         if (WL) {
             if (WL.ShouldRunBeforeNavigation) {
-                WL.LoadedEvent(e, wL);
+                le(e, wL);
             }
             else {
                 wL();
-                WL.LoadedEvent(e, null);
+                le(e, null);
             }
         }
         else {
@@ -1711,11 +1816,11 @@ module Navigate {
         HistoryManager.Add(vi);
     }
     export function Url(url: string) {
-        var vp = ViewContainer.VirtualPath;
+        var vp = ViewContainer.VirtualPath, vcs = ViewContainers;
         url = vp && url.length > 0 ? url.replace(vp, '') : url;
         url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
-        var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
-        vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
+        var vc: IViewContainer = url.length === 0 ? vcs.First(vc => vc.IsDefault) : vcs.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
+        vc = vc == null ? vcs.First(d => d.IsDefault) : vc;
         if (vc) {
             var p = vc.Parameters(url),
                 vi = new ViewInstance(p, vc, url);
@@ -1840,15 +1945,16 @@ Date.prototype.Add = function (y?: number, m?: number, d?: number, h?: number, m
         t.getMinutes() + mm, t.getSeconds() + s, t.getMilliseconds());
 };
 Date.prototype.ToyyyymmddHHMMss = function () {
+    var t = this;
     var f = (v: number) => {
         return (v <= 9 ? '0' : '') + v.toString();
     };
-    var d = f(this.getDate()),
-        m = f(this.getMonth() + 1),
-        y = this.getFullYear(),
-        h = f(this.getHours()),
-        M = f(this.getMinutes()),
-        s = f(this.getSeconds());
+    var d = f(t.getDate()),
+        m = f(t.getMonth() + 1),
+        y = t.getFullYear(),
+        h = f(t.getHours()),
+        M = f(t.getMinutes()),
+        s = f(t.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };
 interface HTMLElement extends Element {
@@ -1880,12 +1986,8 @@ interface HTMLElement extends Element {
 }
 HTMLElement.prototype.Input = function (predicate: (item: HTMLInputElement) => boolean = null) {
     var p = <HTMLElement>this;
-    if (predicate) {
-        return <HTMLInputElement>p.First(e => e.tagName === "INPUT" && predicate(<HTMLInputElement>e));
-    }
-    else {
-        return <HTMLInputElement>p.First(e => e.tagName === "INPUT");
-    }
+    return predicate ? <HTMLInputElement>p.First(e => e.tagName === "INPUT" && predicate(<HTMLInputElement>e)) :
+                       <HTMLInputElement>p.First(e => e.tagName === "INPUT");
 }
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
@@ -1952,20 +2054,20 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
     if (refresh) {
         this.RemoveDataRowElements();
     }
-    var binder = <Binder>this.Binder;
-    if (binder) {
+    var b = <Binder>this.Binder;
+    if (b) {
         if (obj instanceof ViewInstance) {
-            binder.Refresh(<ViewInstance>obj);
+            b.Refresh(<ViewInstance>obj);
         }
         else if (obj instanceof Array) {
             var arr = <Array<any>>obj;
             for (var i = 0; i < arr.length; i++) {
                 var tempObj = arr[i];
-                binder.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+                b.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
             }
         }
         else if (obj) {
-            binder.Append(obj instanceof DataObject ? obj : new DataObject(obj));
+            b.Append(obj instanceof DataObject ? obj : new DataObject(obj));
         }
     }
 };
@@ -2185,17 +2287,18 @@ interface Window {
     Exception(parameters: any);
 }
 Window.prototype.Exception = function (parameters: any) {
-    if (Is.Array(parameters)) {
+    var a = alert, p = parameters;
+    if (Is.Array(p)) {
         var o = {};
-        for (var i = 0; i < parameters.length; i++) {
-            o["parameter" + i] = parameters[i];
+        for (var i = 0; i < p.length; i++) {
+            o["parameter" + i] = p[i];
         }
-        alert(JSON.stringify(o));
+        a(JSON.stringify(o));
     }
-    else if (parameters.length > 1) {
-        alert(JSON.stringify(parameters[0]));
+    else if (p.length > 1) {
+        a(JSON.stringify(p[0]));
     }
     else {
-        alert(parameters.toString());
+        a(p.toString());
     }
 };
