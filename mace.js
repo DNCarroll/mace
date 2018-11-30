@@ -376,13 +376,17 @@ var Binder = (function () {
     Binder.prototype.OnAjaxComplete = function (arg) {
         var t = this, x = arg.Sender.XHttp, s = x.status;
         if (!t.isRedirecting(x)) {
+            var cd = true;
             if (s === 200) {
                 var d = arg.Sender.GetRequestData();
                 if (d) {
-                    this.RouteBinding(d);
+                    cd = false;
+                    t.RouteBinding(d);
                 }
             }
-            t.Dispatch(EventType.Completed);
+            if (cd) {
+                t.Dispatch(EventType.Completed);
+            }
         }
     };
     Binder.prototype.RouteBinding = function (data) {
@@ -515,6 +519,7 @@ var Binder = (function () {
         }
         else {
             t.Bind(obj, null);
+            t.SelectedObject = obj;
         }
     };
     Binder.prototype.ResetSelectedObject = function () {
@@ -554,14 +559,12 @@ var Binder = (function () {
         this.AutomaticUpdate ? this.Save(o) : null;
     };
     Binder.prototype.Save = function (obj) {
-        if (!Is.Alive(t) || !Is.Alive(t.Api)) {
-            var t = this, o = obj, api = t.Api();
-            if (api && o.ObjectState === ObjectState.Dirty) {
-                var a = new Ajax(t.WithProgress, t.DisableElement);
-                a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-                o.ObjectState = ObjectState.Cleaning;
-                a.Put(api, o.ServerObject);
-            }
+        var t = this, o = obj, api = t.Api();
+        if (Is.Alive(api) && o.ObjectState === ObjectState.Dirty) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            o.ObjectState = ObjectState.Cleaning;
+            a.Put(api, o.ServerObject);
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
@@ -745,9 +748,9 @@ var Binder = (function () {
             return this.selectedObject;
         },
         set: function (value) {
-            var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates;
-            value = !value && t.DataObjects.Data && t.DataObjects.Data.length > 0 ? t.DataObjects.Data[0] : value;
-            if (value) {
+            var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates, dad = t.DataObjects.Data, v = value;
+            v = !Is.Alive(v) && dad && dad.length > 0 ? dad[0] : v;
+            if (v) {
                 var prev = t.SelectedObject;
                 if (prev) {
                     prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
@@ -755,14 +758,16 @@ var Binder = (function () {
                 if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
                     ftids.forEach(function (ft) {
                         var fte = ft.Element();
-                        var nt = {
-                            Template: fte,
-                            Container: fte.parentElement
-                        };
-                        fts.Add(nt);
+                        if (fte) {
+                            var nt = {
+                                Template: fte,
+                                Container: fte.parentElement
+                            };
+                            fts.Add(nt);
+                        }
                     });
                 }
-                t.selectedObject = value;
+                t.selectedObject = v;
                 t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
                 if (Is.Alive(t.OnSelectedItemChanged)) {
                     t.OnSelectedItemChanged(t.selectedObject);
@@ -1131,7 +1136,7 @@ var View = (function () {
                     try {
                         var a = e.getAttribute("data-binder");
                         if (a) {
-                            var fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
+                            var fun = new Function("return new " + a + (a.indexOf("(") > -1 ? "" : "()"));
                             e.Binder = fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(_this));
                             e.Binder.Element = e;
@@ -1337,7 +1342,7 @@ var ViewContainer = (function () {
                         try {
                             var a_1 = e.getAttribute("data-binder");
                             if (a_1) {
-                                var fun = new Function("return new " + a_1 + (a_1.indexOf("Binder(") == 0 ? "" : "()"));
+                                var fun = new Function("return new " + a_1 + (a_1.indexOf("(") > -1 ? "" : "()"));
                                 e.Binder = fun();
                                 e.Binder.Element = e;
                             }
@@ -1696,14 +1701,14 @@ var Initializer;
     }
     Initializer.Execute = Execute;
     function loadedWrapper(e) {
-        var WL = Initializer.WindowLoaded, wL = windowLoaded, le = WL.LoadedEvent;
+        var WL = Initializer.WindowLoaded, wL = windowLoaded;
         if (WL) {
             if (WL.ShouldRunBeforeNavigation) {
-                le(e, wL);
+                WL.LoadedEvent(e, wL);
             }
             else {
                 wL();
-                le(e, null);
+                WL.LoadedEvent(e, null);
             }
         }
         else {
@@ -1765,7 +1770,7 @@ var Is;
     }
     Is.String = String;
     function Alive(value) {
-        return value !== undefined && value !== null;
+        return value === undefined || value === null ? false : true;
     }
     Is.Alive = Alive;
     function HTMLElement(o) {
@@ -1946,7 +1951,7 @@ HTMLElement.prototype.Input = function (predicate) {
         p.First(function (e) { return e.tagName === "INPUT"; });
 };
 HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
-    var p = this, b = p.Binder;
+    var p = this;
     var fc = p.First(childMatch);
     if (fc) {
         p = fc.parentElement;
@@ -1959,24 +1964,45 @@ HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
 };
 HTMLElement.prototype.InsertBefore = function (obj, index) {
     var p = this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder;
+    }
     if (Is.Alive(b)) {
         b.InsertBefore(obj, index);
     }
 };
 HTMLElement.prototype.Append = function (obj) {
     var p = this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder;
+    }
     if (Is.Alive(b)) {
         b.Append(obj);
     }
 };
 HTMLElement.prototype.PostAndAppend = function (obj) {
     var p = this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder;
+    }
     if (Is.Alive(b)) {
         b.PostAndAppend(obj);
     }
 };
 HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj) {
-    var p = this, b = p.Binder;
+    var p = this;
     var fc = p.First(childMatch);
     if (fc) {
         p = fc.parentElement;
@@ -1992,6 +2018,13 @@ HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj) {
 };
 HTMLElement.prototype.PostAndInsertBefore = function (obj, index) {
     var p = this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder;
+    }
     if (Is.Alive(b)) {
         b.PostAndInsertBefore(obj, index);
     }
@@ -2145,7 +2178,7 @@ HTMLElement.prototype.Delete = function () {
 };
 HTMLElement.prototype.Ancestor = function (func) {
     var p = this.parentElement;
-    while (!func(p)) {
+    while (Is.Alive(p) && !func(p)) {
         p = p.parentElement;
     }
     return p;

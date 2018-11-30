@@ -20,14 +20,14 @@ module Initializer {
         }
     }
     function loadedWrapper(e?) {
-        var WL = WindowLoaded, wL = windowLoaded, le = WL.LoadedEvent;
+        var WL = WindowLoaded, wL = windowLoaded;
         if (WL) {
             if (WL.ShouldRunBeforeNavigation) {
-                le(e, wL);
+                WL.LoadedEvent(e, wL);
             }
             else {
                 wL();
-                le(e, null);
+                WL.LoadedEvent(e, null);
             }
         }
         else {

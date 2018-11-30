@@ -73,7 +73,7 @@ var ViewContainer = (function () {
                         try {
                             var a_1 = e.getAttribute("data-binder");
                             if (a_1) {
-                                var fun = new Function("return new " + a_1 + (a_1.indexOf("Binder(") == 0 ? "" : "()"));
+                                var fun = new Function("return new " + a_1 + (a_1.indexOf("(") > -1 ? "" : "()"));
                                 e.Binder = fun();
                                 e.Binder.Element = e;
                             }

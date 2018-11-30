@@ -31,7 +31,7 @@ HTMLElement.prototype.Input = function (predicate: (item: HTMLInputElement) => b
                        <HTMLInputElement>p.First(e => e.tagName === "INPUT");
 }
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
-    var p = <HTMLElement>this, b = p.Binder;
+    var p = <HTMLElement>this;
     var fc = p.First(childMatch);
     if (fc) {
         p = fc.parentElement;
@@ -41,27 +41,49 @@ HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boole
             p.InsertBefore(obj, i);
         }
     }
+
 }
 HTMLElement.prototype.InsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder
+    }
     if (Is.Alive(b)) {
         b.InsertBefore(obj, index);
     }
 }
 HTMLElement.prototype.Append = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder
+    }
     if (Is.Alive(b)) {
         b.Append(obj);
     }
 }
 HTMLElement.prototype.PostAndAppend = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder
+    }
     if (Is.Alive(b)) {
         b.PostAndAppend(obj);
     }
 }
 HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
-    var p = <HTMLElement>this, b = p.Binder;
+    var p = <HTMLElement>this;
     var fc = p.First(childMatch);
     if (fc) {
         p = fc.parentElement;
@@ -77,6 +99,13 @@ HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) =
 }
 HTMLElement.prototype.PostAndInsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder
+    }
     if (Is.Alive(b)) {
         b.PostAndInsertBefore(obj, index);
     }
@@ -230,7 +259,7 @@ HTMLElement.prototype.Delete = function () {
 };
 HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean): HTMLElement {
     var p = this.parentElement;
-    while (!func(p)) {
+    while (Is.Alive(p) && !func(p)) {
         p = p.parentElement;
     }
     return p;

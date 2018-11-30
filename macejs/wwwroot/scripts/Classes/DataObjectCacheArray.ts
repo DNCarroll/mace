@@ -10,7 +10,7 @@ class DataObjectCacheArray<T extends IObjectState>
         t._cachingKey = cachingKey;
         t._storageState = storageState;
         t._newT = newT;
-        if (t._cachingKey && t._storageState && t._newT) {            
+        if (t._cachingKey && t._storageState && t._newT) {
             var gim = t._storageState === StorageType.local ? localStorage.getItem : sessionStorage.getItem;
             var reHy = gim(t._cachingKey);
             if (!Is.NullOrEmpty(reHy)) {

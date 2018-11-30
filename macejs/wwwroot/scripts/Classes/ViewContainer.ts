@@ -66,7 +66,7 @@ abstract class ViewContainer implements IViewContainer {
                         try {
                             let a = e.getAttribute("data-binder");
                             if (a) {
-                                let fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
+                                let fun = new Function("return new " + a + (a.indexOf("(") > - 1 ? "" : "()"));
                                 e.Binder = <Binder>fun();
                                 e.Binder.Element = e;
                             }

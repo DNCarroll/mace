@@ -82,7 +82,7 @@ class View implements IView {
                     try {
                         let a = e.getAttribute("data-binder");
                         if (a) {
-                            let fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
+                            let fun = new Function("return new " + a + (a.indexOf("(") > -1 ? "" : "()"));
                             e.Binder = <Binder>fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;

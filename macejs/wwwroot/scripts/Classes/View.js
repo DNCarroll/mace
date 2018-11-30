@@ -89,7 +89,7 @@ var View = (function () {
                     try {
                         var a = e.getAttribute("data-binder");
                         if (a) {
-                            var fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
+                            var fun = new Function("return new " + a + (a.indexOf("(") > -1 ? "" : "()"));
                             e.Binder = fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(_this));
                             e.Binder.Element = e;

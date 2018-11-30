@@ -5,7 +5,7 @@ HTMLElement.prototype.Input = function (predicate) {
         p.First(function (e) { return e.tagName === "INPUT"; });
 };
 HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
-    var p = this, b = p.Binder;
+    var p = this;
     var fc = p.First(childMatch);
     if (fc) {
         p = fc.parentElement;
@@ -18,24 +18,45 @@ HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
 };
 HTMLElement.prototype.InsertBefore = function (obj, index) {
     var p = this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder;
+    }
     if (Is.Alive(b)) {
         b.InsertBefore(obj, index);
     }
 };
 HTMLElement.prototype.Append = function (obj) {
     var p = this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder;
+    }
     if (Is.Alive(b)) {
         b.Append(obj);
     }
 };
 HTMLElement.prototype.PostAndAppend = function (obj) {
     var p = this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder;
+    }
     if (Is.Alive(b)) {
         b.PostAndAppend(obj);
     }
 };
 HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj) {
-    var p = this, b = p.Binder;
+    var p = this;
     var fc = p.First(childMatch);
     if (fc) {
         p = fc.parentElement;
@@ -51,6 +72,13 @@ HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj) {
 };
 HTMLElement.prototype.PostAndInsertBefore = function (obj, index) {
     var p = this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder;
+    }
     if (Is.Alive(b)) {
         b.PostAndInsertBefore(obj, index);
     }
@@ -204,7 +232,7 @@ HTMLElement.prototype.Delete = function () {
 };
 HTMLElement.prototype.Ancestor = function (func) {
     var p = this.parentElement;
-    while (!func(p)) {
+    while (Is.Alive(p) && !func(p)) {
         p = p.parentElement;
     }
     return p;

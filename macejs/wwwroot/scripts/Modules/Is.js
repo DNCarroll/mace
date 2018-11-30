@@ -19,7 +19,7 @@ var Is;
     }
     Is.String = String;
     function Alive(value) {
-        return value !== undefined && value !== null;
+        return value === undefined || value === null ? false : true;
     }
     Is.Alive = Alive;
     function HTMLElement(o) {
