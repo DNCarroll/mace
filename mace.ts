@@ -366,13 +366,17 @@ class Binder {
     OnAjaxComplete(arg: CustomEventArg<Ajax>) {
         var t = this, x = arg.Sender.XHttp, s = x.status;
         if (!t.isRedirecting(x)) {
+            var cd = true;
             if (s === 200) {
                 var d = arg.Sender.GetRequestData();
                 if (d) {
-                    this.RouteBinding(d);
+                    cd = false;
+                    t.RouteBinding(d);
                 }
             }
-            t.Dispatch(EventType.Completed);
+            if (cd) {
+                t.Dispatch(EventType.Completed);
+            }
         }
     }
     RouteBinding(data: any) {
@@ -511,6 +515,7 @@ class Binder {
         }
         else {
             t.Bind(obj, null);
+            t.SelectedObject = obj; 
         }
     }
     ResetSelectedObject() {
@@ -555,14 +560,12 @@ class Binder {
         this.AutomaticUpdate ? this.Save(o) : null;
     }
     Save(obj: IObjectState) {
-        if (!Is.Alive(t) || !Is.Alive(t.Api)) {
-            var t = this, o = obj, api = t.Api();
-            if (api && o.ObjectState === ObjectState.Dirty) {
-                var a = new Ajax(t.WithProgress, t.DisableElement);
-                a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-                o.ObjectState = ObjectState.Cleaning;
-                a.Put(api, o.ServerObject);
-            }
+        var t = this, o = obj, api = t.Api();
+        if (Is.Alive(api) && o.ObjectState === ObjectState.Dirty) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            o.ObjectState = ObjectState.Cleaning;
+            a.Put(api, o.ServerObject);
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
@@ -757,9 +760,9 @@ class Binder {
         return this.selectedObject;
     }
     set SelectedObject(value) {
-        var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates;
-        value = !value && t.DataObjects.Data && t.DataObjects.Data.length > 0 ? t.DataObjects.Data[0] : value;
-        if (value) {
+        var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates, dad = t.DataObjects.Data, v = value;
+        v = !Is.Alive(v) && dad && dad.length > 0 ? dad[0] : v;
+        if (v) {
             var prev = t.SelectedObject;
             if (prev) {
                 prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
@@ -767,14 +770,16 @@ class Binder {
             if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
                 ftids.forEach(ft => {
                     var fte = ft.Element();
-                    var nt = {
-                        Template: fte,
-                        Container: fte.parentElement
-                    };
-                    fts.Add(nt);
+                    if (fte) {
+                        var nt = {
+                            Template: fte,
+                            Container: fte.parentElement
+                        };
+                        fts.Add(nt);
+                    }
                 });
             }
-            t.selectedObject = value;
+            t.selectedObject = v;
             t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
             if (Is.Alive(t.OnSelectedItemChanged)) {
                 t.OnSelectedItemChanged(t.selectedObject);
@@ -976,7 +981,7 @@ class DataObjectCacheArray<T extends IObjectState>
         t._cachingKey = cachingKey;
         t._storageState = storageState;
         t._newT = newT;
-        if (t._cachingKey && t._storageState && t._newT) {            
+        if (t._cachingKey && t._storageState && t._newT) {
             var gim = t._storageState === StorageType.local ? localStorage.getItem : sessionStorage.getItem;
             var reHy = gim(t._cachingKey);
             if (!Is.NullOrEmpty(reHy)) {
@@ -1111,7 +1116,7 @@ class View implements IView {
                     try {
                         let a = e.getAttribute("data-binder");
                         if (a) {
-                            let fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
+                            let fun = new Function("return new " + a + (a.indexOf("(") > -1 ? "" : "()"));
                             e.Binder = <Binder>fun();
                             e.Binder.AddListener(EventType.Completed, t.OnBinderComplete.bind(this));
                             e.Binder.Element = e;
@@ -1307,7 +1312,7 @@ abstract class ViewContainer implements IViewContainer {
                         try {
                             let a = e.getAttribute("data-binder");
                             if (a) {
-                                let fun = new Function("return new " + a + (a.indexOf("Binder(") == 0 ? "" : "()"));
+                                let fun = new Function("return new " + a + (a.indexOf("(") > - 1 ? "" : "()"));
                                 e.Binder = <Binder>fun();
                                 e.Binder.Element = e;
                             }
@@ -1726,14 +1731,14 @@ module Initializer {
         }
     }
     function loadedWrapper(e?) {
-        var WL = WindowLoaded, wL = windowLoaded, le = WL.LoadedEvent;
+        var WL = WindowLoaded, wL = windowLoaded;
         if (WL) {
             if (WL.ShouldRunBeforeNavigation) {
-                le(e, wL);
+                WL.LoadedEvent(e, wL);
             }
             else {
                 wL();
-                le(e, null);
+                WL.LoadedEvent(e, null);
             }
         }
         else {
@@ -1786,8 +1791,8 @@ module Is {
         return typeof value === "string";
     }
     export function Alive(value): boolean {
-        return value !== undefined && value !== null;
-    }
+        return value === undefined || value === null ? false : true;
+    } 
     export function HTMLElement(o): boolean {
         return Is.Alive(o["tagName"]);
     }
@@ -1990,7 +1995,7 @@ HTMLElement.prototype.Input = function (predicate: (item: HTMLInputElement) => b
                        <HTMLInputElement>p.First(e => e.tagName === "INPUT");
 }
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
-    var p = <HTMLElement>this, b = p.Binder;
+    var p = <HTMLElement>this;
     var fc = p.First(childMatch);
     if (fc) {
         p = fc.parentElement;
@@ -2000,27 +2005,49 @@ HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boole
             p.InsertBefore(obj, i);
         }
     }
+
 }
 HTMLElement.prototype.InsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder
+    }
     if (Is.Alive(b)) {
         b.InsertBefore(obj, index);
     }
 }
 HTMLElement.prototype.Append = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder
+    }
     if (Is.Alive(b)) {
         b.Append(obj);
     }
 }
 HTMLElement.prototype.PostAndAppend = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder
+    }
     if (Is.Alive(b)) {
         b.PostAndAppend(obj);
     }
 }
 HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
-    var p = <HTMLElement>this, b = p.Binder;
+    var p = <HTMLElement>this;
     var fc = p.First(childMatch);
     if (fc) {
         p = fc.parentElement;
@@ -2036,6 +2063,13 @@ HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) =
 }
 HTMLElement.prototype.PostAndInsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
+    while (!Is.Alive(b) && Is.Alive(p)) {
+        p = p.parentElement;
+        if (!Is.Alive(p)) {
+            break;
+        }
+        b = p.Binder
+    }
     if (Is.Alive(b)) {
         b.PostAndInsertBefore(obj, index);
     }
@@ -2189,7 +2223,7 @@ HTMLElement.prototype.Delete = function () {
 };
 HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean): HTMLElement {
     var p = this.parentElement;
-    while (!func(p)) {
+    while (Is.Alive(p) && !func(p)) {
         p = p.parentElement;
     }
     return p;

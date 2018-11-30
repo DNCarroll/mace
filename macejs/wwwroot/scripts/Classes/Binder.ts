@@ -137,13 +137,17 @@
     OnAjaxComplete(arg: CustomEventArg<Ajax>) {
         var t = this, x = arg.Sender.XHttp, s = x.status;
         if (!t.isRedirecting(x)) {
+            var cd = true;
             if (s === 200) {
                 var d = arg.Sender.GetRequestData();
                 if (d) {
-                    this.RouteBinding(d);
+                    cd = false;
+                    t.RouteBinding(d);
                 }
             }
-            t.Dispatch(EventType.Completed);
+            if (cd) {
+                t.Dispatch(EventType.Completed);
+            }
         }
     }
     RouteBinding(data: any) {
@@ -282,6 +286,7 @@
         }
         else {
             t.Bind(obj, null);
+            t.SelectedObject = obj; 
         }
     }
     ResetSelectedObject() {
@@ -326,14 +331,12 @@
         this.AutomaticUpdate ? this.Save(o) : null;
     }
     Save(obj: IObjectState) {
-        if (!Is.Alive(t) || !Is.Alive(t.Api)) {
-            var t = this, o = obj, api = t.Api();
-            if (api && o.ObjectState === ObjectState.Dirty) {
-                var a = new Ajax(t.WithProgress, t.DisableElement);
-                a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-                o.ObjectState = ObjectState.Cleaning;
-                a.Put(api, o.ServerObject);
-            }
+        var t = this, o = obj, api = t.Api();
+        if (Is.Alive(api) && o.ObjectState === ObjectState.Dirty) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            o.ObjectState = ObjectState.Cleaning;
+            a.Put(api, o.ServerObject);
         }
     }
     OnUpdateComplete(a: CustomEventArg<Ajax>) {
@@ -528,9 +531,9 @@
         return this.selectedObject;
     }
     set SelectedObject(value) {
-        var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates;
-        value = !value && t.DataObjects.Data && t.DataObjects.Data.length > 0 ? t.DataObjects.Data[0] : value;
-        if (value) {
+        var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates, dad = t.DataObjects.Data, v = value;
+        v = !Is.Alive(v) && dad && dad.length > 0 ? dad[0] : v;
+        if (v) {
             var prev = t.SelectedObject;
             if (prev) {
                 prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
@@ -538,14 +541,16 @@
             if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
                 ftids.forEach(ft => {
                     var fte = ft.Element();
-                    var nt = {
-                        Template: fte,
-                        Container: fte.parentElement
-                    };
-                    fts.Add(nt);
+                    if (fte) {
+                        var nt = {
+                            Template: fte,
+                            Container: fte.parentElement
+                        };
+                        fts.Add(nt);
+                    }
                 });
             }
-            t.selectedObject = value;
+            t.selectedObject = v;
             t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
             if (Is.Alive(t.OnSelectedItemChanged)) {
                 t.OnSelectedItemChanged(t.selectedObject);

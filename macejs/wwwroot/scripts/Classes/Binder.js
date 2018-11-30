@@ -132,13 +132,17 @@ var Binder = (function () {
     Binder.prototype.OnAjaxComplete = function (arg) {
         var t = this, x = arg.Sender.XHttp, s = x.status;
         if (!t.isRedirecting(x)) {
+            var cd = true;
             if (s === 200) {
                 var d = arg.Sender.GetRequestData();
                 if (d) {
-                    this.RouteBinding(d);
+                    cd = false;
+                    t.RouteBinding(d);
                 }
             }
-            t.Dispatch(EventType.Completed);
+            if (cd) {
+                t.Dispatch(EventType.Completed);
+            }
         }
     };
     Binder.prototype.RouteBinding = function (data) {
@@ -271,6 +275,7 @@ var Binder = (function () {
         }
         else {
             t.Bind(obj, null);
+            t.SelectedObject = obj;
         }
     };
     Binder.prototype.ResetSelectedObject = function () {
@@ -310,14 +315,12 @@ var Binder = (function () {
         this.AutomaticUpdate ? this.Save(o) : null;
     };
     Binder.prototype.Save = function (obj) {
-        if (!Is.Alive(t) || !Is.Alive(t.Api)) {
-            var t = this, o = obj, api = t.Api();
-            if (api && o.ObjectState === ObjectState.Dirty) {
-                var a = new Ajax(t.WithProgress, t.DisableElement);
-                a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
-                o.ObjectState = ObjectState.Cleaning;
-                a.Put(api, o.ServerObject);
-            }
+        var t = this, o = obj, api = t.Api();
+        if (Is.Alive(api) && o.ObjectState === ObjectState.Dirty) {
+            var a = new Ajax(t.WithProgress, t.DisableElement);
+            a.AddListener(EventType.Any, t.OnUpdateComplete.bind(this));
+            o.ObjectState = ObjectState.Cleaning;
+            a.Put(api, o.ServerObject);
         }
     };
     Binder.prototype.OnUpdateComplete = function (a) {
@@ -501,9 +504,9 @@ var Binder = (function () {
             return this.selectedObject;
         },
         set: function (value) {
-            var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates;
-            value = !value && t.DataObjects.Data && t.DataObjects.Data.length > 0 ? t.DataObjects.Data[0] : value;
-            if (value) {
+            var t = this, ftids = t.FormTemplateIds, fts = t.FormTemplates, dad = t.DataObjects.Data, v = value;
+            v = !Is.Alive(v) && dad && dad.length > 0 ? dad[0] : v;
+            if (v) {
                 var prev = t.SelectedObject;
                 if (prev) {
                     prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
@@ -511,14 +514,16 @@ var Binder = (function () {
                 if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
                     ftids.forEach(function (ft) {
                         var fte = ft.Element();
-                        var nt = {
-                            Template: fte,
-                            Container: fte.parentElement
-                        };
-                        fts.Add(nt);
+                        if (fte) {
+                            var nt = {
+                                Template: fte,
+                                Container: fte.parentElement
+                            };
+                            fts.Add(nt);
+                        }
                     });
                 }
-                t.selectedObject = value;
+                t.selectedObject = v;
                 t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
                 if (Is.Alive(t.OnSelectedItemChanged)) {
                     t.OnSelectedItemChanged(t.selectedObject);
