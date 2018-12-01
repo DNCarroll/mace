@@ -102,9 +102,11 @@ var Ajax = (function () {
         if (p && this.ContentType === "application/json; charset=utf-8") {
             p = DataObject.IsDataObject(p) ? p["ServerObject"] : p;
             r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
-                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
-                .replace(/<script/ig, "")
-                .replace(/script>/ig, "");
+                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "");
+            if (Ajax.RemoveScript) {
+                r = r.replace(/<script/ig, "")
+                    .replace(/script>/ig, "");
+            }
         }
         return r;
     };
@@ -239,6 +241,7 @@ var Ajax = (function () {
         var l = this.eventHandlers.Where(function (e) { return e.EventType === eventType || e.EventType === EventType.Any; });
         l.forEach(function (l) { return l.EventHandler(new CustomEventArg(_this, eventType)); });
     };
+    Ajax.RemoveScript = true;
     return Ajax;
 }());
 //# sourceMappingURL=Ajax.js.map
