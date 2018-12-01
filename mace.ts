@@ -93,14 +93,17 @@ class Ajax implements IEventDispatcher<Ajax>{
             }
         }
     }
+    static RemoveScript = true;
     private getParameters(parameters: any): string {
         var r = "", p = parameters;
         if (p && this.ContentType === "application/json; charset=utf-8") {
             p = DataObject.IsDataObject(p) ? p["ServerObject"] : p;
             r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
-                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
-                .replace(/<script/ig, "")
-                .replace(/script>/ig, "");
+                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "");
+            if (Ajax.RemoveScript) {
+                r = r.replace(/<script/ig, "")
+                    .replace(/script>/ig, "");
+            }
         }
         return r;
     }
