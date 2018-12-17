@@ -5,7 +5,7 @@ var CacheStrategy;
     CacheStrategy[CacheStrategy["View"] = 2] = "View";
     CacheStrategy[CacheStrategy["Preload"] = 3] = "Preload";
 })(CacheStrategy || (CacheStrategy = {}));
-var View = (function () {
+var View = /** @class */ (function () {
     function View(cacheStrategy, containerId, viewPath) {
         if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.View; }
         if (containerId === void 0) { containerId = "content"; }
@@ -166,7 +166,7 @@ var View = (function () {
     };
     return View;
 }());
-var DataLoaders = (function () {
+var DataLoaders = /** @class */ (function () {
     function DataLoaders() {
         var dataLoaders = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -191,7 +191,7 @@ var DataLoaders = (function () {
     };
     return DataLoaders;
 }());
-var DataLoader = (function () {
+var DataLoader = /** @class */ (function () {
     function DataLoader(dataUrl, dataCallBack, shouldTryLoad, parameters) {
         if (shouldTryLoad === void 0) { shouldTryLoad = null; }
         if (parameters === void 0) { parameters = null; }

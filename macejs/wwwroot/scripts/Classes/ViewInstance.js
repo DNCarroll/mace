@@ -1,4 +1,4 @@
-var ViewInstance = (function () {
+var ViewInstance = /** @class */ (function () {
     function ViewInstance(parameters, viewContainer, route) {
         if (route === void 0) { route = null; }
         this.Route = route;

@@ -13,20 +13,22 @@
     get ResponseText(): string {
         return this.XHttp.responseText;
     }
-    XHttp: XMLHttpRequest;    
-    Submit(method: string, url: string, parameters: any = null) {
-        var t = this;        
+    XHttp: XMLHttpRequest;  
+    Url: string;
+    Submit(method: string, url: string, parameters: any = null, asRaw: boolean = false) {
+        var t = this;
         t.Progress();
         url = t.getUrl(url);
-        t.XHttp = new XMLHttpRequest(); 
-        var x = t.XHttp;       
-        x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);        
+        t.Url = url;
+        t.XHttp = new XMLHttpRequest();
+        var x = t.XHttp;
+        x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
         x.open(method, url, true);
-        x.setRequestHeader("content-type", t.ContentType);
         t.setHead();
         try {
-            x.send(t.getParameters(parameters));
-        } catch (e) {            
+            var p = asRaw ? parameters : t.getParameters(parameters);
+            Is.NullOrEmpty(p) ? x.send() : x.send(p);
+        } catch (e) {
             t.Progress(false);
             window.Exception(e);
         }
@@ -93,8 +95,8 @@
     }
 
     GetRequestData(): any {
-        var r = null, t = this, x = this.XHttp, s = x.status;       
-        if (t.isRequestReady() && (s == 200 || s == 204) &&
+        var r = null, t = this, x = this.XHttp, s = x.status;
+        if (t.isRequestReady() && (s == 200) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
             try {
@@ -106,7 +108,7 @@
             }
             catch (e) {
                 r = null;
-                window.Exception(e);
+                window.Exception("Failed to Convert data at Ajax.GetRequestData with url:" + t.Url);
             }
         }
         return r;

@@ -1,4 +1,17 @@
-var Binder = (function () {
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var Binder = /** @class */ (function () {
     function Binder(primaryKeys, api, autoUpdate, TypeObject, staticProperties) {
         if (primaryKeys === void 0) { primaryKeys = null; }
         if (api === void 0) { api = null; }
@@ -166,6 +179,9 @@ var Binder = (function () {
             vi.RefreshBinding = false;
         }
         t.Dispatch(EventType.Completed);
+        if (this.ElementBoundEvent) {
+            this.ElementBoundEvent(this.Element);
+        }
     };
     Binder.prototype.SetUpMore = function (d) {
         var t = this, tm = t.MoreElement, tms = "none";
@@ -579,4 +595,17 @@ var Binder = (function () {
     };
     return Binder;
 }());
+var BinderWithBoundEvent = /** @class */ (function (_super) {
+    __extends(BinderWithBoundEvent, _super);
+    function BinderWithBoundEvent(pks, api, elementBoundEvent, TypeObject, autoUpdate) {
+        if (elementBoundEvent === void 0) { elementBoundEvent = null; }
+        if (TypeObject === void 0) { TypeObject = null; }
+        if (autoUpdate === void 0) { autoUpdate = false; }
+        var _this = _super.call(this, pks, api, autoUpdate, TypeObject) || this;
+        var t = _this;
+        t.ElementBoundEvent = elementBoundEvent;
+        return _this;
+    }
+    return BinderWithBoundEvent;
+}(Binder));
 //# sourceMappingURL=Binder.js.map

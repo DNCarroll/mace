@@ -1,4 +1,4 @@
-var DataObject = (function () {
+var DataObject = /** @class */ (function () {
     function DataObject(serverObject, propertiesThatShouldSubscribeToObjectStateChanged, staticProperties) {
         if (propertiesThatShouldSubscribeToObjectStateChanged === void 0) { propertiesThatShouldSubscribeToObjectStateChanged = null; }
         if (staticProperties === void 0) { staticProperties = null; }

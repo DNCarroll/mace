@@ -15,10 +15,12 @@ class Ajax implements IEventDispatcher<Ajax>{
         return this.XHttp.responseText;
     }
     XHttp: XMLHttpRequest;
+    Url: string;
     Submit(method: string, url: string, parameters: any = null, asRaw: boolean = false) {
         var t = this;
         t.Progress();
         url = t.getUrl(url);
+        t.Url = url;
         t.XHttp = new XMLHttpRequest();
         var x = t.XHttp;
         x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
@@ -122,7 +124,7 @@ class Ajax implements IEventDispatcher<Ajax>{
             }
             catch (e) {
                 r = null;
-                window.Exception(e);
+                window.Exception("Failed to Convert data at Ajax.GetRequestData with url:" + t.Url);
             }
         }
         return r;
@@ -264,6 +266,7 @@ class Binder {
     WithProgress: boolean = true;
     DisableElement: any;
     Element: HTMLElement;
+    ElementBoundEvent: (ele: HTMLElement) => void;
     private eventHandlers = new Array<Listener<Binder>>();
     DataObjects: DataObjectCacheArray<IObjectState> = new DataObjectCacheArray<IObjectState>();
     OnSelectedItemChanged: (obj: IObjectState) => void;
@@ -404,7 +407,9 @@ class Binder {
             vi.RefreshBinding = false;
         }
         t.Dispatch(EventType.Completed);
-
+        if (this.ElementBoundEvent) {
+            this.ElementBoundEvent(this.Element);
+        }
     }
     SetUpMore(d: Array<any>) {
         var t = this,
@@ -835,6 +840,15 @@ class Binder {
             });
             this.loadFromVI(nvi);
         }
+    }
+}
+class BinderWithBoundEvent extends Binder {
+    constructor(pks: Array<string>, api: string,
+        elementBoundEvent: (ele: HTMLElement) => void = null,
+        TypeObject: { new(obj: any): IObjectState; } = null, autoUpdate: boolean = false) {
+        super(pks, api, autoUpdate, TypeObject);
+        let t = this;
+        t.ElementBoundEvent = elementBoundEvent;
     }
 }
 class DataObject implements IObjectState {
@@ -1325,7 +1339,7 @@ abstract class ViewContainer implements IViewContainer {
                         }
                     });
                     ele.forEach(e => {
-                        if (e.Binder) {
+                        if (e.Binder && e.Binder.AutomaticSelect) {
                             try {
                                 e.Binder.Refresh();
                             }

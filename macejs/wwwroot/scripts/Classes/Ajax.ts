@@ -15,10 +15,12 @@
         return this.XHttp.responseText;
     }
     XHttp: XMLHttpRequest;
+    Url: string;
     Submit(method: string, url: string, parameters: any = null, asRaw: boolean = false) {
         var t = this;
         t.Progress();
         url = t.getUrl(url);
+        t.Url = url;
         t.XHttp = new XMLHttpRequest();
         var x = t.XHttp;
         x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
@@ -122,7 +124,7 @@
             }
             catch (e) {
                 r = null;
-                window.Exception(e);
+                window.Exception("Failed to Convert data at Ajax.GetRequestData with url:" + t.Url);
             }
         }
         return r;

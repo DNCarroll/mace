@@ -4,7 +4,7 @@ var StorageType;
     StorageType[StorageType["session"] = 1] = "session";
     StorageType[StorageType["local"] = 2] = "local";
 })(StorageType || (StorageType = {}));
-var DataObjectCacheArray = (function () {
+var DataObjectCacheArray = /** @class */ (function () {
     function DataObjectCacheArray(cachingKey, storageState, newT) {
         if (cachingKey === void 0) { cachingKey = null; }
         if (storageState === void 0) { storageState = null; }

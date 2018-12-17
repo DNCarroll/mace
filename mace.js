@@ -1,4 +1,4 @@
-var Ajax = (function () {
+var Ajax = /** @class */ (function () {
     function Ajax(withProgress, disableElement) {
         if (withProgress === void 0) { withProgress = false; }
         if (disableElement === void 0) { disableElement = null; }
@@ -23,6 +23,7 @@ var Ajax = (function () {
         var t = this;
         t.Progress();
         url = t.getUrl(url);
+        t.Url = url;
         t.XHttp = new XMLHttpRequest();
         var x = t.XHttp;
         x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
@@ -124,7 +125,7 @@ var Ajax = (function () {
             }
             catch (e) {
                 r = null;
-                window.Exception(e);
+                window.Exception("Failed to Convert data at Ajax.GetRequestData with url:" + t.Url);
             }
         }
         return r;
@@ -245,7 +246,20 @@ var Ajax = (function () {
     return Ajax;
 }());
 //# sourceMappingURL=Ajax.js.map
-var Binder = (function () {
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var Binder = /** @class */ (function () {
     function Binder(primaryKeys, api, autoUpdate, TypeObject, staticProperties) {
         if (primaryKeys === void 0) { primaryKeys = null; }
         if (api === void 0) { api = null; }
@@ -413,6 +427,9 @@ var Binder = (function () {
             vi.RefreshBinding = false;
         }
         t.Dispatch(EventType.Completed);
+        if (this.ElementBoundEvent) {
+            this.ElementBoundEvent(this.Element);
+        }
     };
     Binder.prototype.SetUpMore = function (d) {
         var t = this, tm = t.MoreElement, tms = "none";
@@ -826,8 +843,21 @@ var Binder = (function () {
     };
     return Binder;
 }());
+var BinderWithBoundEvent = /** @class */ (function (_super) {
+    __extends(BinderWithBoundEvent, _super);
+    function BinderWithBoundEvent(pks, api, elementBoundEvent, TypeObject, autoUpdate) {
+        if (elementBoundEvent === void 0) { elementBoundEvent = null; }
+        if (TypeObject === void 0) { TypeObject = null; }
+        if (autoUpdate === void 0) { autoUpdate = false; }
+        var _this = _super.call(this, pks, api, autoUpdate, TypeObject) || this;
+        var t = _this;
+        t.ElementBoundEvent = elementBoundEvent;
+        return _this;
+    }
+    return BinderWithBoundEvent;
+}(Binder));
 //# sourceMappingURL=Binder.js.map
-var DataObject = (function () {
+var DataObject = /** @class */ (function () {
     function DataObject(serverObject, propertiesThatShouldSubscribeToObjectStateChanged, staticProperties) {
         if (propertiesThatShouldSubscribeToObjectStateChanged === void 0) { propertiesThatShouldSubscribeToObjectStateChanged = null; }
         if (staticProperties === void 0) { staticProperties = null; }
@@ -985,7 +1015,7 @@ var StorageType;
     StorageType[StorageType["session"] = 1] = "session";
     StorageType[StorageType["local"] = 2] = "local";
 })(StorageType || (StorageType = {}));
-var DataObjectCacheArray = (function () {
+var DataObjectCacheArray = /** @class */ (function () {
     function DataObjectCacheArray(cachingKey, storageState, newT) {
         if (cachingKey === void 0) { cachingKey = null; }
         if (storageState === void 0) { storageState = null; }
@@ -1055,7 +1085,7 @@ var CacheStrategy;
     CacheStrategy[CacheStrategy["View"] = 2] = "View";
     CacheStrategy[CacheStrategy["Preload"] = 3] = "Preload";
 })(CacheStrategy || (CacheStrategy = {}));
-var View = (function () {
+var View = /** @class */ (function () {
     function View(cacheStrategy, containerId, viewPath) {
         if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.View; }
         if (containerId === void 0) { containerId = "content"; }
@@ -1216,7 +1246,7 @@ var View = (function () {
     };
     return View;
 }());
-var DataLoaders = (function () {
+var DataLoaders = /** @class */ (function () {
     function DataLoaders() {
         var dataLoaders = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -1241,7 +1271,7 @@ var DataLoaders = (function () {
     };
     return DataLoaders;
 }());
-var DataLoader = (function () {
+var DataLoader = /** @class */ (function () {
     function DataLoader(dataUrl, dataCallBack, shouldTryLoad, parameters) {
         if (shouldTryLoad === void 0) { shouldTryLoad = null; }
         if (parameters === void 0) { parameters = null; }
@@ -1271,9 +1301,12 @@ var DataLoader = (function () {
 }());
 //# sourceMappingURL=View.js.map
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -1281,7 +1314,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 var ViewContainers = new Array();
-var ViewContainer = (function () {
+var ViewContainer = /** @class */ (function () {
     function ViewContainer() {
         this.UrlPattern = null;
         this.UrlReplacePattern = null;
@@ -1355,7 +1388,7 @@ var ViewContainer = (function () {
                         }
                     });
                     ele.forEach(function (e) {
-                        if (e.Binder) {
+                        if (e.Binder && e.Binder.AutomaticSelect) {
                             try {
                                 e.Binder.Refresh();
                             }
@@ -1425,7 +1458,7 @@ var ViewContainer = (function () {
     };
     return ViewContainer;
 }());
-var SingleViewContainer = (function (_super) {
+var SingleViewContainer = /** @class */ (function (_super) {
     __extends(SingleViewContainer, _super);
     function SingleViewContainer(cacheStrategy, containerId, isDefault) {
         if (cacheStrategy === void 0) { cacheStrategy = CacheStrategy.View; }
@@ -1440,7 +1473,7 @@ var SingleViewContainer = (function (_super) {
     return SingleViewContainer;
 }(ViewContainer));
 //# sourceMappingURL=ViewContainer.js.map
-var ViewInstance = (function () {
+var ViewInstance = /** @class */ (function () {
     function ViewInstance(parameters, viewContainer, route) {
         if (route === void 0) { route = null; }
         this.Route = route;
@@ -1458,7 +1491,7 @@ var EventType;
     EventType[EventType["Aborted"] = 3] = "Aborted";
     EventType[EventType["Message"] = 4] = "Message";
 })(EventType || (EventType = {}));
-var CustomEventArg = (function () {
+var CustomEventArg = /** @class */ (function () {
     function CustomEventArg(sender, eventType) {
         this.Cancel = false;
         this.Sender = sender;
@@ -1466,14 +1499,14 @@ var CustomEventArg = (function () {
     }
     return CustomEventArg;
 }());
-var Listener = (function () {
+var Listener = /** @class */ (function () {
     function Listener(eventType, eventHandler) {
         this.EventType = eventType;
         this.EventHandler = eventHandler;
     }
     return Listener;
 }());
-var PropertyListener = (function () {
+var PropertyListener = /** @class */ (function () {
     function PropertyListener(propertyName, attribute, handler) {
         this.PropertyName = propertyName;
         this.Attribute = attribute;
@@ -1608,7 +1641,7 @@ var Autofill;
 //# sourceMappingURL=Autofill.js.map
 var HistoryContainer;
 (function (HistoryContainer) {
-    var History = (function () {
+    var History = /** @class */ (function () {
         function History() {
             this.ViewInstances = new Array();
             //this method isnt used anymore but it maybe needed still
@@ -1682,7 +1715,7 @@ var HistoryContainer;
 })(HistoryContainer || (HistoryContainer = {}));
 var HistoryManager = new HistoryContainer.History();
 //# sourceMappingURL=HistoryManager.js.map
-var WindowLoaded = (function () {
+var WindowLoaded = /** @class */ (function () {
     function WindowLoaded(loadedEvent, shouldRunBeforeNavigation) {
         this.LoadedEvent = loadedEvent;
         this.ShouldRunBeforeNavigation = shouldRunBeforeNavigation;

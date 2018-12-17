@@ -11,9 +11,12 @@ namespace mace.Test {
         public void MakeBowerFiles() {
             //var jsFile = writeBundle(".js");
             var tsFile = writeBundle(".ts");
+
+            var path = pathToRoot();            
+
             //C:\Users\Nathan\Documents\GitHub\mace\macejs\wwwroot\js
-            System.IO.File.Copy(@"C:\Users\Nathan\Documents\GitHub\mace\macejs\wwwroot\js\mace.js", Path.Combine(pathToRoot(), "mace.js"), true);
-            System.IO.File.Copy(@"C:\Users\Nathan\Documents\GitHub\mace\macejs\wwwroot\js\mace.min.js", Path.Combine(pathToRoot(), "mace.min.js"), true);
+            System.IO.File.Copy(path + @"\macejs\wwwroot\js\mace.js", Path.Combine(path, "mace.js"), true);
+            System.IO.File.Copy(path + @"\macejs\wwwroot\js\mace.min.js", Path.Combine(path, "mace.min.js"), true);
             //var contents = System.IO.File.ReadAllText(jsFile);
             //var pattern = @"\r\n|\t|\s\s";
             //var comments = @"//.*?\r\n";
