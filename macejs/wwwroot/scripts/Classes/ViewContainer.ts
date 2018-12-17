@@ -76,7 +76,7 @@ abstract class ViewContainer implements IViewContainer {
                         }
                     });
                     ele.forEach(e => {
-                        if (e.Binder) {
+                        if (e.Binder && e.Binder.AutomaticSelect) {
                             try {
                                 e.Binder.Refresh();
                             }

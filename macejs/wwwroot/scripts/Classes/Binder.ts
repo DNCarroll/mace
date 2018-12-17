@@ -32,6 +32,7 @@
     WithProgress: boolean = true;
     DisableElement: any;
     Element: HTMLElement;
+    ElementBoundEvent: (ele: HTMLElement) => void;
     private eventHandlers = new Array<Listener<Binder>>();
     DataObjects: DataObjectCacheArray<IObjectState> = new DataObjectCacheArray<IObjectState>();
     OnSelectedItemChanged: (obj: IObjectState) => void;
@@ -172,7 +173,9 @@
             vi.RefreshBinding = false;
         }
         t.Dispatch(EventType.Completed);
-
+        if (this.ElementBoundEvent) {
+            this.ElementBoundEvent(this.Element);
+        }
     }
     SetUpMore(d: Array<any>) {
         var t = this,
@@ -603,5 +606,14 @@
             });
             this.loadFromVI(nvi);
         }
+    }
+}
+class BinderWithBoundEvent extends Binder {
+    constructor(pks: Array<string>, api: string,
+        elementBoundEvent: (ele: HTMLElement) => void = null,
+        TypeObject: { new(obj: any): IObjectState; } = null, autoUpdate: boolean = false) {
+        super(pks, api, autoUpdate, TypeObject);
+        let t = this;
+        t.ElementBoundEvent = elementBoundEvent;
     }
 }

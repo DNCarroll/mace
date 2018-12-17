@@ -1,5 +1,5 @@
 ﻿//disable the active context or readonly it while the new stuff is coming in?
-class Binder implements IBinder {
+class Binder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
     constructor(primaryKeys: Array<string> = null, api: string = null, autoUpdate:boolean = false, TypeObject: { new (obj: any): IObjectState; } = null, staticProperties: Array<string> = null) {
@@ -30,7 +30,8 @@ class Binder implements IBinder {
     WithProgress: boolean = true;
     DisableElement: any;
     Element: HTMLElement;
-    private eventHandlers = new Array<Listener<IBinder>>();
+    ElementBoundEvent: (ele: HTMLElement) => void;
+    private eventHandlers = new Array<Listener<Binder>>();
     DataObject: IObjectState;
     DataObjects: Array<IObjectState> = new Array<IObjectState>();
     AutomaticUpdate: boolean = true;
@@ -382,13 +383,13 @@ class Binder implements IBinder {
         this.selectedObject = value;
     }
 
-    AddListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
+    AddListener(et: EventType, eh: (eventArg: ICustomEventArg<Binder>) => void) {
         var f = this.eventHandlers.First(h => h.EventType === et && h.EventHandler === eh);
         if (!f) {
             this.eventHandlers.Add(new Listener(et, eh));
         }
     }
-    RemoveListener(et: EventType, eh: (eventArg: ICustomEventArg<IBinder>) => void) {
+    RemoveListener(et: EventType, eh: (eventArg: ICustomEventArg<Binder>) => void) {
         this.eventHandlers.Remove(l => l.EventType === et && eh === eh);
     }
     RemoveListeners(et: EventType = EventType.Any) {
@@ -396,7 +397,7 @@ class Binder implements IBinder {
     }
     Dispatch(et: EventType) {
         var l = this.eventHandlers.Where(e => e.EventType === et);
-        l.forEach(l => l.EventHandler(new CustomEventArg<IBinder>(this, et)));
+        l.forEach(l => l.EventHandler(new CustomEventArg<Binder>(this, et)));
     }
     More() {
         var pb = this.Element.Binder,
