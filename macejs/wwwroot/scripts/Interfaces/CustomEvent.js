@@ -6,7 +6,7 @@ var EventType;
     EventType[EventType["Aborted"] = 3] = "Aborted";
     EventType[EventType["Message"] = 4] = "Message";
 })(EventType || (EventType = {}));
-var CustomEventArg = (function () {
+var CustomEventArg = /** @class */ (function () {
     function CustomEventArg(sender, eventType) {
         this.Cancel = false;
         this.Sender = sender;
@@ -14,14 +14,14 @@ var CustomEventArg = (function () {
     }
     return CustomEventArg;
 }());
-var Listener = (function () {
+var Listener = /** @class */ (function () {
     function Listener(eventType, eventHandler) {
         this.EventType = eventType;
         this.EventHandler = eventHandler;
     }
     return Listener;
 }());
-var PropertyListener = (function () {
+var PropertyListener = /** @class */ (function () {
     function PropertyListener(propertyName, attribute, handler) {
         this.PropertyName = propertyName;
         this.Attribute = attribute;

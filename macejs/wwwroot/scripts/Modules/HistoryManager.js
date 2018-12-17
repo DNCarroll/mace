@@ -1,6 +1,6 @@
 var HistoryContainer;
 (function (HistoryContainer) {
-    var History = (function () {
+    var History = /** @class */ (function () {
         function History() {
             this.ViewInstances = new Array();
             //this method isnt used anymore but it maybe needed still

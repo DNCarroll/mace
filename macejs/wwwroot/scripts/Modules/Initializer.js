@@ -1,4 +1,4 @@
-var WindowLoaded = (function () {
+var WindowLoaded = /** @class */ (function () {
     function WindowLoaded(loadedEvent, shouldRunBeforeNavigation) {
         this.LoadedEvent = loadedEvent;
         this.ShouldRunBeforeNavigation = shouldRunBeforeNavigation;

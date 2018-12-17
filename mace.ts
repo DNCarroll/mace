@@ -95,14 +95,17 @@ class Ajax implements IEventDispatcher<Ajax>{
             }
         }
     }
+    static RemoveScript = true;
     private getParameters(parameters: any): string {
         var r = "", p = parameters;
         if (p && this.ContentType === "application/json; charset=utf-8") {
             p = DataObject.IsDataObject(p) ? p["ServerObject"] : p;
             r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
-                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
-                .replace(/<script/ig, "")
-                .replace(/script>/ig, "");
+                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "");
+            if (Ajax.RemoveScript) {
+                r = r.replace(/<script/ig, "")
+                    .replace(/script>/ig, "");
+            }
         }
         return r;
     }
@@ -329,7 +332,7 @@ class Binder {
                 t.SetUpMore(t.DataObjects.Data);
                 t.DataObjects.forEach(obj => {
                     t.add(obj, true);
-                });                
+                });
                 t.Dispatch(EventType.Completed);
             }
             else if (t.AutomaticSelect && !Is.NullOrEmpty(t.Api)) {
@@ -343,7 +346,7 @@ class Binder {
         }
         t.initialLoad = false;
     }
-    Refresh(viewInstance: ViewInstance = null) {      
+    Refresh(viewInstance: ViewInstance = null) {
         var vi = viewInstance ? viewInstance : HistoryManager.CurrentViewInstance();
         vi.RefreshBinding = true;
         this.loadFromVI(viewInstance);
@@ -374,7 +377,7 @@ class Binder {
                 var d = arg.Sender.GetRequestData();
                 if (d) {
                     cd = false;
-                    this.RouteBinding(d);
+                    t.RouteBinding(d);
                 }
             }
             if (cd) {
@@ -388,7 +391,7 @@ class Binder {
         if (Is.Array(d)) {
             (<Array<any>>d).forEach(d => t.add(t.NewObject(d)));
             if (t.DataObjects.length > 0) {
-                t.ResetSelectedObject();                
+                t.ResetSelectedObject();
             }
         }
         else if (d) {
@@ -407,7 +410,6 @@ class Binder {
         if (this.ElementBoundEvent) {
             this.ElementBoundEvent(this.Element);
         }
-        
     }
     SetUpMore(d: Array<any>) {
         var t = this,
@@ -433,9 +435,7 @@ class Binder {
             var a = new Ajax(t.WithProgress, t.DisableElement),
                 f = () => {
                     var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
-                    es.forEach(e2 => e2.parentElement.removeChild(e2));
-                    //because we dont know what htey are doing with the row they maybe sending them back as changes
-                    //td.slice(i);
+                    es.forEach(e2 => e2.parentElement.removeChild(e2));                    
                     td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
                 },
                 afc = (arg: CustomEventArg<Ajax>) => {
@@ -494,17 +494,15 @@ class Binder {
         }
     }
     add(obj: IObjectState, shouldNotAddItsAlreadyCached: boolean = false, beforeIndex: number = -1) {
-        let t = this;
+        let t = this, drt = t.DataRowTemplates;
         t.prepTemplates();
-        if (t.DataRowTemplates.length > 0) {
-            t.DataRowTemplates.forEach(d => {
+        if (drt.length > 0) {
+            drt.forEach(d => {
                 let ne = <HTMLElement>d.cloneNode(true),
                     be = ne.Get(e => e.HasDataSet()),
                     drf = t.DataRowFooter,
                     pe = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0] : t.Element;
-
                 be.Add(ne);
-
                 if (beforeIndex > -1 && beforeIndex < pe.childNodes.length) {
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
@@ -512,28 +510,28 @@ class Binder {
                 if (!shouldNotAddItsAlreadyCached) {
                     t.DataObjects.Add(obj);
                 }
-                obj.Container = t.DataObjects.Data;               
+                obj.Container = t.DataObjects.Data;
                 ne.onclick = () => {
-                    t.SelectedObject = obj;                    
+                    t.SelectedObject = obj;
                 };
 
                 t.Bind(obj, be);
-                if (beforeIndex > -1) {                                        
+                if (beforeIndex > -1) {
                     t.SelectedObject = obj;
                 }
             });
         }
         else {
             t.Bind(obj, null);
-            t.SelectedObject = obj;            
+            t.SelectedObject = obj; 
         }
-    }    
-    ResetSelectedObject() {        
-        this.SelectedObject = this.SelectedObject;
+    }
+    ResetSelectedObject() {
+        this.SelectedObject = this.selectedObject;
     }
     private prepTemplates() {
-        var t = this;
-        if (t.DataRowTemplates.length === 0) {            
+        var t = this, drt = t.DataRowTemplates;
+        if (drt.length === 0) {
             var e = t.Element.tagName === "TABLE" ? (<HTMLTableElement>t.Element).tBodies[0].children : t.Element.children,
                 r = new Array<HTMLElement>(),
                 li = 0;
@@ -546,7 +544,7 @@ class Binder {
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
                 <HTMLElement>e[e.length - 1] : null;
             r.forEach(r => {
-                t.DataRowTemplates.Add(r);
+                drt.Add(r);
                 r.parentElement.removeChild(r);
             });
             var dmk = "data-morekeys",
@@ -644,10 +642,10 @@ class Binder {
             eles = t.Element.Get(e => e.HasDataSet());
             eles.Add(t.Element);
         }
-        
+
         o.AddObjectStateListener(t.objStateChanged.bind(this));
         eles.forEach(e => {
-            e.DataObject = o;              
+            e.DataObject = o;
             t.setListeners(e, o);
         });
         o.AllPropertiesChanged();
@@ -675,7 +673,7 @@ class Binder {
                 t.setObjPropListener(b.Property, a, ele, d);
                 if (["INPUT", "SELECT", "TEXTAREA"].indexOf(tn) > -1) {
                     let ea = b.Attribute === "checked" && ele["type"] === "checkbox" ? "checked" :
-                             ele["type"] === "radio" && b.Attribute === "checked" ? "value" : b.Attribute;
+                        ele["type"] === "radio" && b.Attribute === "checked" ? "value" : b.Attribute;
                     if (ea && ["value", "checked"].indexOf(ea) > -1) {
                         if (Is.Alive(ele.onchange)) {
                             var temp: (evt) => void;
@@ -850,10 +848,10 @@ class BinderWithBoundEvent extends Binder {
         TypeObject: { new(obj: any): IObjectState; } = null, autoUpdate: boolean = false) {
         super(pks, api, autoUpdate, TypeObject);
         let t = this;
-        t.ElementBoundEvent = elementBoundEvent;        
+        t.ElementBoundEvent = elementBoundEvent;
     }
 }
-class DataObject implements IObjectState {    
+class DataObject implements IObjectState {
     public static DefaultAlternatingRowClass: string = null;
     public static DefaultSelectedRowClass: string = null;
     public static DefaultRowClass: string = null;
@@ -919,7 +917,7 @@ class DataObject implements IObjectState {
             return ac;
         }
         return t.DefaultRowClass;
-    }   
+    }
     set SelectedRowClass(value: string) {
         this.selectedRowClass = value;
     }
@@ -958,7 +956,7 @@ class DataObject implements IObjectState {
             this.ObjectState = ObjectState.Dirty;
         }
     }
-    AddObjectStateListener(h: (obj: IObjectState) => void) {        
+    AddObjectStateListener(h: (obj: IObjectState) => void) {
         this.oLstenrs.Add(h);
     }
     RemoveObjectStateListener() {
@@ -993,11 +991,6 @@ enum StorageType {
     session,
     local
 }
-//may have a type on this deal that we want to new up
-//the default would be the DataObject
-//hide the array and provide an indexer?
-//if we make it not array its going to 
-//point out all failures
 class DataObjectCacheArray<T extends IObjectState>
 {
     constructor(cachingKey: string = null, storageState: StorageType = null, newT: (obj: any) => T = null) {
@@ -1006,19 +999,10 @@ class DataObjectCacheArray<T extends IObjectState>
         t._storageState = storageState;
         t._newT = newT;
         if (t._cachingKey && t._storageState && t._newT) {
-            var rehydrated: string;
-            switch (t._storageState) {
-                case StorageType.local:
-                    rehydrated = localStorage.getItem(t._cachingKey);
-                    break;
-                case StorageType.session:
-                    rehydrated = sessionStorage.getItem(t._cachingKey);
-                    break;
-                default:
-                    break;
-            }
-            if (!Is.NullOrEmpty(rehydrated)) {
-                var objs = JSON.parse(rehydrated);
+            var gim = t._storageState === StorageType.local ? localStorage.getItem : sessionStorage.getItem;
+            var reHy = gim(t._cachingKey);
+            if (!Is.NullOrEmpty(reHy)) {
+                var objs = JSON.parse(reHy);
                 if (Is.Array(objs)) {
                     var arr = <Array<any>>objs;
                     arr.forEach(o => {
@@ -1034,9 +1018,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Data: Array<T> = new Array<T>();
     _cachingKey: string;
     _storageState: StorageType;
-    _newT: (obj: any) => T;
-    //Delete
-    //these would have to be on the prototype cant just add them here
+    _newT: (obj: any) => T;    
     Add(obj: T) {
         this.Data.push(obj);
     }
@@ -1050,16 +1032,8 @@ class DataObjectCacheArray<T extends IObjectState>
     SaveCache() {
         var t = this, ck = t._cachingKey, ss = t._storageState;
         if (ck && ss) {
-            switch (ss) {
-                case StorageType.local:
-                    localStorage.setItem(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
-                    break;
-                case StorageType.session:
-                    sessionStorage.setItem(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
-                    break;
-                default:
-                    break;
-            }
+            var sim = ss === StorageType.local ? localStorage.setItem : sessionStorage.setItem;
+            sim(ck, JSON.stringify(t.Data.Select(a => a.ServerObject)));
         }
     }
     forEach(callBack: (value: T, index: number, array: T[]) => void) {
@@ -1212,10 +1186,8 @@ class View implements IView {
             c.appendChild(n);
         }
         setTimeout(() => {
-            t.Dispatch(EventType.Completed);            
-            t.binders.forEach(b =>
-                b.ResetSelectedObject()
-            );
+            t.Dispatch(EventType.Completed);
+            t.binders.forEach(b => b.ResetSelectedObject());
         }, 100);
     }
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<IView>) => void) {
@@ -1236,8 +1208,6 @@ class View implements IView {
         l.forEach(l => l.EventHandler(new CustomEventArg<IView>(this, eventType)));
     }
 }
-//thinking is could have a generic type that could 
-//be set for the preload
 interface IPreViewLoad {
     Execute(callback: () => void): void;
 }
@@ -1331,17 +1301,18 @@ abstract class ViewContainer implements IViewContainer {
         return false;
     }
     ViewLoadCompleted(a: ICustomEventArg<IView>) {
+        var t = this, nvs = t.NumberViewsShown
         if (a.EventType === EventType.Completed) {
-            this.NumberViewsShown = this.NumberViewsShown + 1;
+            t.NumberViewsShown = t.NumberViewsShown + 1;
         }
-        if (this.NumberViewsShown === this.Views.length) {
+        if (t.NumberViewsShown === t.Views.length) {
             ProgressManager.Hide();
             window.scrollTo(0, 0);
-            if (this.ContainerLoaded !== null) {
-                this.ContainerLoaded();                
+            if (t.ContainerLoaded !== null) {
+                t.ContainerLoaded();
             }
-            this.Views.forEach(v => {
-                this.LoadSubViews(v.ContainerID());
+            t.Views.forEach(v => {
+                t.LoadSubViews(v.ContainerID());
             });
         }
     }
@@ -1518,7 +1489,7 @@ interface IObjectState extends IPropertyChangedDispatcher {
     ServerObject: any;
     SetServerProperty(propertyName: string, value: any);
     Container: Array<IObjectState>;
-    InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean); 
+    InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean);
     Binder: Binder;
 }
 enum ObjectState {
@@ -1545,6 +1516,138 @@ interface IViewContainer {
     Views: Array<IView>;
     Name: string;
     Parameters: (url: string) => Array<string>;
+}
+module Autofill {
+
+    var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember",
+        afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember";
+
+    export function IsAutoFill(ele: HTMLElement, obj: IObjectState): boolean {
+        var ret = Is.Alive(ele.dataset[afapi] && (ele.dataset[afvm] || ele.dataset[afdm])) && ele.tagName === "INPUT" && ele["type"] === "text";
+        ret ? initialize(ele, obj) : null;
+        return ret;
+    }
+
+    function initialize(ele: HTMLElement, obj: IObjectState) {
+        let i = <HTMLInputElement>ele;
+        i.onkeypress = null;
+        i.onclick = () => {
+            SetCaretPosition(i, 0);
+        };
+        i.onkeyup = () => {
+            var code = (event["keyCode"] ? event["keyCode"] : event["which"]);
+            if (i.value.length === 0 && code === 8) {
+                SetValue(i);
+            }
+        };
+        i.onkeypress = () => {
+            KeyPress(event);
+        };
+        i.value = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
+    }
+    function SetCaretPosition(e: HTMLInputElement, caretPos) {
+        if (e != null) {
+            if (e.selectionStart) {
+                e.focus();
+                e.setSelectionRange(caretPos, e.value.length);
+            }
+            else {
+                e.focus();
+            }
+        }
+    }
+    export function SetValue(ele: HTMLElement) {
+        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele : ele.parentElement.Input(i => Is.Alive(i.dataset[afapi]));
+
+        var dc = s[eleC],
+            ds = s.dataset,
+            f = ds[afva],
+            lf = LookupFields(s),
+            arr = <Array<any>>dc,
+            found = arr.First(o => o[lf.DM] === s.value);
+
+        if (Is.Alive(f)) {
+            var dob = <DataObject>s.DataObject;
+            if (dob) {
+                if (s.value.length === 0) {
+                    dob[f] = null;
+                }
+                else if (found) {
+                    dob[f] = found[lf.VM];
+                    if (s.dataset[afodm]) {
+                        dob[s.dataset[afodm]] = found[lf.DM];
+                    }
+                }
+            }
+        }
+
+        let m = s.dataset[afc];
+        if (m) {
+            m = m + "(obj);";
+            let fun = new Function("obj", m);
+            fun(found);
+        }
+    }
+    function LookupFields(s: HTMLInputElement): { VM: string, DM: string } {
+        var r = { VM: "", DM: "" },
+            ds = s.dataset;
+        r.DM = ds[afdm] ? ds[afdm] : ds[afvm];
+        r.VM = ds[afvm] ? ds[afvm] : ds[afdm];
+        return r;
+    }
+    function KeyPress(event) {
+
+        var code = (event.keyCode ? event.keyCode : event.which);
+        let k = event.char ? event.char : event.key,
+            s = <HTMLInputElement>event.target,
+            lf = LookupFields(s);
+
+        if (s[b] === true) {
+            return true;
+        }
+
+        var l = s.value.length,
+            tl = s.dataset[afl] ? parseInt(s.dataset[afl]) : 3;
+        let v: string;
+        if (code === 13) {
+            SetValue(s);
+        }
+        else if (l === tl) {
+            s[b] = true;
+            v = s.value + k;
+            s["pv"] = v
+            var a = new Ajax(false);
+
+            a.AddListener(EventType.Any, (arg) => {
+                var ret = arg.Sender.GetRequestData();
+                s[eleC] = ret;
+                if (ret && ret.length > 0) {
+                    s.value = ret[0][lf.DM];
+                }
+                SetCaretPosition(s, 4);
+                s[b] = false;
+            });
+            var api = s.dataset[afapi];
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            a.Get(api + v);
+        }
+        else if (l > (tl + 1)) {
+            v = s["pv"] + k;
+            l = v.length;
+            s["pv"] = v;
+            setTimeout(() => {
+                var arr = <Array<any>>s[eleC];
+                if (arr) {
+                    var found = arr.First(o => o[lf.DM].toLowerCase().indexOf(v.toLowerCase()) > -1);
+                    if (found) {
+                        s.value = found[lf.DM];
+                    }
+                    SetCaretPosition(s, l)
+                }
+            }, 10);
+            return true;
+        }
+    }
 }
 module HistoryContainer {
     export class History implements IEventDispatcher<ViewContainer> {
@@ -1576,9 +1679,6 @@ module HistoryContainer {
                 t.ManageRouteInfo(i);
                 t.Dispatch(EventType.Completed);
             }
-            else {
-                //do nothing?
-            }
         }
         ManageRouteInfo(viewInstance: ViewInstance) {
             var vi = viewInstance,
@@ -1588,7 +1688,6 @@ module HistoryContainer {
                 h = history,
                 u = vc.Url(vi);
             if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
-                //u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
                 u = !Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
@@ -1600,6 +1699,8 @@ module HistoryContainer {
             document.title = documentTitle ? documentTitle : title;
             history.pushState(null, title, url);
         }
+        //this method isnt used anymore but it maybe needed still
+        //the "g" is absolutely wrong
         //FormatUrl(url: string) {
         //    url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
         //    return url;
@@ -1708,7 +1809,7 @@ module Is {
     }
     export function Alive(value): boolean {
         return value === undefined || value === null ? false : true;
-    }    
+    } 
     export function HTMLElement(o): boolean {
         return Is.Alive(o["tagName"]);
     }
@@ -1727,7 +1828,7 @@ module Has {
 module Navigate {
     export function Spa<T extends IViewContainer>(type: { new(): T; }, parameters: any = null) {
         var p = Is.Array(parameters) ? <Array<any>>parameters : new Array<any>();
-        if (Is.Alive(parameters) && !Is.Array(parameters)) {        
+        if (Is.Alive(parameters) && !Is.Array(parameters)) {
             p.Add(parameters)
         }
         p = p && p.length == 1 && p[0] === "" ? null : p;
@@ -1737,11 +1838,11 @@ module Navigate {
         HistoryManager.Add(vi);
     }
     export function Url(url: string) {
-        var vp = ViewContainer.VirtualPath;
+        var vp = ViewContainer.VirtualPath, vcs = ViewContainers;
         url = vp && url.length > 0 ? url.replace(vp, '') : url;
         url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
-        var vc: IViewContainer = url.length === 0 ? ViewContainers.First(vc => vc.IsDefault) : ViewContainers.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
-        vc = vc == null ? ViewContainers.First(d => d.IsDefault) : vc;
+        var vc: IViewContainer = url.length === 0 ? vcs.First(vc => vc.IsDefault) : vcs.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
+        vc = vc == null ? vcs.First(d => d.IsDefault) : vc;
         if (vc) {
             var p = vc.Parameters(url),
                 vi = new ViewInstance(p, vc, url);
@@ -1756,8 +1857,6 @@ module Navigate {
             HistoryManager.Add(vi);
         }
     }
-
-
 }
 module ProgressManager {
     export var ProgressElement: HTMLElement = null;
@@ -1868,15 +1967,16 @@ Date.prototype.Add = function (y?: number, m?: number, d?: number, h?: number, m
         t.getMinutes() + mm, t.getSeconds() + s, t.getMilliseconds());
 };
 Date.prototype.ToyyyymmddHHMMss = function () {
+    var t = this;
     var f = (v: number) => {
         return (v <= 9 ? '0' : '') + v.toString();
     };
-    var d = f(this.getDate()),
-        m = f(this.getMonth() + 1),
-        y = this.getFullYear(),
-        h = f(this.getHours()),
-        M = f(this.getMinutes()),
-        s = f(this.getSeconds());
+    var d = f(t.getDate()),
+        m = f(t.getMonth() + 1),
+        y = t.getFullYear(),
+        h = f(t.getHours()),
+        M = f(t.getMinutes()),
+        s = f(t.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };
 interface HTMLElement extends Element {
@@ -1906,17 +2006,13 @@ interface HTMLElement extends Element {
     Input(): HTMLInputElement;
     Input(predicate: (item: HTMLInputElement) => boolean): HTMLInputElement;
 }
-HTMLElement.prototype.Input = function(predicate: (item: HTMLInputElement) => boolean = null){
+HTMLElement.prototype.Input = function (predicate: (item: HTMLInputElement) => boolean = null) {
     var p = <HTMLElement>this;
-    if (predicate) {
-        return <HTMLInputElement>p.First(e => e.tagName === "INPUT" && predicate(<HTMLInputElement>e));
-    }
-    else {
-        return <HTMLInputElement>p.First(e => e.tagName === "INPUT");
-    }
+    return predicate ? <HTMLInputElement>p.First(e => e.tagName === "INPUT" && predicate(<HTMLInputElement>e)) :
+                       <HTMLInputElement>p.First(e => e.tagName === "INPUT");
 }
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
-    var p = <HTMLElement>this;    
+    var p = <HTMLElement>this;
     var fc = p.First(childMatch);
     if (fc) {
         p = fc.parentElement;
@@ -1926,7 +2022,7 @@ HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boole
             p.InsertBefore(obj, i);
         }
     }
-    
+
 }
 HTMLElement.prototype.InsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
@@ -2009,20 +2105,20 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
     if (refresh) {
         this.RemoveDataRowElements();
     }
-    var binder = <Binder>this.Binder;
-    if (binder) {
+    var b = <Binder>this.Binder;
+    if (b) {
         if (obj instanceof ViewInstance) {
-            binder.Refresh(<ViewInstance>obj);
+            b.Refresh(<ViewInstance>obj);
         }
         else if (obj instanceof Array) {
             var arr = <Array<any>>obj;
             for (var i = 0; i < arr.length; i++) {
                 var tempObj = arr[i];
-                binder.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+                b.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
             }
         }
         else if (obj) {
-            binder.Append(obj instanceof DataObject ? obj : new DataObject(obj));
+            b.Append(obj instanceof DataObject ? obj : new DataObject(obj));
         }
     }
 };
@@ -2189,11 +2285,11 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
 };
 interface String {
     Trim(): string;
-    Element(): HTMLElement; 
+    Element(): HTMLElement;
     CreateElement(objectProperties?): HTMLElement;
     CreateElementFromHtml(): HTMLElement;
     IsStyle(): boolean;
-    RemoveSpecialCharacters(replaceWithCharacter?:string): string;
+    RemoveSpecialCharacters(replaceWithCharacter?: string): string;
 }
 String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter?: string) {
     var s = <string>this, p: string = null, r: string = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
@@ -2242,150 +2338,18 @@ interface Window {
     Exception(parameters: any);
 }
 Window.prototype.Exception = function (parameters: any) {
-    if (Is.Array(parameters)) {
+    var a = alert, p = parameters;
+    if (Is.Array(p)) {
         var o = {};
-        for (var i = 0; i < parameters.length; i++) {
-            o["parameter" + i] = parameters[i];
+        for (var i = 0; i < p.length; i++) {
+            o["parameter" + i] = p[i];
         }
-        alert(JSON.stringify(o));
+        a(JSON.stringify(o));
     }
-    else if (parameters.length > 1) {
-        alert(JSON.stringify(parameters[0]));
+    else if (p.length > 1) {
+        a(JSON.stringify(p[0]));
     }
     else {
-        alert(parameters.toString());
+        a(p.toString());
     }
 };
-module Autofill {
-
-    var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember",
-        afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember";
-
-    export function IsAutoFill(ele: HTMLElement, obj: IObjectState): boolean {
-        var ret = Is.Alive(ele.dataset[afapi] && (ele.dataset[afvm] || ele.dataset[afdm])) && ele.tagName === "INPUT" && ele["type"] === "text";
-        ret ? initialize(ele, obj) : null;
-        return ret;
-    }
-
-    function initialize(ele: HTMLElement, obj: IObjectState) {
-        let i = <HTMLInputElement>ele;
-        i.onkeypress = null;
-        i.onclick = () => {
-            SetCaretPosition(i, 0);
-        };
-        i.onkeyup = () => {
-            var code = (event["keyCode"] ? event["keyCode"] : event["which"]);
-            if (i.value.length === 0 && code === 8) {
-                SetValue(i);
-            }
-        };
-        //not sure this will work
-        i.onkeypress = () => {
-            KeyPress(event);
-        };
-        i.value = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
-    }
-    function SetCaretPosition(e: HTMLInputElement, caretPos) {
-        if (e != null) {
-            if (e.selectionStart) {
-                e.focus();
-                e.setSelectionRange(caretPos, e.value.length);
-            }
-            else {
-                e.focus();
-            }
-        }
-    }
-    export function SetValue(ele: HTMLElement) {
-        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele : ele.parentElement.Input(i => Is.Alive(i.dataset[afapi]));
-
-        var dc = s[eleC],
-            ds = s.dataset,
-            f = ds[afva],
-            lf = LookupFields(s),
-            arr = <Array<any>>dc,
-            found = arr.First(o => o[lf.DM] === s.value);
-
-        if (Is.Alive(f)) {
-            var dob = <DataObject>s.DataObject;
-            if (dob) {
-                if (s.value.length === 0) {
-                    dob[f] = null;
-                }
-                else if (found) {
-                    dob[f] = found[lf.VM];
-                    if (s.dataset[afodm]) {
-                        dob[s.dataset[afodm]] = found[lf.DM];
-                    }
-                }
-            }
-        }
-
-        let m = s.dataset[afc];
-        if (m) {
-            m = m + "(obj);";
-            let fun = new Function("obj", m);
-            fun(found);
-        }
-    }
-    function LookupFields(s: HTMLInputElement): { VM: string, DM: string } {
-        var r = { VM: "", DM: "" },
-            ds = s.dataset;
-        r.DM = ds[afdm] ? ds[afdm] : ds[afvm];
-        r.VM = ds[afvm] ? ds[afvm] : ds[afdm];
-        return r;
-    }
-    function KeyPress(event) {
-
-        var code = (event.keyCode ? event.keyCode : event.which);
-        let k = event.char ? event.char : event.key,
-            s = <HTMLInputElement>event.target,
-            lf = LookupFields(s);
-
-        if (s[b] === true) {
-            return true;
-        }
-
-        var l = s.value.length,
-            tl = s.dataset[afl] ? parseInt(s.dataset[afl]) : 3;
-        let v: string;
-        if (code === 13) {
-            SetValue(s);
-        }
-        else if (l === tl) {
-            s[b] = true;
-            v = s.value + k;
-            s["pv"] = v
-            var a = new Ajax(false);
-
-            a.AddListener(EventType.Any, (arg) => {
-                var ret = arg.Sender.GetRequestData();
-                s[eleC] = ret;
-                if (ret && ret.length > 0) {
-                    s.value = ret[0][lf.DM];
-                }
-                SetCaretPosition(s, 4);
-                s[b] = false;
-            });
-            var api = s.dataset[afapi];
-            api = api.slice(-1) !== "/" ? api + "/" : api;
-            a.Get(api + v);
-        }
-        else if (l > (tl + 1)) {
-            v = s["pv"] + k;
-            l = v.length;
-            s["pv"] = v;
-            setTimeout(() => {
-                var arr = <Array<any>>s[eleC];
-                if (arr) {
-                    var found = arr.First(o => o[lf.DM].toLowerCase().indexOf(v.toLowerCase()) > -1);
-                    if (found) {
-                        s.value = found[lf.DM];
-                    }
-                    SetCaretPosition(s, l)
-                }
-            }, 10);
-            return true;
-        }
-    }
-}

@@ -1,4 +1,4 @@
-var Ajax = (function () {
+var Ajax = /** @class */ (function () {
     function Ajax(withProgress, disableElement) {
         if (withProgress === void 0) { withProgress = false; }
         if (disableElement === void 0) { disableElement = null; }
@@ -23,6 +23,7 @@ var Ajax = (function () {
         var t = this;
         t.Progress();
         url = t.getUrl(url);
+        t.Url = url;
         t.XHttp = new XMLHttpRequest();
         var x = t.XHttp;
         x.addEventListener("readystatechange", t.xStateChanged.bind(t), false);
@@ -124,7 +125,7 @@ var Ajax = (function () {
             }
             catch (e) {
                 r = null;
-                window.Exception(e);
+                window.Exception("Failed to Convert data at Ajax.GetRequestData with url:" + t.Url);
             }
         }
         return r;
