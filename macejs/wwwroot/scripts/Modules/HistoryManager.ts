@@ -74,4 +74,4 @@
         }
     }
 }
-var HistoryManager = new HistoryContainer.History();
+var HistoryManager = new HistoryContainer.History(); 

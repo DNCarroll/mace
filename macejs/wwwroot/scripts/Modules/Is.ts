@@ -30,4 +30,4 @@ module Has {
         }
         return true;
     }
-}
+} 

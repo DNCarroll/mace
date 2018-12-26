@@ -248,4 +248,4 @@
         var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
         l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
     }
-}
+} 

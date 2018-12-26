@@ -207,4 +207,4 @@ class DataLoader {
         this._dataCallBack(arg);
         this._completed();
     }
-}
+} 

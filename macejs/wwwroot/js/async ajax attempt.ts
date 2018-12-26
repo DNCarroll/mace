@@ -19,4 +19,4 @@
 //    export async function Post(url: string, parameter: any = null, asRaw: boolean = null): Promise<ICustomEventArg<Ajax>> {
 //        return await AsyncAjax.Submit("POST", url, parameter, asRaw);
 //    }
-//}
+//} 

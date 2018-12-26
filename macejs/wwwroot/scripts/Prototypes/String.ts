@@ -69,4 +69,4 @@ String.prototype.IsStyle = function () {
         return p.toLowerCase() === this.toLowerCase()
     }
     return false;
-};
+}; 

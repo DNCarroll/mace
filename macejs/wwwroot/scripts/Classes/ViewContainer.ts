@@ -149,4 +149,4 @@ class SingleViewContainer extends ViewContainer {
         t.IsDefault = isDefault;
         t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
     }
-}
+} 

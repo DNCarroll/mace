@@ -75,4 +75,4 @@ interface Object {
 }
 Object.prototype.As = function <T>() {
     return <T>this;
-};
+}; 

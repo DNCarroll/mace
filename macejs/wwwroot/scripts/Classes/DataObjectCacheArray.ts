@@ -60,4 +60,4 @@ class DataObjectCacheArray<T extends IObjectState>
     Where(func?: (obj: T) => boolean): Array<T> {
         return this.Data.Where(func);
     }
-}
+} 

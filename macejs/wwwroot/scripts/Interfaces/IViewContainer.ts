@@ -10,4 +10,4 @@
     Views: Array<IView>;
     Name: string;
     Parameters: (url: string) => Array<string>;
-}
+} 

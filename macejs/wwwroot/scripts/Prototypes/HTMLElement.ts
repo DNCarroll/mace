@@ -290,4 +290,4 @@ HTMLElement.prototype.Set = function (objectProperties) {
         }
     }
     return t;
-};
+}; 

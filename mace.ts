@@ -248,7 +248,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
         l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
     }
-}
+} 
 class Binder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
@@ -870,7 +870,7 @@ class BinderWithBoundEvent extends Binder {
         let t = this;
         t.ElementBoundEvent = elementBoundEvent;
     }
-}
+} 
 class DataObject implements IObjectState {
     public static DefaultAlternatingRowClass: string = null;
     public static DefaultSelectedRowClass: string = null;
@@ -1005,7 +1005,7 @@ class DataObject implements IObjectState {
             t.InstigatePropertyChangedListeners(p, true);
         }
     }
-}
+} 
 enum StorageType {
     none,
     session,
@@ -1068,7 +1068,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Where(func?: (obj: T) => boolean): Array<T> {
         return this.Data.Where(func);
     }
-}
+} 
 enum CacheStrategy {
     None,
     ViewAndPreload,
@@ -1278,7 +1278,7 @@ class DataLoader {
         this._dataCallBack(arg);
         this._completed();
     }
-}
+} 
 var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
 abstract class ViewContainer implements IViewContainer {
     static VirtualPath: string;
@@ -1430,7 +1430,7 @@ class SingleViewContainer extends ViewContainer {
         t.IsDefault = isDefault;
         t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
     }
-}
+} 
 class ViewInstance {
     Parameters: Array<any>;
     ViewContainer: IViewContainer;
@@ -1441,7 +1441,7 @@ class ViewInstance {
         this.Parameters = parameters;
         this.ViewContainer = viewContainer;
     }
-}
+} 
 enum EventType {
     Any,
     Completed,
@@ -1519,14 +1519,14 @@ interface Object {
 }
 Object.prototype.As = function <T>() {
     return <T>this;
-};
+}; 
 interface IView extends IEventDispatcher<IView> {
     Url: () => string;
     Show: (route: ViewInstance) => void;
     ContainerID: () => string;
     CacheStrategy: CacheStrategy;
     Cache: (strategy: CacheStrategy) => void;
-}
+} 
 interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
     IsDefault: boolean;
@@ -1539,7 +1539,7 @@ interface IViewContainer {
     Views: Array<IView>;
     Name: string;
     Parameters: (url: string) => Array<string>;
-}
+} 
 module Autofill {
 
     var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember",
@@ -1669,7 +1669,7 @@ module Autofill {
             return true;
         }
     }
-}
+} 
 module HistoryContainer {
     export class History implements IEventDispatcher<ViewContainer> {
         private ViewInstances = new Array<ViewInstance>();
@@ -1746,7 +1746,7 @@ module HistoryContainer {
         }
     }
 }
-var HistoryManager = new HistoryContainer.History();
+var HistoryManager = new HistoryContainer.History(); 
 class WindowLoaded {
     constructor(loadedEvent: (e, onCompleteCallback: () => void) => any, shouldRunBeforeNavigation: boolean) {
         this.LoadedEvent = loadedEvent;
@@ -1815,7 +1815,7 @@ module Reflection {
 
     }
 }
-Initializer.Execute();
+Initializer.Execute(); 
 module Is {
     export function Array(value): boolean {
         return Object.prototype.toString.call(value) === '[object Array]';
@@ -1848,7 +1848,7 @@ module Has {
         }
         return true;
     }
-}
+} 
 module Navigate {
     export function Spa<T extends IViewContainer>(type: { new(): T; }, parameters: any = null) {
         var p = Is.Array(parameters) ? <Array<any>>parameters : new Array<any>();
@@ -1881,7 +1881,7 @@ module Navigate {
             HistoryManager.Add(vi);
         }
     }
-}
+} 
 module ProgressManager {
     export var ProgressElement: HTMLElement = null;
     export function Show() {
@@ -1896,7 +1896,7 @@ module ProgressManager {
             pe.style.display = "none";
         }
     }
-}
+} 
 interface Array<T> {
     Add(obj: any);
     Add(...obj: T[]);
@@ -1974,7 +1974,7 @@ Array.prototype.Where = function (func: (obj) => boolean): Array<any> {
         }
     }
     return m;
-};
+}; 
 interface Date {
     Add(y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date;
     ToyyyymmddHHMMss();
@@ -2002,7 +2002,7 @@ Date.prototype.ToyyyymmddHHMMss = function () {
         M = f(t.getMinutes()),
         s = f(t.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
-};
+}; 
 interface HTMLElement extends Element {
     Get(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[];
     First(func: (ele: HTMLElement) => boolean): HTMLElement;
@@ -2295,7 +2295,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
         }
     }
     return t;
-};
+}; 
 interface HTMLSelectElement {
     AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
 }
@@ -2333,7 +2333,7 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
         }
     }
     return s;
-};
+}; 
 interface String {
     Trim(): string;
     Element(): HTMLElement;
@@ -2405,11 +2405,11 @@ String.prototype.IsStyle = function () {
         return p.toLowerCase() === this.toLowerCase()
     }
     return false;
-};
+}; 
 interface Window {
     Exception(parameters: any);
 }
 Window.prototype.Exception = function (parameters: any) {
     var a = alert, p = parameters;
     a(Is.Array(p) || !Is.String(p) ? JSON.stringify(p) : p.toString());
-};
+}; 

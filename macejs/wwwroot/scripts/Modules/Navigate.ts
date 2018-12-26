@@ -30,4 +30,4 @@
             HistoryManager.Add(vi);
         }
     }
-}
+} 

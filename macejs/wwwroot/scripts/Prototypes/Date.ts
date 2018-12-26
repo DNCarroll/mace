@@ -25,4 +25,4 @@ Date.prototype.ToyyyymmddHHMMss = function () {
         M = f(t.getMinutes()),
         s = f(t.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
-};
+}; 
