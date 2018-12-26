@@ -93,7 +93,7 @@ var Ajax = /** @class */ (function () {
             var gh = Ajax.GlobalHeader();
             if (gh) {
                 for (var p2 in gh) {
-                    x.setRequestHeader(p2, gh[p2]);
+                    !Is.Func(gh, p2) ? x.setRequestHeader(p2, gh[p2]) : "";
                 }
             }
         }

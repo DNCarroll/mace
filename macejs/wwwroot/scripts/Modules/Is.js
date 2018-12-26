@@ -26,6 +26,10 @@ var Is;
         return Is.Alive(o["tagName"]);
     }
     Is.HTMLElement = HTMLElement;
+    function Func(obj, prop) {
+        return Is.Alive(prop) && Is.Alive(obj) && obj.toString.call(prop) === '[object Function]';
+    }
+    Is.Func = Func;
 })(Is || (Is = {}));
 var Has;
 (function (Has) {

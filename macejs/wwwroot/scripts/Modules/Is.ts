@@ -19,6 +19,9 @@
     export function HTMLElement(o): boolean {
         return Is.Alive(o["tagName"]);
     }
+    export function Func(obj: any, prop: string) {
+        return Is.Alive(prop) && Is.Alive(obj) && obj.toString.call(prop) === '[object Function]';
+    }
 }
 module Has {
     export function Properties(inObject: any, ...properties): boolean {

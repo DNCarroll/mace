@@ -93,7 +93,7 @@ var Ajax = /** @class */ (function () {
             var gh = Ajax.GlobalHeader();
             if (gh) {
                 for (var p2 in gh) {
-                    x.setRequestHeader(p2, gh[p2]);
+                    !Is.Func(gh, p2) ? x.setRequestHeader(p2, gh[p2]) : "";
                 }
             }
         }
@@ -1836,6 +1836,10 @@ var Is;
         return Is.Alive(o["tagName"]);
     }
     Is.HTMLElement = HTMLElement;
+    function Func(obj, prop) {
+        return Is.Alive(prop) && Is.Alive(obj) && obj.toString.call(prop) === '[object Function]';
+    }
+    Is.Func = Func;
 })(Is || (Is = {}));
 var Has;
 (function (Has) {
@@ -2364,4 +2368,4 @@ Window.prototype.Exception = function (parameters) {
     var a = alert, p = parameters;
     a(Is.Array(p) || !Is.String(p) ? JSON.stringify(p) : p.toString());
 };
-//# sourceMappingURL=Window.js.map 
+//# sourceMappingURL=Window.js.map
