@@ -35,4 +35,4 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
         }
     }
     return s;
-};
+}; 

@@ -1,3 +1,27 @@
+String.prototype.Delete = function (cb, parameter, withProgress) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Delete(this, parameter);
+};
+String.prototype.Get = function (cb, parameter, withProgress) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Get(this, parameter);
+};
+String.prototype.Post = function (cb, parameter, withProgress) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Post(this, parameter);
+};
+String.prototype.Put = function (cb, parameter, withProgress) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Put(this, parameter);
+};
 String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter) {
     var s = this, p = null, r = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
     for (var i = 0; i < s.length; i++) {
@@ -18,7 +42,8 @@ String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
 String.prototype.Element = function () {
-    return document.getElementById(this.toString());
+    var e = document.getElementById(this.toString());
+    return e ? e : null;
 };
 String.prototype.CreateElement = function (objectProperties) {
     var o = document.createElement(this), op = objectProperties;
@@ -26,13 +51,6 @@ String.prototype.CreateElement = function (objectProperties) {
         o.Set(op);
     }
     return o;
-};
-String.prototype.CreateElementFromHtml = function () {
-    var d = "div".CreateElement({ innerHTML: this }), dcs = d.children;
-    while (dcs.length > 0) {
-        var c = dcs[dcs.length - 1];
-        return c;
-    }
 };
 String.prototype.IsStyle = function () {
     for (var p in document.body.style) {

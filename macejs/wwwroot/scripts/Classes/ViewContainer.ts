@@ -16,7 +16,7 @@ abstract class ViewContainer implements IViewContainer {
     NumberViewsShown: number;
     Show(route: ViewInstance) {
         var rp = route.Parameters, t = this;
-        if (rp && rp.length == 1 && t.IsDefault) {
+        if (rp && rp.length === 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -28,7 +28,7 @@ abstract class ViewContainer implements IViewContainer {
     }
     IsUrlPatternMatch(url: string) {
         if (!Is.NullOrEmpty(url)) {
-            url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
+            url = url.lastIndexOf("/") === url.length - 1 ? url.substring(0, url.length - 1) : url;
             var p = this.UrlPattern ? this.UrlPattern() : "^" + this.Name;
             if (p) {
                 var regex = new RegExp(p, 'i');
@@ -45,7 +45,7 @@ abstract class ViewContainer implements IViewContainer {
         if (t.NumberViewsShown === t.Views.length) {
             ProgressManager.Hide();
             window.scrollTo(0, 0);
-            if (t.ContainerLoaded !== null) {
+            if (Is.Alive(t.ContainerLoaded)) {
                 t.ContainerLoaded();
             }
             t.Views.forEach(v => {
@@ -56,8 +56,7 @@ abstract class ViewContainer implements IViewContainer {
     LoadSubViews(eleId: string) {
         var subviews = eleId.Element().Get(e => Is.Alive(e.dataset.subview));
         subviews.forEach(s => {
-            var a = new Ajax(false);
-            a.AddListener(EventType.Any, (arg) => {
+            s.dataset.subview.Get((arg) => {
                 var r = arg.Sender.ResponseText;
                 s.innerHTML = r;
                 var ele = s.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
@@ -87,7 +86,6 @@ abstract class ViewContainer implements IViewContainer {
                     });
                 }
             });
-            a.Get(s.dataset.subview);
         });
     }
     Url(viewInstance: ViewInstance): string {
@@ -96,11 +94,11 @@ abstract class ViewContainer implements IViewContainer {
         if (vi.Route) {
             newUrl = vi.Route;
         }
-        else if (t.UrlReplacePattern !== null) {
+        else if (Is.Alive(t.UrlReplacePattern)) {
             var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array<string>();
             for (var i = 0; i < up.length; i++) {
                 let p = up[i];
-                if (p.indexOf("(?:") == 0) {
+                if (p.indexOf("(?:") === 0) {
                     if (!rp) { break; }
                     if (pi < rp.length) {
                         nu.Add(rp[pi]);
@@ -114,21 +112,21 @@ abstract class ViewContainer implements IViewContainer {
                     nu.Add(up[i]);
                 }
             }
-            for (var i = 0; i < nu.length; i++) {
-                nu[i] = encodeURIComponent(nu[i]);
+            for (var k = 0; k < nu.length; k++) {
+                nu[k] = encodeURIComponent(nu[k]);
             }
             newUrl = nu.join("/");
         }
         if (Is.NullOrEmpty(newUrl)) {
             var ecrp = new Array<string>();
             if (rp) {
-                for (var i = 0; i < rp.length; i++) {
-                    ecrp.Add(encodeURIComponent(rp[i]));
+                for (var j = 0; j < rp.length; j++) {
+                    ecrp.Add(encodeURIComponent(rp[j]));
                 }
             }
             newUrl = t.Name + (ecrp.length > 0 ? "/" + ecrp.join("/") : "");
         }
-        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
+        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) === -1 ? vp + "/" : "") + newUrl;
     }
 
     UrlTitle() {
@@ -151,4 +149,4 @@ class SingleViewContainer extends ViewContainer {
         t.IsDefault = isDefault;
         t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
     }
-}
+} 

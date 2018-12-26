@@ -32,9 +32,9 @@ var DataObject = /** @class */ (function () {
     };
     Object.defineProperty(DataObject.prototype, "AlternatingRowClass", {
         get: function () {
-            var t = this, ac = t.alternatingClass != null ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
-            if (ac != null) {
-                var i = t.Container.indexOf(this) + 1, ie = i % 2 == 0;
+            var t = this, ac = Is.Alive(t.alternatingClass) ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
+            if (Is.Alive(ac)) {
+                var i = t.Container.indexOf(this) + 1, ie = i % 2 === 0;
                 return ie === t.AlternateOnEvens ? ac : null;
             }
             return null;
@@ -65,7 +65,7 @@ var DataObject = /** @class */ (function () {
             var t = this;
             if (Is.Alive(t.Binder) &&
                 t === t.Binder.SelectedObject) {
-                var t = this, ac = t.selectedRowClass != null ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
+                var ac = Is.Alive(t.selectedRowClass) ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
                 return ac;
             }
             return t.DefaultRowClass;
@@ -109,7 +109,7 @@ var DataObject = /** @class */ (function () {
     DataObject.prototype.InstigatePropertyChangedListeners = function (p, canCauseDirty) {
         if (canCauseDirty === void 0) { canCauseDirty = true; }
         this.OnPropertyChanged(p);
-        if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
+        if (canCauseDirty && this.ObjectState !== ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     };
@@ -138,7 +138,7 @@ var DataObject = /** @class */ (function () {
         configurable: true
     });
     DataObject.prototype.SetServerProperty = function (p, v) {
-        var t = this, change = v != t.ServerObject[p];
+        var t = this, change = v !== t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
             t.InstigatePropertyChangedListeners(p, true);

@@ -47,14 +47,14 @@ var Ajax = /** @class */ (function () {
     };
     Ajax.prototype.getUrl = function (url) {
         var u = url, a = Ajax.Host;
-        if (u.indexOf("http") == -1 && a) {
-            u = a + (u.indexOf("/") == 0 ? u : "/" + u);
+        if (u.indexOf("http") === -1 && a) {
+            u = a + (u.indexOf("/") === 0 ? u : "/" + u);
         }
         return u;
     };
     Ajax.prototype.isRequestReady = function () {
         var x = this.XHttp;
-        return x && x.readyState == 4;
+        return x && x.readyState === 4;
     };
     Ajax.prototype.Progress = function (show) {
         if (show === void 0) { show = true; }
@@ -92,8 +92,8 @@ var Ajax = /** @class */ (function () {
         if (Ajax.GlobalHeader) {
             var gh = Ajax.GlobalHeader();
             if (gh) {
-                for (var p in gh) {
-                    x.setRequestHeader(p, gh[p]);
+                for (var p2 in gh) {
+                    x.setRequestHeader(p2, gh[p2]);
                 }
             }
         }
@@ -113,7 +113,7 @@ var Ajax = /** @class */ (function () {
     };
     Ajax.prototype.GetRequestData = function () {
         var r = null, t = this, x = this.XHttp, s = x.status;
-        if (t.isRequestReady() && (s == 200) &&
+        if (t.isRequestReady() && (s === 200) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
             try {
@@ -129,6 +129,23 @@ var Ajax = /** @class */ (function () {
             }
         }
         return r;
+    };
+    Ajax.prototype.Array = function (type) {
+        var ret = new Array();
+        var r = this.GetRequestData();
+        if (Is.Alive(r) && r.length) {
+            for (var i = 0; i < r.length; i++) {
+                ret.Add(new type(r[i]));
+            }
+        }
+        return ret;
+    };
+    Ajax.prototype.FirstOrDefault = function (type) {
+        var r = this.GetRequestData();
+        if (Is.Alive(r)) {
+            return new type(r);
+        }
+        return null;
     };
     Ajax.prototype.convertProperties = function (obj) {
         var km, t = this;
@@ -152,8 +169,8 @@ var Ajax = /** @class */ (function () {
         else if (obj && typeof obj === 'object') {
             km = t.getKeyMap(obj);
             t.setValues(obj, km);
-            for (var p in obj) {
-                t.convertProperties(obj[p]);
+            for (var p2 in obj) {
+                t.convertProperties(obj[p2]);
             }
         }
     };
@@ -163,7 +180,7 @@ var Ajax = /** @class */ (function () {
             var v = obj[p];
             if (v && typeof v === 'string') {
                 v = v.Trim();
-                if (v.indexOf("/Date(") == 0 || v.indexOf("Date(") == 0) {
+                if (v.indexOf("/Date(") === 0 || v.indexOf("Date(") === 0) {
                     km.push({ Key: p, Type: "Date" });
                 }
                 else if (v.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/i)) {
@@ -339,7 +356,7 @@ var Binder = /** @class */ (function () {
                 }
             }
             vp && vp.length === 0 ? p.forEach(function (o) { return np.Add(o); }) : null;
-            return (np[0].indexOf("http") == -1 ? "/" : "") + np.join("/");
+            return (np[0].indexOf("http") === -1 ? "/" : "") + np.join("/");
         }
         return null;
     };
@@ -383,8 +400,7 @@ var Binder = /** @class */ (function () {
         }
         var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
-            a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
-            a.Get(url);
+            url.Get(t.OnAjaxComplete.bind(this));
         }
         else {
             t.Dispatch(EventType.Completed);
@@ -452,7 +468,7 @@ var Binder = /** @class */ (function () {
             }
         }
         if (o) {
-            var a = new Ajax(t.WithProgress, t.DisableElement), f = function () {
+            var f = function () {
                 var es = t.Element.Get(function (e) { return e.DataObject === o; }), td = t.DataObjects.Data, i = td.indexOf(o);
                 es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
                 td.forEach(function (o) { return o.InstigatePropertyChangedListeners("AlternatingRowClass", false); });
@@ -471,8 +487,7 @@ var Binder = /** @class */ (function () {
                 ajaxDeleteFunction ? ajaxDeleteFunction(arg) : err();
                 arg.EventType === EventType.Completed ? f() : null;
             }, af = function () {
-                a.AddListener(EventType.Any, afc);
-                a.Delete(t.Api(), o.ServerObject);
+                t.Api().Delete(afc, o.ServerObject);
             };
             t.AutomaticDelete ? af() : f();
         }
@@ -481,7 +496,14 @@ var Binder = /** @class */ (function () {
         this.add(this.NewObject(obj), false, beforeIndex);
     };
     Binder.prototype.Append = function (obj) {
-        this.add(this.NewObject(obj));
+        var _this = this;
+        if (Is.Array(obj)) {
+            var arr = obj;
+            arr.forEach(function (o) { return _this.add(o); });
+        }
+        else {
+            this.add(this.NewObject(obj));
+        }
     };
     Binder.prototype.PostAndAppend = function (obj) {
         var t = this, o = obj, api = t.Api();
@@ -550,7 +572,7 @@ var Binder = /** @class */ (function () {
         if (drt.length === 0) {
             var e = t.Element.tagName === "TABLE" ? t.Element.tBodies[0].children : t.Element.children, r = new Array(), li = 0;
             for (var i = 0; i < e.length; i++) {
-                if (e[i].getAttribute("data-template") != null) {
+                if (Is.Alive(e[i].getAttribute("data-template"))) {
                     r.Add(e[i]);
                     li = i;
                 }
@@ -561,8 +583,8 @@ var Binder = /** @class */ (function () {
                 drt.Add(r);
                 r.parentElement.removeChild(r);
             });
-            var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(function (m) { return m.HasDataSet() && m.getAttribute(dmk) != null &&
-                m.getAttribute(dmt) != null; });
+            var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(function (m) { return m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
+                Is.Alive(m.getAttribute(dmt)); });
             if (more) {
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
@@ -632,9 +654,9 @@ var Binder = /** @class */ (function () {
     };
     Binder.prototype.isPKMatch = function (d, incoming) {
         var t = this;
-        if (t != null && t.PrimaryKeys != null) {
+        if (Is.Alive(t) && Is.Alive(t.PrimaryKeys)) {
             for (var i = 0; i < t.PrimaryKeys.length; i++) {
-                if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
+                if (d.ServerObject[t.PrimaryKeys[i]] !== incoming[t.PrimaryKeys[i]]) {
                     return false;
                 }
             }
@@ -660,7 +682,7 @@ var Binder = /** @class */ (function () {
         var ba = ele.GetDataSetAttributes(), t = this;
         if (ele.tagName === "SELECT") {
             var ds = ba.First(function (f) { return f.Attribute === "datasource"; }), dm = ba.First(function (f) { return f.Attribute === "displaymember"; }), vm = ba.First(function (f) { return f.Attribute === "valuemember"; }), select = ele;
-            if (ds && select.options.length == 0) {
+            if (ds && select.options.length === 0) {
                 var fun = new Function("return " + ds.Property), data = fun();
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
@@ -826,7 +848,7 @@ var Binder = /** @class */ (function () {
         var t = this, vi = HistoryManager.CurrentViewInstance(), pbd = t.DataObjects.Data;
         if (pbd && pbd.length > 0) {
             var nvi = new ViewInstance(new Array(), vi.ViewContainer), o = pbd[pbd.length - 1], p = vi.Parameters;
-            if (p != null) {
+            if (Is.Alive(p)) {
                 for (var i = 0; i < p.length; i++) {
                     var v = p[i];
                     if (v === 0 && this._api.indexOf(v) === 0) {
@@ -891,9 +913,9 @@ var DataObject = /** @class */ (function () {
     };
     Object.defineProperty(DataObject.prototype, "AlternatingRowClass", {
         get: function () {
-            var t = this, ac = t.alternatingClass != null ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
-            if (ac != null) {
-                var i = t.Container.indexOf(this) + 1, ie = i % 2 == 0;
+            var t = this, ac = Is.Alive(t.alternatingClass) ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
+            if (Is.Alive(ac)) {
+                var i = t.Container.indexOf(this) + 1, ie = i % 2 === 0;
                 return ie === t.AlternateOnEvens ? ac : null;
             }
             return null;
@@ -924,7 +946,7 @@ var DataObject = /** @class */ (function () {
             var t = this;
             if (Is.Alive(t.Binder) &&
                 t === t.Binder.SelectedObject) {
-                var t = this, ac = t.selectedRowClass != null ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
+                var ac = Is.Alive(t.selectedRowClass) ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
                 return ac;
             }
             return t.DefaultRowClass;
@@ -968,7 +990,7 @@ var DataObject = /** @class */ (function () {
     DataObject.prototype.InstigatePropertyChangedListeners = function (p, canCauseDirty) {
         if (canCauseDirty === void 0) { canCauseDirty = true; }
         this.OnPropertyChanged(p);
-        if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
+        if (canCauseDirty && this.ObjectState !== ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     };
@@ -997,7 +1019,7 @@ var DataObject = /** @class */ (function () {
         configurable: true
     });
     DataObject.prototype.SetServerProperty = function (p, v) {
-        var t = this, change = v != t.ServerObject[p];
+        var t = this, change = v !== t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
             t.InstigatePropertyChangedListeners(p, true);
@@ -1214,7 +1236,7 @@ var View = /** @class */ (function () {
     };
     View.prototype.MoveStuffFromCacheToReal = function () {
         var t = this, c = t.ContainerID().Element();
-        var be = c.Get(function (e) { return e.Binder != null; });
+        var be = c.Get(function (e) { return Is.Alive(e.Binder); });
         be.forEach(function (e) { return e.Binder.Dispose(); });
         c.Clear();
         while (t.cached.childNodes.length > 0) {
@@ -1285,9 +1307,7 @@ var DataLoader = /** @class */ (function () {
         var t = this;
         t._completed = completed;
         if (!t._shouldTryLoad || t._shouldTryLoad()) {
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, t._ajaxCompleted.bind(this));
-            ajax.Get(t._dataUrl, t._parameters);
+            t._dataUrl.Get(t._ajaxCompleted.bind(this), t._parameters);
         }
         else {
             t._completed();
@@ -1328,7 +1348,7 @@ var ViewContainer = /** @class */ (function () {
     }
     ViewContainer.prototype.Show = function (route) {
         var rp = route.Parameters, t = this;
-        if (rp && rp.length == 1 && t.IsDefault) {
+        if (rp && rp.length === 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -1340,7 +1360,7 @@ var ViewContainer = /** @class */ (function () {
     };
     ViewContainer.prototype.IsUrlPatternMatch = function (url) {
         if (!Is.NullOrEmpty(url)) {
-            url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
+            url = url.lastIndexOf("/") === url.length - 1 ? url.substring(0, url.length - 1) : url;
             var p = this.UrlPattern ? this.UrlPattern() : "^" + this.Name;
             if (p) {
                 var regex = new RegExp(p, 'i');
@@ -1357,7 +1377,7 @@ var ViewContainer = /** @class */ (function () {
         if (t.NumberViewsShown === t.Views.length) {
             ProgressManager.Hide();
             window.scrollTo(0, 0);
-            if (t.ContainerLoaded !== null) {
+            if (Is.Alive(t.ContainerLoaded)) {
                 t.ContainerLoaded();
             }
             t.Views.forEach(function (v) {
@@ -1368,17 +1388,16 @@ var ViewContainer = /** @class */ (function () {
     ViewContainer.prototype.LoadSubViews = function (eleId) {
         var subviews = eleId.Element().Get(function (e) { return Is.Alive(e.dataset.subview); });
         subviews.forEach(function (s) {
-            var a = new Ajax(false);
-            a.AddListener(EventType.Any, function (arg) {
+            s.dataset.subview.Get(function (arg) {
                 var r = arg.Sender.ResponseText;
                 s.innerHTML = r;
                 var ele = s.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
                 if (ele.length > 0) {
                     ele.forEach(function (e) {
                         try {
-                            var a_1 = e.getAttribute("data-binder");
-                            if (a_1) {
-                                var fun = new Function("return new " + a_1 + (a_1.indexOf("(") > -1 ? "" : "()"));
+                            var a = e.getAttribute("data-binder");
+                            if (a) {
+                                var fun = new Function("return new " + a + (a.indexOf("(") > -1 ? "" : "()"));
                                 e.Binder = fun();
                                 e.Binder.Element = e;
                             }
@@ -1399,7 +1418,6 @@ var ViewContainer = /** @class */ (function () {
                     });
                 }
             });
-            a.Get(s.dataset.subview);
         });
     };
     ViewContainer.prototype.Url = function (viewInstance) {
@@ -1408,11 +1426,11 @@ var ViewContainer = /** @class */ (function () {
         if (vi.Route) {
             newUrl = vi.Route;
         }
-        else if (t.UrlReplacePattern !== null) {
+        else if (Is.Alive(t.UrlReplacePattern)) {
             var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array();
             for (var i = 0; i < up.length; i++) {
                 var p = up[i];
-                if (p.indexOf("(?:") == 0) {
+                if (p.indexOf("(?:") === 0) {
                     if (!rp) {
                         break;
                     }
@@ -1428,21 +1446,21 @@ var ViewContainer = /** @class */ (function () {
                     nu.Add(up[i]);
                 }
             }
-            for (var i = 0; i < nu.length; i++) {
-                nu[i] = encodeURIComponent(nu[i]);
+            for (var k = 0; k < nu.length; k++) {
+                nu[k] = encodeURIComponent(nu[k]);
             }
             newUrl = nu.join("/");
         }
         if (Is.NullOrEmpty(newUrl)) {
             var ecrp = new Array();
             if (rp) {
-                for (var i = 0; i < rp.length; i++) {
-                    ecrp.Add(encodeURIComponent(rp[i]));
+                for (var j = 0; j < rp.length; j++) {
+                    ecrp.Add(encodeURIComponent(rp[j]));
                 }
             }
             newUrl = t.Name + (ecrp.length > 0 ? "/" + ecrp.join("/") : "");
         }
-        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
+        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) === -1 ? vp + "/" : "") + newUrl;
     };
     ViewContainer.prototype.UrlTitle = function () {
         return this.Name.replace(/\//g, " ");
@@ -1520,6 +1538,9 @@ var ObjectState;
     ObjectState[ObjectState["Cleaning"] = 1] = "Cleaning";
     ObjectState[ObjectState["Clean"] = 2] = "Clean";
 })(ObjectState || (ObjectState = {}));
+Object.prototype.As = function () {
+    return this;
+};
 //# sourceMappingURL=CustomEvent.js.map
 //# sourceMappingURL=IView.js.map
 //# sourceMappingURL=IViewContainer.js.map
@@ -1550,7 +1571,7 @@ var Autofill;
         i.value = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
     }
     function SetCaretPosition(e, caretPos) {
-        if (e != null) {
+        if (Is.Alive(e)) {
             if (e.selectionStart) {
                 e.focus();
                 e.setSelectionRange(caretPos, e.value.length);
@@ -1561,7 +1582,8 @@ var Autofill;
         }
     }
     function SetValue(ele) {
-        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? ele : ele.parentElement.Input(function (i) { return Is.Alive(i.dataset[afapi]); });
+        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? ele :
+            ele.parentElement.First(function (i) { return Is.Alive(i.dataset[afapi]); });
         var dc = s[eleC], ds = s.dataset, f = ds[afva], lf = LookupFields(s), arr = dc, found = arr.First(function (o) { return o[lf.DM] === s.value; });
         if (Is.Alive(f)) {
             var dob = s.DataObject;
@@ -1606,8 +1628,9 @@ var Autofill;
             s[b] = true;
             v = s.value + k;
             s["pv"] = v;
-            var a = new Ajax(false);
-            a.AddListener(EventType.Any, function (arg) {
+            var api = s.dataset[afapi];
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            (api + v).Get(function (arg) {
                 var ret = arg.Sender.GetRequestData();
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
@@ -1616,9 +1639,6 @@ var Autofill;
                 SetCaretPosition(s, 4);
                 s[b] = false;
             });
-            var api = s.dataset[afapi];
-            api = api.slice(-1) !== "/" ? api + "/" : api;
-            a.Get(api + v);
         }
         else if (l > (tl + 1)) {
             v = s["pv"] + k;
@@ -1654,7 +1674,7 @@ var HistoryContainer;
         }
         History.prototype.CurrentViewInstance = function () {
             var vi = this.ViewInstances;
-            return vi != null && vi.length > 0 ? vi[vi.length - 1] : null;
+            return Is.Alive(vi) && vi.length > 0 ? vi[vi.length - 1] : null;
         };
         History.prototype.BackEvent = function (e) {
             HistoryManager.Back();
@@ -1679,8 +1699,8 @@ var HistoryContainer;
         };
         History.prototype.ManageRouteInfo = function (viewInstance) {
             var vi = viewInstance, vc = vi.ViewContainer, t = vc.UrlTitle(vi), dt = vc.DocumentTitle(vi), h = history, u = vc.Url(vi);
-            if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = !Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/";
+            if (Is.Alive(u) && !Is.NullOrEmpty(t) && h && h.pushState) {
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/") !== 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
@@ -1759,7 +1779,7 @@ var Initializer;
     }
     function setProgressElement() {
         var pg = document.getElementById("progress");
-        if (pg != null) {
+        if (Is.Alive(pg)) {
             ProgressManager.ProgressElement = pg;
         }
     }
@@ -1768,11 +1788,14 @@ var Reflection;
 (function (Reflection) {
     function GetName(o, ignoreThese) {
         if (ignoreThese === void 0) { ignoreThese = new Array(); }
-        var r = o && o.toString ? o.toString() : null;
+        var r = (o && o.toString ? o.toString() : "");
         if (!Is.NullOrEmpty(r)) {
-            var p = "^function\\s(\\w+)\\(\\)", m = r.match(p);
-            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
-                return m[1];
+            if (r.indexOf("function ") > -1 || r.indexOf("class ") > -1) {
+                var mark = r.indexOf("function") === 0 ? "()" : " ";
+                r = r.replace("function ", "");
+                r = r.replace("class ", "");
+                var si = r.indexOf(mark);
+                return r.substring(0, si);
             }
         }
         return null;
@@ -1840,7 +1863,7 @@ var Navigate;
         if (Is.Alive(parameters) && !Is.Array(parameters)) {
             p.Add(parameters);
         }
-        p = p && p.length == 1 && p[0] === "" ? null : p;
+        p = p && p.length === 1 && p[0] === "" ? null : p;
         var vc = Reflection.NewObject(type), vi = new ViewInstance(p, vc);
         vc.Show(vi);
         HistoryManager.Add(vi);
@@ -1851,11 +1874,11 @@ var Navigate;
         url = vp && url.length > 0 ? url.replace(vp, '') : url;
         url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
         var vc = url.length === 0 ? vcs.First(function (vc) { return vc.IsDefault; }) : vcs.Where(function (vc) { return !vc.IsDefault; }).First(function (d) { return d.IsUrlPatternMatch(url); });
-        vc = vc == null ? vcs.First(function (d) { return d.IsDefault; }) : vc;
+        vc = vc === null ? vcs.First(function (d) { return d.IsDefault; }) : vc;
         if (vc) {
             var p = vc.Parameters(url), vi = new ViewInstance(p, vc, url);
             p = vi.Parameters;
-            if (p && p.length && !Is.NullOrEmpty(ViewContainer.VirtualPath) && p[0] == ViewContainer.VirtualPath) {
+            if (p && p.length && !Is.NullOrEmpty(ViewContainer.VirtualPath) && p[0] === ViewContainer.VirtualPath) {
                 p.splice(0, 1);
             }
             while (p.length && p.length > 0 && Is.NullOrEmpty(p[0])) {
@@ -1980,11 +2003,59 @@ Date.prototype.ToyyyymmddHHMMss = function () {
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };
 //# sourceMappingURL=Date.js.map
-HTMLElement.prototype.Input = function (predicate) {
-    if (predicate === void 0) { predicate = null; }
-    var p = this;
-    return predicate ? p.First(function (e) { return e.tagName === "INPUT" && predicate(e); }) :
-        p.First(function (e) { return e.tagName === "INPUT"; });
+HTMLElement.prototype.CObject = function () {
+    var f = this.DataObject;
+    return f ? f : null;
+};
+HTMLElement.prototype.First = function (predicate) {
+    var chs = this.children;
+    var hp = predicate;
+    for (var i = 0; i < chs.length; i++) {
+        var c = chs[i];
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
+            if (hp(c)) {
+                return c;
+            }
+        }
+    }
+    for (var j = 0; j < chs.length; j++) {
+        var c = chs[j];
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
+            if (c.First) {
+                var f = c.First(predicate);
+                if (f) {
+                    return f;
+                }
+            }
+        }
+    }
+    return null;
+};
+HTMLElement.prototype.Relative = function (predicate) {
+    if (!Is.Alive(this || this.parentElement)) {
+        return null;
+    }
+    var p = this.parentElement;
+    if (predicate(p)) {
+        return p;
+    }
+    else {
+        var chs = p.children;
+        for (var i = 0; i < chs.length; i++) {
+            var c = chs[i];
+            if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
+                if (predicate(c)) {
+                    return c;
+                }
+                //cascade down now?
+                var r = c.First(predicate);
+                if (Is.Alive(r)) {
+                    return r;
+                }
+            }
+        }
+        return p.Relative(predicate);
+    }
 };
 HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
     var p = this;
@@ -2069,7 +2140,7 @@ HTMLElement.prototype.IndexOf = function (child) {
     var p = this, c = p.children;
     var i = c.length - 1;
     for (; i >= 0; i--) {
-        if (child == c[i]) {
+        if (child === c[i]) {
             return i;
         }
     }
@@ -2099,7 +2170,7 @@ HTMLElement.prototype.Bind = function (obj, refresh) {
 };
 HTMLElement.prototype.ClearBoundElements = function () {
     var t = this;
-    t.Get(function (e) { return e.getAttribute("data-template") != null; }).forEach(function (r) { return r.parentElement.removeChild(r); });
+    t.Get(function (e) { return Is.Alive(e.getAttribute("data-template")); }).forEach(function (r) { return r.parentElement.removeChild(r); });
 };
 HTMLElement.prototype.SaveDirty = function () {
     var t = this, p = Is.Alive(t.Binder) ? t : t.Ancestor(function (p) { return Is.Alive(p.Binder); });
@@ -2108,17 +2179,17 @@ HTMLElement.prototype.SaveDirty = function () {
     }
 };
 HTMLElement.prototype.Save = function () {
-    var t = this, p = t.Ancestor(function (p) { return p.Binder != null; });
+    var t = this, p = t.Ancestor(function (p) { return Is.Alive(p.Binder); });
     if (p && p.Binder) {
         p.Binder.Save(t.DataObject);
     }
 };
 HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
-    var n = nodes == null ? new Array() : nodes;
+    var n = !Is.Alive(nodes) ? new Array() : nodes;
     var chs = this.children;
     for (var i = 0; i < chs.length; i++) {
         var c = chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
             if (func(c)) {
                 n.push(c);
             }
@@ -2129,29 +2200,6 @@ HTMLElement.prototype.Get = function (func, notRecursive, nodes) {
     }
     return n;
 };
-HTMLElement.prototype.First = function (func) {
-    var chs = this.children;
-    for (var i = 0; i < chs.length; i++) {
-        var c = chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
-            if (func(c)) {
-                return c;
-            }
-        }
-    }
-    for (var i = 0; i < chs.length; i++) {
-        var c = chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
-            if (c.First) {
-                var f = c.First(func);
-                if (f) {
-                    return f;
-                }
-            }
-        }
-    }
-    return null;
-};
 HTMLElement.prototype.Clear = function () {
     var t = this;
     var chs = t.childNodes;
@@ -2161,31 +2209,6 @@ HTMLElement.prototype.Clear = function () {
 };
 HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
-};
-HTMLElement.prototype.Set = function (objectProperties) {
-    var t = this, op = objectProperties;
-    if (op) {
-        for (var p in op) {
-            if (p != "cls" && p != "className") {
-                if (p.IsStyle()) {
-                    t.style[p] = op[p];
-                }
-                else if (p === "style") {
-                    if (op.style.cssText) {
-                        t.style.cssText = op.style.cssText;
-                    }
-                }
-                else {
-                    t[p] = op[p];
-                }
-            }
-            else {
-                t.className = null;
-                t.className = op[p];
-            }
-        }
-    }
-    return t;
 };
 HTMLElement.prototype.HasDataSet = function () {
     var d = this["dataset"];
@@ -2207,7 +2230,7 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     return r;
 };
 HTMLElement.prototype.Delete = function () {
-    var t = this, p = t.Ancestor(function (p) { return p.Binder != null; });
+    var t = this, p = t.Ancestor(function (p) { return Is.Alive(p.Binder); });
     if (p && p.Binder) {
         p.Binder.Delete(this, null);
     }
@@ -2218,6 +2241,31 @@ HTMLElement.prototype.Ancestor = function (func) {
         p = p.parentElement;
     }
     return p;
+};
+HTMLElement.prototype.Set = function (objectProperties) {
+    var t = this, op = objectProperties;
+    if (op) {
+        for (var p in op) {
+            if (p !== "cls" && p !== "className") {
+                if (p.IsStyle()) {
+                    t.style[p] = op[p];
+                }
+                else if (p === "style") {
+                    if (op.style.cssText) {
+                        t.style.cssText = op.style.cssText;
+                    }
+                }
+                else {
+                    t[p] = op[p];
+                }
+            }
+            else {
+                t.className = null;
+                t.className = op[p];
+            }
+        }
+    }
+    return t;
 };
 //# sourceMappingURL=HTMLElement.js.map
 HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty, displayProperty, selectedValue) {
@@ -2251,6 +2299,30 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty,
     return s;
 };
 //# sourceMappingURL=HTMLSelectElement.js.map
+String.prototype.Delete = function (cb, parameter, withProgress) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Delete(this, parameter);
+};
+String.prototype.Get = function (cb, parameter, withProgress) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Get(this, parameter);
+};
+String.prototype.Post = function (cb, parameter, withProgress) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Post(this, parameter);
+};
+String.prototype.Put = function (cb, parameter, withProgress) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Put(this, parameter);
+};
 String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter) {
     var s = this, p = null, r = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
     for (var i = 0; i < s.length; i++) {
@@ -2271,7 +2343,8 @@ String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
 String.prototype.Element = function () {
-    return document.getElementById(this.toString());
+    var e = document.getElementById(this.toString());
+    return e ? e : null;
 };
 String.prototype.CreateElement = function (objectProperties) {
     var o = document.createElement(this), op = objectProperties;
@@ -2279,13 +2352,6 @@ String.prototype.CreateElement = function (objectProperties) {
         o.Set(op);
     }
     return o;
-};
-String.prototype.CreateElementFromHtml = function () {
-    var d = "div".CreateElement({ innerHTML: this }), dcs = d.children;
-    while (dcs.length > 0) {
-        var c = dcs[dcs.length - 1];
-        return c;
-    }
 };
 String.prototype.IsStyle = function () {
     for (var p in document.body.style) {
@@ -2296,18 +2362,6 @@ String.prototype.IsStyle = function () {
 //# sourceMappingURL=String.js.map
 Window.prototype.Exception = function (parameters) {
     var a = alert, p = parameters;
-    if (Is.Array(p)) {
-        var o = {};
-        for (var i = 0; i < p.length; i++) {
-            o["parameter" + i] = p[i];
-        }
-        a(JSON.stringify(o));
-    }
-    else if (p.length > 1) {
-        a(JSON.stringify(p[0]));
-    }
-    else {
-        a(p.toString());
-    }
+    a(Is.Array(p) || !Is.String(p) ? JSON.stringify(p) : p.toString());
 };
-//# sourceMappingURL=Window.js.map
+//# sourceMappingURL=Window.js.map 

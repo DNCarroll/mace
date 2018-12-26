@@ -47,14 +47,14 @@ var Ajax = /** @class */ (function () {
     };
     Ajax.prototype.getUrl = function (url) {
         var u = url, a = Ajax.Host;
-        if (u.indexOf("http") == -1 && a) {
-            u = a + (u.indexOf("/") == 0 ? u : "/" + u);
+        if (u.indexOf("http") === -1 && a) {
+            u = a + (u.indexOf("/") === 0 ? u : "/" + u);
         }
         return u;
     };
     Ajax.prototype.isRequestReady = function () {
         var x = this.XHttp;
-        return x && x.readyState == 4;
+        return x && x.readyState === 4;
     };
     Ajax.prototype.Progress = function (show) {
         if (show === void 0) { show = true; }
@@ -92,8 +92,8 @@ var Ajax = /** @class */ (function () {
         if (Ajax.GlobalHeader) {
             var gh = Ajax.GlobalHeader();
             if (gh) {
-                for (var p in gh) {
-                    x.setRequestHeader(p, gh[p]);
+                for (var p2 in gh) {
+                    x.setRequestHeader(p2, gh[p2]);
                 }
             }
         }
@@ -113,7 +113,7 @@ var Ajax = /** @class */ (function () {
     };
     Ajax.prototype.GetRequestData = function () {
         var r = null, t = this, x = this.XHttp, s = x.status;
-        if (t.isRequestReady() && (s == 200) &&
+        if (t.isRequestReady() && (s === 200) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
             try {
@@ -129,6 +129,23 @@ var Ajax = /** @class */ (function () {
             }
         }
         return r;
+    };
+    Ajax.prototype.Array = function (type) {
+        var ret = new Array();
+        var r = this.GetRequestData();
+        if (Is.Alive(r) && r.length) {
+            for (var i = 0; i < r.length; i++) {
+                ret.Add(new type(r[i]));
+            }
+        }
+        return ret;
+    };
+    Ajax.prototype.FirstOrDefault = function (type) {
+        var r = this.GetRequestData();
+        if (Is.Alive(r)) {
+            return new type(r);
+        }
+        return null;
     };
     Ajax.prototype.convertProperties = function (obj) {
         var km, t = this;
@@ -152,8 +169,8 @@ var Ajax = /** @class */ (function () {
         else if (obj && typeof obj === 'object') {
             km = t.getKeyMap(obj);
             t.setValues(obj, km);
-            for (var p in obj) {
-                t.convertProperties(obj[p]);
+            for (var p2 in obj) {
+                t.convertProperties(obj[p2]);
             }
         }
     };
@@ -163,7 +180,7 @@ var Ajax = /** @class */ (function () {
             var v = obj[p];
             if (v && typeof v === 'string') {
                 v = v.Trim();
-                if (v.indexOf("/Date(") == 0 || v.indexOf("Date(") == 0) {
+                if (v.indexOf("/Date(") === 0 || v.indexOf("Date(") === 0) {
                     km.push({ Key: p, Type: "Date" });
                 }
                 else if (v.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/i)) {

@@ -63,9 +63,16 @@ interface IObjectState extends IPropertyChangedDispatcher {
     Container: Array<IObjectState>;
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean);
     Binder: Binder;
+    
 }
 enum ObjectState {
     Dirty,
     Cleaning,
     Clean
 }
+interface Object {
+    As<T>(): T;
+}
+Object.prototype.As = function <T>() {
+    return <T>this;
+}; 

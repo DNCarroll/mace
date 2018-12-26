@@ -91,7 +91,7 @@ var Binder = /** @class */ (function () {
                 }
             }
             vp && vp.length === 0 ? p.forEach(function (o) { return np.Add(o); }) : null;
-            return (np[0].indexOf("http") == -1 ? "/" : "") + np.join("/");
+            return (np[0].indexOf("http") === -1 ? "/" : "") + np.join("/");
         }
         return null;
     };
@@ -135,8 +135,7 @@ var Binder = /** @class */ (function () {
         }
         var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
-            a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
-            a.Get(url);
+            url.Get(t.OnAjaxComplete.bind(this));
         }
         else {
             t.Dispatch(EventType.Completed);
@@ -204,7 +203,7 @@ var Binder = /** @class */ (function () {
             }
         }
         if (o) {
-            var a = new Ajax(t.WithProgress, t.DisableElement), f = function () {
+            var f = function () {
                 var es = t.Element.Get(function (e) { return e.DataObject === o; }), td = t.DataObjects.Data, i = td.indexOf(o);
                 es.forEach(function (e2) { return e2.parentElement.removeChild(e2); });
                 td.forEach(function (o) { return o.InstigatePropertyChangedListeners("AlternatingRowClass", false); });
@@ -223,8 +222,7 @@ var Binder = /** @class */ (function () {
                 ajaxDeleteFunction ? ajaxDeleteFunction(arg) : err();
                 arg.EventType === EventType.Completed ? f() : null;
             }, af = function () {
-                a.AddListener(EventType.Any, afc);
-                a.Delete(t.Api(), o.ServerObject);
+                t.Api().Delete(afc, o.ServerObject);
             };
             t.AutomaticDelete ? af() : f();
         }
@@ -233,7 +231,14 @@ var Binder = /** @class */ (function () {
         this.add(this.NewObject(obj), false, beforeIndex);
     };
     Binder.prototype.Append = function (obj) {
-        this.add(this.NewObject(obj));
+        var _this = this;
+        if (Is.Array(obj)) {
+            var arr = obj;
+            arr.forEach(function (o) { return _this.add(o); });
+        }
+        else {
+            this.add(this.NewObject(obj));
+        }
     };
     Binder.prototype.PostAndAppend = function (obj) {
         var t = this, o = obj, api = t.Api();
@@ -302,7 +307,7 @@ var Binder = /** @class */ (function () {
         if (drt.length === 0) {
             var e = t.Element.tagName === "TABLE" ? t.Element.tBodies[0].children : t.Element.children, r = new Array(), li = 0;
             for (var i = 0; i < e.length; i++) {
-                if (e[i].getAttribute("data-template") != null) {
+                if (Is.Alive(e[i].getAttribute("data-template"))) {
                     r.Add(e[i]);
                     li = i;
                 }
@@ -313,8 +318,8 @@ var Binder = /** @class */ (function () {
                 drt.Add(r);
                 r.parentElement.removeChild(r);
             });
-            var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(function (m) { return m.HasDataSet() && m.getAttribute(dmk) != null &&
-                m.getAttribute(dmt) != null; });
+            var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(function (m) { return m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
+                Is.Alive(m.getAttribute(dmt)); });
             if (more) {
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
@@ -384,9 +389,9 @@ var Binder = /** @class */ (function () {
     };
     Binder.prototype.isPKMatch = function (d, incoming) {
         var t = this;
-        if (t != null && t.PrimaryKeys != null) {
+        if (Is.Alive(t) && Is.Alive(t.PrimaryKeys)) {
             for (var i = 0; i < t.PrimaryKeys.length; i++) {
-                if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
+                if (d.ServerObject[t.PrimaryKeys[i]] !== incoming[t.PrimaryKeys[i]]) {
                     return false;
                 }
             }
@@ -412,7 +417,7 @@ var Binder = /** @class */ (function () {
         var ba = ele.GetDataSetAttributes(), t = this;
         if (ele.tagName === "SELECT") {
             var ds = ba.First(function (f) { return f.Attribute === "datasource"; }), dm = ba.First(function (f) { return f.Attribute === "displaymember"; }), vm = ba.First(function (f) { return f.Attribute === "valuemember"; }), select = ele;
-            if (ds && select.options.length == 0) {
+            if (ds && select.options.length === 0) {
                 var fun = new Function("return " + ds.Property), data = fun();
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
             }
@@ -578,7 +583,7 @@ var Binder = /** @class */ (function () {
         var t = this, vi = HistoryManager.CurrentViewInstance(), pbd = t.DataObjects.Data;
         if (pbd && pbd.length > 0) {
             var nvi = new ViewInstance(new Array(), vi.ViewContainer), o = pbd[pbd.length - 1], p = vi.Parameters;
-            if (p != null) {
+            if (Is.Alive(p)) {
                 for (var i = 0; i < p.length; i++) {
                     var v = p[i];
                     if (v === 0 && this._api.indexOf(v) === 0) {

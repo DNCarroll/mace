@@ -1,16 +1,17 @@
 ﻿{
   "compilerOptions": {
+    "baseUrl": "./clientsrc",
     "noImplicitAny": false,
     "noEmitOnError": true,
     "removeComments": false,
     "sourceMap": true,
-    "target": "es5",
-    "baseUrl": "./clientsrc"
+    "target": "es5"
   },
   "exclude": [
     "node_modules",
     //this might not be right
     "obj",
     "wwwroot\\js"
-  ]
+  ],
+  "compileOnSave": true
 }
