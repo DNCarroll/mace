@@ -83,7 +83,7 @@
                 }
             }
             vp && vp.length === 0 ? p.forEach(o => np.Add(o)) : null;
-            return (np[0].indexOf("http") == -1 ? "/" : "") + np.join("/");
+            return (np[0].indexOf("http") === -1 ? "/" : "") + np.join("/");
         }
         return null;
     }
@@ -128,8 +128,7 @@
         var a = new Ajax(t.WithProgress, t.DisableElement),
             url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
-            a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
-            a.Get(url);
+            url.Get(t.OnAjaxComplete.bind(this));
         }
         else {
             t.Dispatch(EventType.Completed);
@@ -198,8 +197,7 @@
             }
         }
         if (o) {
-            var a = new Ajax(t.WithProgress, t.DisableElement),
-                f = () => {
+            var f = () => {
                     var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));                    
                     td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
@@ -220,8 +218,7 @@
                     arg.EventType === EventType.Completed ? f() : null;
                 },
                 af = () => {
-                    a.AddListener(EventType.Any, afc);
-                    a.Delete(t.Api(), o.ServerObject);
+                    t.Api().Delete(afc, o.ServerObject);
                 };
             t.AutomaticDelete ? af() : f();
         }
@@ -230,7 +227,13 @@
         this.add(this.NewObject(obj), false, beforeIndex);
     }
     Append(obj: any) {
-        this.add(this.NewObject(obj));
+        if (Is.Array(obj)) {
+            var arr = <Array<any>>obj;
+            arr.forEach(o => this.add(o));
+        }
+        else {
+            this.add(this.NewObject(obj));
+        }
     }
     PostAndAppend(obj: any) {
         var t = this, o = obj, api = t.Api();
@@ -302,7 +305,7 @@
                 r = new Array<HTMLElement>(),
                 li = 0;
             for (var i = 0; i < e.length; i++) {
-                if (e[i].getAttribute("data-template") != null) {
+                if (Is.Alive(e[i].getAttribute("data-template"))) {
                     r.Add(e[i]);
                     li = i;
                 }
@@ -315,8 +318,8 @@
             });
             var dmk = "data-morekeys",
                 dmt = "data-morethreshold",
-                more = t.Element.First(m => m.HasDataSet() && m.getAttribute(dmk) != null &&
-                    m.getAttribute(dmt) != null);
+                more = t.Element.First(m => m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
+                    Is.Alive(m.getAttribute(dmt)));
             if (more) {
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
@@ -392,9 +395,9 @@
     }
     isPKMatch(d: IObjectState, incoming: any): boolean {
         var t = this;
-        if (t != null && t.PrimaryKeys != null) {
+        if (Is.Alive(t) && Is.Alive(t.PrimaryKeys)) {
             for (var i = 0; i < t.PrimaryKeys.length; i++) {
-                if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
+                if (d.ServerObject[t.PrimaryKeys[i]]!==incoming[t.PrimaryKeys[i]]) {
                     return false;
                 }
             }
@@ -423,7 +426,7 @@
                 dm = ba.First(f => f.Attribute === "displaymember"),
                 vm = ba.First(f => f.Attribute === "valuemember"),
                 select = (<HTMLSelectElement>ele);
-            if (ds && select.options.length == 0) {
+            if (ds && select.options.length === 0) {
                 var fun = new Function("return " + ds.Property),
                     data = fun();
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
@@ -592,7 +595,7 @@
             var nvi = new ViewInstance(new Array<any>(), vi.ViewContainer),
                 o = pbd[pbd.length - 1],
                 p = vi.Parameters;
-            if (p != null) {
+            if (Is.Alive(p)) {
                 for (var i = 0; i < p.length; i++) {
                     var v = p[i];
                     if (v === 0 && this._api.indexOf(v) === 0) {

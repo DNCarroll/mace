@@ -35,10 +35,10 @@
         this.alternatingClass = value;
     }
     get AlternatingRowClass() {
-        var t = this, ac = t.alternatingClass != null ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
-        if (ac != null) {
+        var t = this, ac = Is.Alive(t.alternatingClass) ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
+        if (Is.Alive(ac)) {
             var i = t.Container.indexOf(this) + 1,
-                ie = i % 2 == 0;
+                ie = i % 2 === 0;
             return ie === t.AlternateOnEvens ? ac : null;
         }
         return null;
@@ -60,7 +60,7 @@
         var t = this;
         if (Is.Alive(t.Binder) &&
             t === t.Binder.SelectedObject) {
-            var t = this, ac = t.selectedRowClass != null ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
+            var ac = Is.Alive(t.selectedRowClass) ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
             return ac;
         }
         return t.DefaultRowClass;
@@ -99,7 +99,7 @@
     }
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean = true) {
         this.OnPropertyChanged(p);
-        if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
+        if (canCauseDirty && this.ObjectState!==ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     }
@@ -126,7 +126,7 @@
     }
     SetServerProperty(p: string, v: any) {
         var t = this,
-            change = v != t.ServerObject[p];
+            change = v!==t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
             t.InstigatePropertyChangedListeners(p, true);

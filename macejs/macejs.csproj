@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\js\async ajax attempt.ts" />
     <Content Remove="wwwroot\scripts\Classes\DataObjectCacheArray.ts" />
     <Content Remove="wwwroot\scripts\Modules\Autofill.ts" />
     <Content Remove="wwwroot\scripts\Modules\Navigate.ts" />
@@ -26,6 +27,7 @@
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="wwwroot\js\async ajax attempt.ts" />
     <TypeScriptCompile Include="wwwroot\scripts\Classes\DataObjectCacheArray.ts" />
     <TypeScriptCompile Include="wwwroot\scripts\Modules\Autofill.ts" />
     <TypeScriptCompile Include="wwwroot\scripts\Modules\Navigate.ts" />

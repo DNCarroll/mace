@@ -13,7 +13,7 @@ var HistoryContainer;
         }
         History.prototype.CurrentViewInstance = function () {
             var vi = this.ViewInstances;
-            return vi != null && vi.length > 0 ? vi[vi.length - 1] : null;
+            return Is.Alive(vi) && vi.length > 0 ? vi[vi.length - 1] : null;
         };
         History.prototype.BackEvent = function (e) {
             HistoryManager.Back();
@@ -38,8 +38,8 @@ var HistoryContainer;
         };
         History.prototype.ManageRouteInfo = function (viewInstance) {
             var vi = viewInstance, vc = vi.ViewContainer, t = vc.UrlTitle(vi), dt = vc.DocumentTitle(vi), h = history, u = vc.Url(vi);
-            if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = !Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/";
+            if (Is.Alive(u) && !Is.NullOrEmpty(t) && h && h.pushState) {
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/") !== 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {

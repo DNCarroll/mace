@@ -26,7 +26,7 @@ var ViewContainer = /** @class */ (function () {
     }
     ViewContainer.prototype.Show = function (route) {
         var rp = route.Parameters, t = this;
-        if (rp && rp.length == 1 && t.IsDefault) {
+        if (rp && rp.length === 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -38,7 +38,7 @@ var ViewContainer = /** @class */ (function () {
     };
     ViewContainer.prototype.IsUrlPatternMatch = function (url) {
         if (!Is.NullOrEmpty(url)) {
-            url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
+            url = url.lastIndexOf("/") === url.length - 1 ? url.substring(0, url.length - 1) : url;
             var p = this.UrlPattern ? this.UrlPattern() : "^" + this.Name;
             if (p) {
                 var regex = new RegExp(p, 'i');
@@ -55,7 +55,7 @@ var ViewContainer = /** @class */ (function () {
         if (t.NumberViewsShown === t.Views.length) {
             ProgressManager.Hide();
             window.scrollTo(0, 0);
-            if (t.ContainerLoaded !== null) {
+            if (Is.Alive(t.ContainerLoaded)) {
                 t.ContainerLoaded();
             }
             t.Views.forEach(function (v) {
@@ -66,17 +66,16 @@ var ViewContainer = /** @class */ (function () {
     ViewContainer.prototype.LoadSubViews = function (eleId) {
         var subviews = eleId.Element().Get(function (e) { return Is.Alive(e.dataset.subview); });
         subviews.forEach(function (s) {
-            var a = new Ajax(false);
-            a.AddListener(EventType.Any, function (arg) {
+            s.dataset.subview.Get(function (arg) {
                 var r = arg.Sender.ResponseText;
                 s.innerHTML = r;
                 var ele = s.Get(function (ele) { return !Is.NullOrEmpty(ele.getAttribute("data-binder")); });
                 if (ele.length > 0) {
                     ele.forEach(function (e) {
                         try {
-                            var a_1 = e.getAttribute("data-binder");
-                            if (a_1) {
-                                var fun = new Function("return new " + a_1 + (a_1.indexOf("(") > -1 ? "" : "()"));
+                            var a = e.getAttribute("data-binder");
+                            if (a) {
+                                var fun = new Function("return new " + a + (a.indexOf("(") > -1 ? "" : "()"));
                                 e.Binder = fun();
                                 e.Binder.Element = e;
                             }
@@ -97,7 +96,6 @@ var ViewContainer = /** @class */ (function () {
                     });
                 }
             });
-            a.Get(s.dataset.subview);
         });
     };
     ViewContainer.prototype.Url = function (viewInstance) {
@@ -106,11 +104,11 @@ var ViewContainer = /** @class */ (function () {
         if (vi.Route) {
             newUrl = vi.Route;
         }
-        else if (t.UrlReplacePattern !== null) {
+        else if (Is.Alive(t.UrlReplacePattern)) {
             var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array();
             for (var i = 0; i < up.length; i++) {
                 var p = up[i];
-                if (p.indexOf("(?:") == 0) {
+                if (p.indexOf("(?:") === 0) {
                     if (!rp) {
                         break;
                     }
@@ -126,21 +124,21 @@ var ViewContainer = /** @class */ (function () {
                     nu.Add(up[i]);
                 }
             }
-            for (var i = 0; i < nu.length; i++) {
-                nu[i] = encodeURIComponent(nu[i]);
+            for (var k = 0; k < nu.length; k++) {
+                nu[k] = encodeURIComponent(nu[k]);
             }
             newUrl = nu.join("/");
         }
         if (Is.NullOrEmpty(newUrl)) {
             var ecrp = new Array();
             if (rp) {
-                for (var i = 0; i < rp.length; i++) {
-                    ecrp.Add(encodeURIComponent(rp[i]));
+                for (var j = 0; j < rp.length; j++) {
+                    ecrp.Add(encodeURIComponent(rp[j]));
                 }
             }
             newUrl = t.Name + (ecrp.length > 0 ? "/" + ecrp.join("/") : "");
         }
-        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
+        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) === -1 ? vp + "/" : "") + newUrl;
     };
     ViewContainer.prototype.UrlTitle = function () {
         return this.Name.replace(/\//g, " ");

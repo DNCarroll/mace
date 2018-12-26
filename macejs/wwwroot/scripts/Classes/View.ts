@@ -126,7 +126,7 @@ class View implements IView {
     MoveStuffFromCacheToReal() {
         var t = this,
             c = t.ContainerID().Element();
-        var be = c.Get(e => e.Binder != null);
+        var be = c.Get(e => Is.Alive(e.Binder));
         be.forEach(e => e.Binder.Dispose());
         c.Clear();
         while (t.cached.childNodes.length > 0) {
@@ -197,9 +197,7 @@ class DataLoader {
         var t = this;
         t._completed = completed;
         if (!t._shouldTryLoad || t._shouldTryLoad()) {
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, t._ajaxCompleted.bind(this));
-            ajax.Get(t._dataUrl, t._parameters);
+            t._dataUrl.Get(t._ajaxCompleted.bind(this), t._parameters);
         }
         else {
             t._completed();

@@ -43,14 +43,14 @@ class Ajax implements IEventDispatcher<Ajax>{
     }
     private getUrl(url: string): string {
         var u = url, a = Ajax.Host;
-        if (u.indexOf("http") == -1 && a) {
-            u = a + (u.indexOf("/") == 0 ? u : "/" + u);
+        if (u.indexOf("http") === -1 && a) {
+            u = a + (u.indexOf("/") === 0 ? u : "/" + u);
         }
         return u;
     }
     private isRequestReady(): boolean {
         var x = this.XHttp;
-        return x && x.readyState == 4;
+        return x && x.readyState === 4;
     }
     private Progress(show: boolean = true) {
         if (this.WithProgress) {
@@ -89,8 +89,8 @@ class Ajax implements IEventDispatcher<Ajax>{
         if (Ajax.GlobalHeader) {
             var gh = Ajax.GlobalHeader()
             if (gh) {
-                for (var p in gh) {
-                    x.setRequestHeader(p, gh[p]);
+                for (var p2 in gh) {
+                    x.setRequestHeader(p2, gh[p2]);
                 }
             }
         }
@@ -112,7 +112,7 @@ class Ajax implements IEventDispatcher<Ajax>{
 
     GetRequestData(): any {
         var r = null, t = this, x = this.XHttp, s = x.status;
-        if (t.isRequestReady() && (s == 200) &&
+        if (t.isRequestReady() && (s === 200) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
             try {
@@ -128,6 +128,23 @@ class Ajax implements IEventDispatcher<Ajax>{
             }
         }
         return r;
+    }
+    Array<T extends DataObject>(type: { new(serverObject:any): T; }) {
+        var ret = new Array<T>();
+        var r = this.GetRequestData();
+        if (Is.Alive(r) && r.length) {
+            for (var i = 0; i < r.length; i++) {
+                ret.Add(new type(r[i]));
+            }
+        }
+        return ret;
+    }
+    FirstOrDefault<T extends DataObject>(type: { new(serverObject: any): T; }) {
+        var r = this.GetRequestData();
+        if (Is.Alive(r)) {
+            return new type(r);
+        }
+        return null;
     }
     private convertProperties(obj) {
         var km: Array<any>, t = this;
@@ -150,8 +167,8 @@ class Ajax implements IEventDispatcher<Ajax>{
         else if (obj && typeof obj === 'object') {
             km = t.getKeyMap(obj);
             t.setValues(obj, km);
-            for (var p in obj) {
-                t.convertProperties(obj[p]);
+            for (var p2 in obj) {
+                t.convertProperties(obj[p2]);
             }
         }
     }
@@ -161,7 +178,7 @@ class Ajax implements IEventDispatcher<Ajax>{
             let v = obj[p];
             if (v && typeof v === 'string') {
                 v = v.Trim();
-                if (v.indexOf("/Date(") == 0 || v.indexOf("Date(") == 0) {
+                if (v.indexOf("/Date(") === 0 || v.indexOf("Date(") === 0) {
                     km.push({ Key: p, Type: "Date" });
                 }
                 else if (v.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/i)) {
@@ -317,7 +334,7 @@ class Binder {
                 }
             }
             vp && vp.length === 0 ? p.forEach(o => np.Add(o)) : null;
-            return (np[0].indexOf("http") == -1 ? "/" : "") + np.join("/");
+            return (np[0].indexOf("http") === -1 ? "/" : "") + np.join("/");
         }
         return null;
     }
@@ -362,8 +379,7 @@ class Binder {
         var a = new Ajax(t.WithProgress, t.DisableElement),
             url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
-            a.AddListener(EventType.Any, t.OnAjaxComplete.bind(this));
-            a.Get(url);
+            url.Get(t.OnAjaxComplete.bind(this));
         }
         else {
             t.Dispatch(EventType.Completed);
@@ -432,8 +448,7 @@ class Binder {
             }
         }
         if (o) {
-            var a = new Ajax(t.WithProgress, t.DisableElement),
-                f = () => {
+            var f = () => {
                     var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
                     es.forEach(e2 => e2.parentElement.removeChild(e2));                    
                     td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
@@ -454,8 +469,7 @@ class Binder {
                     arg.EventType === EventType.Completed ? f() : null;
                 },
                 af = () => {
-                    a.AddListener(EventType.Any, afc);
-                    a.Delete(t.Api(), o.ServerObject);
+                    t.Api().Delete(afc, o.ServerObject);
                 };
             t.AutomaticDelete ? af() : f();
         }
@@ -464,7 +478,13 @@ class Binder {
         this.add(this.NewObject(obj), false, beforeIndex);
     }
     Append(obj: any) {
-        this.add(this.NewObject(obj));
+        if (Is.Array(obj)) {
+            var arr = <Array<any>>obj;
+            arr.forEach(o => this.add(o));
+        }
+        else {
+            this.add(this.NewObject(obj));
+        }
     }
     PostAndAppend(obj: any) {
         var t = this, o = obj, api = t.Api();
@@ -536,7 +556,7 @@ class Binder {
                 r = new Array<HTMLElement>(),
                 li = 0;
             for (var i = 0; i < e.length; i++) {
-                if (e[i].getAttribute("data-template") != null) {
+                if (Is.Alive(e[i].getAttribute("data-template"))) {
                     r.Add(e[i]);
                     li = i;
                 }
@@ -549,8 +569,8 @@ class Binder {
             });
             var dmk = "data-morekeys",
                 dmt = "data-morethreshold",
-                more = t.Element.First(m => m.HasDataSet() && m.getAttribute(dmk) != null &&
-                    m.getAttribute(dmt) != null);
+                more = t.Element.First(m => m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
+                    Is.Alive(m.getAttribute(dmt)));
             if (more) {
                 t.MoreElement = more;
                 t.MoreKeys = more.getAttribute(dmk).split(";");
@@ -626,9 +646,9 @@ class Binder {
     }
     isPKMatch(d: IObjectState, incoming: any): boolean {
         var t = this;
-        if (t != null && t.PrimaryKeys != null) {
+        if (Is.Alive(t) && Is.Alive(t.PrimaryKeys)) {
             for (var i = 0; i < t.PrimaryKeys.length; i++) {
-                if (d.ServerObject[t.PrimaryKeys[i]] != incoming[t.PrimaryKeys[i]]) {
+                if (d.ServerObject[t.PrimaryKeys[i]]!==incoming[t.PrimaryKeys[i]]) {
                     return false;
                 }
             }
@@ -657,7 +677,7 @@ class Binder {
                 dm = ba.First(f => f.Attribute === "displaymember"),
                 vm = ba.First(f => f.Attribute === "valuemember"),
                 select = (<HTMLSelectElement>ele);
-            if (ds && select.options.length == 0) {
+            if (ds && select.options.length === 0) {
                 var fun = new Function("return " + ds.Property),
                     data = fun();
                 select.AddOptions(data, vm ? vm.Property : null, dm ? dm.Property : null);
@@ -826,7 +846,7 @@ class Binder {
             var nvi = new ViewInstance(new Array<any>(), vi.ViewContainer),
                 o = pbd[pbd.length - 1],
                 p = vi.Parameters;
-            if (p != null) {
+            if (Is.Alive(p)) {
                 for (var i = 0; i < p.length; i++) {
                     var v = p[i];
                     if (v === 0 && this._api.indexOf(v) === 0) {
@@ -888,10 +908,10 @@ class DataObject implements IObjectState {
         this.alternatingClass = value;
     }
     get AlternatingRowClass() {
-        var t = this, ac = t.alternatingClass != null ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
-        if (ac != null) {
+        var t = this, ac = Is.Alive(t.alternatingClass) ? t.alternatingClass : DataObject.DefaultAlternatingRowClass;
+        if (Is.Alive(ac)) {
             var i = t.Container.indexOf(this) + 1,
-                ie = i % 2 == 0;
+                ie = i % 2 === 0;
             return ie === t.AlternateOnEvens ? ac : null;
         }
         return null;
@@ -913,7 +933,7 @@ class DataObject implements IObjectState {
         var t = this;
         if (Is.Alive(t.Binder) &&
             t === t.Binder.SelectedObject) {
-            var t = this, ac = t.selectedRowClass != null ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
+            var ac = Is.Alive(t.selectedRowClass) ? t.selectedRowClass : DataObject.DefaultSelectedRowClass;
             return ac;
         }
         return t.DefaultRowClass;
@@ -952,7 +972,7 @@ class DataObject implements IObjectState {
     }
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean = true) {
         this.OnPropertyChanged(p);
-        if (canCauseDirty && this.ObjectState != ObjectState.Cleaning) {
+        if (canCauseDirty && this.ObjectState!==ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     }
@@ -979,7 +999,7 @@ class DataObject implements IObjectState {
     }
     SetServerProperty(p: string, v: any) {
         var t = this,
-            change = v != t.ServerObject[p];
+            change = v!==t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
             t.InstigatePropertyChangedListeners(p, true);
@@ -1177,7 +1197,7 @@ class View implements IView {
     MoveStuffFromCacheToReal() {
         var t = this,
             c = t.ContainerID().Element();
-        var be = c.Get(e => e.Binder != null);
+        var be = c.Get(e => Is.Alive(e.Binder));
         be.forEach(e => e.Binder.Dispose());
         c.Clear();
         while (t.cached.childNodes.length > 0) {
@@ -1248,9 +1268,7 @@ class DataLoader {
         var t = this;
         t._completed = completed;
         if (!t._shouldTryLoad || t._shouldTryLoad()) {
-            var ajax = new Ajax();
-            ajax.AddListener(EventType.Completed, t._ajaxCompleted.bind(this));
-            ajax.Get(t._dataUrl, t._parameters);
+            t._dataUrl.Get(t._ajaxCompleted.bind(this), t._parameters);
         }
         else {
             t._completed();
@@ -1279,7 +1297,7 @@ abstract class ViewContainer implements IViewContainer {
     NumberViewsShown: number;
     Show(route: ViewInstance) {
         var rp = route.Parameters, t = this;
-        if (rp && rp.length == 1 && t.IsDefault) {
+        if (rp && rp.length === 1 && t.IsDefault) {
             route.Parameters = new Array();
         }
         t.NumberViewsShown = 0;
@@ -1291,7 +1309,7 @@ abstract class ViewContainer implements IViewContainer {
     }
     IsUrlPatternMatch(url: string) {
         if (!Is.NullOrEmpty(url)) {
-            url = url.lastIndexOf("/") == url.length - 1 ? url.substring(0, url.length - 1) : url;
+            url = url.lastIndexOf("/") === url.length - 1 ? url.substring(0, url.length - 1) : url;
             var p = this.UrlPattern ? this.UrlPattern() : "^" + this.Name;
             if (p) {
                 var regex = new RegExp(p, 'i');
@@ -1308,7 +1326,7 @@ abstract class ViewContainer implements IViewContainer {
         if (t.NumberViewsShown === t.Views.length) {
             ProgressManager.Hide();
             window.scrollTo(0, 0);
-            if (t.ContainerLoaded !== null) {
+            if (Is.Alive(t.ContainerLoaded)) {
                 t.ContainerLoaded();
             }
             t.Views.forEach(v => {
@@ -1319,8 +1337,7 @@ abstract class ViewContainer implements IViewContainer {
     LoadSubViews(eleId: string) {
         var subviews = eleId.Element().Get(e => Is.Alive(e.dataset.subview));
         subviews.forEach(s => {
-            var a = new Ajax(false);
-            a.AddListener(EventType.Any, (arg) => {
+            s.dataset.subview.Get((arg) => {
                 var r = arg.Sender.ResponseText;
                 s.innerHTML = r;
                 var ele = s.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
@@ -1350,7 +1367,6 @@ abstract class ViewContainer implements IViewContainer {
                     });
                 }
             });
-            a.Get(s.dataset.subview);
         });
     }
     Url(viewInstance: ViewInstance): string {
@@ -1359,11 +1375,11 @@ abstract class ViewContainer implements IViewContainer {
         if (vi.Route) {
             newUrl = vi.Route;
         }
-        else if (t.UrlReplacePattern !== null) {
+        else if (Is.Alive(t.UrlReplacePattern)) {
             var up = t.UrlReplacePattern().split("/"), pi = 0, nu = new Array<string>();
             for (var i = 0; i < up.length; i++) {
                 let p = up[i];
-                if (p.indexOf("(?:") == 0) {
+                if (p.indexOf("(?:") === 0) {
                     if (!rp) { break; }
                     if (pi < rp.length) {
                         nu.Add(rp[pi]);
@@ -1377,21 +1393,21 @@ abstract class ViewContainer implements IViewContainer {
                     nu.Add(up[i]);
                 }
             }
-            for (var i = 0; i < nu.length; i++) {
-                nu[i] = encodeURIComponent(nu[i]);
+            for (var k = 0; k < nu.length; k++) {
+                nu[k] = encodeURIComponent(nu[k]);
             }
             newUrl = nu.join("/");
         }
         if (Is.NullOrEmpty(newUrl)) {
             var ecrp = new Array<string>();
             if (rp) {
-                for (var i = 0; i < rp.length; i++) {
-                    ecrp.Add(encodeURIComponent(rp[i]));
+                for (var j = 0; j < rp.length; j++) {
+                    ecrp.Add(encodeURIComponent(rp[j]));
                 }
             }
             newUrl = t.Name + (ecrp.length > 0 ? "/" + ecrp.join("/") : "");
         }
-        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) == -1 ? vp + "/" : "") + newUrl;
+        return (!Is.NullOrEmpty(vp) && newUrl.indexOf(vp) === -1 ? vp + "/" : "") + newUrl;
     }
 
     UrlTitle() {
@@ -1491,12 +1507,19 @@ interface IObjectState extends IPropertyChangedDispatcher {
     Container: Array<IObjectState>;
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean);
     Binder: Binder;
+    
 }
 enum ObjectState {
     Dirty,
     Cleaning,
     Clean
 }
+interface Object {
+    As<T>(): T;
+}
+Object.prototype.As = function <T>() {
+    return <T>this;
+};
 interface IView extends IEventDispatcher<IView> {
     Url: () => string;
     Show: (route: ViewInstance) => void;
@@ -1546,7 +1569,7 @@ module Autofill {
         i.value = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
     }
     function SetCaretPosition(e: HTMLInputElement, caretPos) {
-        if (e != null) {
+        if (Is.Alive(e)) {
             if (e.selectionStart) {
                 e.focus();
                 e.setSelectionRange(caretPos, e.value.length);
@@ -1557,7 +1580,8 @@ module Autofill {
         }
     }
     export function SetValue(ele: HTMLElement) {
-        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele : ele.parentElement.Input(i => Is.Alive(i.dataset[afapi]));
+        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele :
+            ele.parentElement.First<HTMLInputElement>(i => Is.Alive(i.dataset[afapi]));
 
         var dc = s[eleC],
             ds = s.dataset,
@@ -1615,10 +1639,10 @@ module Autofill {
         else if (l === tl) {
             s[b] = true;
             v = s.value + k;
-            s["pv"] = v
-            var a = new Ajax(false);
-
-            a.AddListener(EventType.Any, (arg) => {
+            s["pv"] = v;
+            var api = s.dataset[afapi];
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            (api + v).Get((arg) => {
                 var ret = arg.Sender.GetRequestData();
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
@@ -1627,9 +1651,6 @@ module Autofill {
                 SetCaretPosition(s, 4);
                 s[b] = false;
             });
-            var api = s.dataset[afapi];
-            api = api.slice(-1) !== "/" ? api + "/" : api;
-            a.Get(api + v);
         }
         else if (l > (tl + 1)) {
             v = s["pv"] + k;
@@ -1654,7 +1675,7 @@ module HistoryContainer {
         private ViewInstances = new Array<ViewInstance>();
         CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
-            return vi != null && vi.length > 0 ? vi[vi.length - 1] : null;
+            return Is.Alive(vi) && vi.length > 0 ? vi[vi.length - 1] : null;
         }
         BackEvent(e) {
             HistoryManager.Back();
@@ -1687,8 +1708,8 @@ module HistoryContainer {
                 dt = vc.DocumentTitle(vi),
                 h = history,
                 u = vc.Url(vi);
-            if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = !Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/";
+            if (Is.Alive(u) && !Is.NullOrEmpty(t) && h && h.pushState) {
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/")!==0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
@@ -1770,25 +1791,28 @@ module Initializer {
     }
     function setProgressElement() {
         var pg = document.getElementById("progress");
-        if (pg != null) {
+        if (Is.Alive(pg)) {
             ProgressManager.ProgressElement = pg;
         }
     }
 }
 module Reflection {
     export function GetName(o: any, ignoreThese: Array<string> = new Array<string>()) {
-        var r = o && o.toString ? o.toString() : null;
+        var r = <string>(o && o.toString ? o.toString() : "");
         if (!Is.NullOrEmpty(r)) {
-            var p = "^function\\s(\\w+)\\(\\)",
-                m = r.match(p);
-            if (m && !ignoreThese.First(i => i === m[1])) {
-                return m[1];
+            if (r.indexOf("function ") > -1 || r.indexOf("class ") > -1) {
+                var mark = r.indexOf("function") === 0 ? "()" : " ";
+                r = r.replace("function ", "");
+                r = r.replace("class ", "");
+                var si = r.indexOf(mark);
+                return r.substring(0, si);
             }
         }
         return null;
     }
     export function NewObject(type: { new() }) {
         return new type();
+
     }
 }
 Initializer.Execute();
@@ -1831,7 +1855,7 @@ module Navigate {
         if (Is.Alive(parameters) && !Is.Array(parameters)) {
             p.Add(parameters)
         }
-        p = p && p.length == 1 && p[0] === "" ? null : p;
+        p = p && p.length === 1 && p[0] === "" ? null : p;
         var vc = Reflection.NewObject(type),
             vi = new ViewInstance(p, vc);
         vc.Show(vi);
@@ -1842,12 +1866,12 @@ module Navigate {
         url = vp && url.length > 0 ? url.replace(vp, '') : url;
         url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
         var vc: IViewContainer = url.length === 0 ? vcs.First(vc => vc.IsDefault) : vcs.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
-        vc = vc == null ? vcs.First(d => d.IsDefault) : vc;
+        vc = vc === null ? vcs.First(d => d.IsDefault) : vc;
         if (vc) {
             var p = vc.Parameters(url),
                 vi = new ViewInstance(p, vc, url);
             p = vi.Parameters;
-            if (p && p.length && !Is.NullOrEmpty(ViewContainer.VirtualPath) && p[0] == ViewContainer.VirtualPath) {
+            if (p && p.length && !Is.NullOrEmpty(ViewContainer.VirtualPath) && p[0] === ViewContainer.VirtualPath) {
                 p.splice(0, 1);
             }
             while (p.length && p.length > 0 && Is.NullOrEmpty(p[0])) {
@@ -1980,19 +2004,22 @@ Date.prototype.ToyyyymmddHHMMss = function () {
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 };
 interface HTMLElement extends Element {
-    Get(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[]
+    Get(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[];
     First(func: (ele: HTMLElement) => boolean): HTMLElement;
+    First<T extends HTMLElement>(predicate: (item: T) => boolean): T;
     Clear();
     AddListener(eventName, method);
-    Set(objectProperties): HTMLElement;
     HasDataSet: () => boolean;
     GetDataSetAttributes: () => { Attribute: string; Property: any; }[];
     Binder: Binder;
+    CObject<T extends IObjectState>();
     DataObject: IObjectState;
     Delete();
     Save();
     SaveDirty();
     Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
+    Relative(func: (ele: HTMLElement) => boolean): HTMLElement;
+    Relative<T extends HTMLElement>(predicate: (item: T) => boolean): T;
     ClearBoundElements();
     Bind(obj: any);
     Bind(obj: any, refresh: boolean);
@@ -2003,14 +2030,61 @@ interface HTMLElement extends Element {
     Append(obj: any);
     InsertBefore(obj: any, index: number);
     InsertBeforeChild(childMatch: (child) => boolean, obj: any);
-    Input(): HTMLInputElement;
-    Input(predicate: (item: HTMLInputElement) => boolean): HTMLInputElement;
+    Set(objectProperties): HTMLElement;
 }
-HTMLElement.prototype.Input = function (predicate: (item: HTMLInputElement) => boolean = null) {
-    var p = <HTMLElement>this;
-    return predicate ? <HTMLInputElement>p.First(e => e.tagName === "INPUT" && predicate(<HTMLInputElement>e)) :
-                       <HTMLInputElement>p.First(e => e.tagName === "INPUT");
-}
+HTMLElement.prototype.CObject = function <T extends IObjectState>(): T {
+    var f = this.DataObject;
+    return f ? <T>f : null;
+};
+HTMLElement.prototype.First = function <T extends HTMLElement>(predicate: (item: T) => boolean): T {
+    var chs = (<HTMLElement>this).children;
+    var hp = <(o: HTMLElement) => boolean>predicate;
+    for (var i = 0; i < chs.length; i++) {
+        let c = <HTMLElement>chs[i];
+        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
+            if (hp(c)) {
+                return <T>c;
+            }
+        }
+    }
+    for (var j = 0; j < chs.length; j++) {
+        let c = <HTMLElement>chs[j];
+        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
+            if (c.First) {
+                let f = c.First(predicate);
+                if (f) {
+                    return <T>f;
+                }
+            }
+        }
+    }
+    return null;
+};
+HTMLElement.prototype.Relative = function <T extends HTMLElement>(predicate: (item: HTMLElement) => boolean): T { 
+    if (!Is.Alive(this || this.parentElement)) {
+        return null;
+    }
+    var p = <HTMLElement>this.parentElement;
+    if (predicate(p)) {
+        return <T>p;
+    } else {
+        var chs = (<HTMLElement>p).children;
+        for (var i = 0; i < chs.length; i++) {
+            let c = <HTMLElement>chs[i];
+            if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
+                if (predicate(c)) {
+                    return <T>c;
+                }
+                //cascade down now?
+                var r = c.First<T>(predicate);
+                if (Is.Alive(r)) {
+                    return <T>r;
+                }
+            }
+        }
+        return p.Relative<T>(predicate);
+    }
+};
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this;
     var fc = p.First(childMatch);
@@ -2023,7 +2097,7 @@ HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boole
         }
     }
 
-}
+};
 HTMLElement.prototype.InsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
     while (!Is.Alive(b) && Is.Alive(p)) {
@@ -2036,7 +2110,7 @@ HTMLElement.prototype.InsertBefore = function (obj: any, index: number) {
     if (Is.Alive(b)) {
         b.InsertBefore(obj, index);
     }
-}
+};
 HTMLElement.prototype.Append = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
     while (!Is.Alive(b) && Is.Alive(p)) {
@@ -2049,7 +2123,7 @@ HTMLElement.prototype.Append = function (obj: any) {
     if (Is.Alive(b)) {
         b.Append(obj);
     }
-}
+};
 HTMLElement.prototype.PostAndAppend = function (obj: any) {
     var p = <HTMLElement>this, b = p.Binder;
     while (!Is.Alive(b) && Is.Alive(p)) {
@@ -2062,7 +2136,7 @@ HTMLElement.prototype.PostAndAppend = function (obj: any) {
     if (Is.Alive(b)) {
         b.PostAndAppend(obj);
     }
-}
+};
 HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this;
     var fc = p.First(childMatch);
@@ -2077,7 +2151,7 @@ HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) =
     }
     p = <HTMLElement>this;
     p.PostAndAppend(obj);
-}
+};
 HTMLElement.prototype.PostAndInsertBefore = function (obj: any, index: number) {
     var p = <HTMLElement>this, b = p.Binder;
     while (!Is.Alive(b) && Is.Alive(p)) {
@@ -2090,17 +2164,17 @@ HTMLElement.prototype.PostAndInsertBefore = function (obj: any, index: number) {
     if (Is.Alive(b)) {
         b.PostAndInsertBefore(obj, index);
     }
-}
+};
 HTMLElement.prototype.IndexOf = function (child: HTMLElement) {
     var p = <HTMLElement>this, c = p.children;
     var i = c.length - 1;
     for (; i >= 0; i--) {
-        if (child == c[i]) {
+        if (child === c[i]) {
             return i;
         }
     }
     return undefined;
-}
+};
 HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
     if (refresh) {
         this.RemoveDataRowElements();
@@ -2124,7 +2198,7 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
 };
 HTMLElement.prototype.ClearBoundElements = function () {
     var t = <HTMLElement>this;
-    t.Get(e => e.getAttribute("data-template") != null).forEach(r => r.parentElement.removeChild(r));
+    t.Get(e => Is.Alive(e.getAttribute("data-template"))).forEach(r => r.parentElement.removeChild(r));
 };
 HTMLElement.prototype.SaveDirty = function () {
     let t = <HTMLElement>this,
@@ -2132,19 +2206,19 @@ HTMLElement.prototype.SaveDirty = function () {
     if (p && p.Binder) {
         p.Binder.SaveDirty();
     }
-}
+};
 HTMLElement.prototype.Save = function () {
-    var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
+    var t = <HTMLElement>this, p = t.Ancestor(p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.Save(t.DataObject);
     }
 };
 HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[] {
-    var n = nodes == null ? new Array<HTMLElement>() : nodes;
+    var n = !Is.Alive(nodes) ? new Array<HTMLElement>() : nodes;
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
             if (func(c)) {
                 n.push(c);
             }
@@ -2155,29 +2229,6 @@ HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRe
     }
     return n;
 };
-HTMLElement.prototype.First = function (func: (ele: HTMLElement) => boolean): HTMLElement {
-    var chs = (<HTMLElement>this).children;
-    for (var i = 0; i < chs.length; i++) {
-        let c = <HTMLElement>chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
-            if (func(c)) {
-                return c;
-            }
-        }
-    }
-    for (var i = 0; i < chs.length; i++) {
-        let c = <HTMLElement>chs[i];
-        if (c.nodeType == 1 && c.tagName.toLowerCase() != "svg") {
-            if (c.First) {
-                let f = c.First(func);
-                if (f) {
-                    return f;
-                }
-            }
-        }
-    }
-    return null;
-};
 HTMLElement.prototype.Clear = function () {
     var t = <HTMLElement>this;
     var chs = t.childNodes;
@@ -2187,31 +2238,6 @@ HTMLElement.prototype.Clear = function () {
 };
 HTMLElement.prototype.AddListener = function (eventName, method) {
     this.addEventListener ? this.addEventListener(eventName, method) : this.attachEvent(eventName, method);
-};
-HTMLElement.prototype.Set = function (objectProperties) {
-    var t = <HTMLElement>this, op = objectProperties;
-    if (op) {
-        for (var p in op) {
-            if (p != "cls" && p != "className") {
-                if (p.IsStyle()) {
-                    t.style[p] = op[p];
-                }
-                else if (p === "style") {
-                    if (op.style.cssText) {
-                        t.style.cssText = op.style.cssText;
-                    }
-                }
-                else {
-                    t[p] = op[p];
-                }
-            }
-            else {
-                t.className = null;
-                t.className = op[p];
-            }
-        }
-    }
-    return t;
 };
 HTMLElement.prototype.HasDataSet = function () {
     var d = this["dataset"];
@@ -2233,7 +2259,7 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     return r;
 };
 HTMLElement.prototype.Delete = function () {
-    var t = <HTMLElement>this, p = t.Ancestor(p => p.Binder != null);
+    var t = <HTMLElement>this, p = t.Ancestor(p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.Delete(this, null);
     }
@@ -2244,6 +2270,31 @@ HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean):
         p = p.parentElement;
     }
     return p;
+};
+HTMLElement.prototype.Set = function (objectProperties) {
+    var t = <HTMLElement>this, op = objectProperties;
+    if (op) {
+        for (var p in op) {
+            if (p!=="cls" && p!=="className") {
+                if (p.IsStyle()) {
+                    t.style[p] = op[p];
+                }
+                else if (p === "style") {
+                    if (op.style.cssText) {
+                        t.style.cssText = op.style.cssText;
+                    }
+                }
+                else {
+                    t[p] = op[p];
+                }
+            }
+            else {
+                t.className = null;
+                t.className = op[p];
+            }
+        }
+    }
+    return t;
 };
 interface HTMLSelectElement {
     AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
@@ -2286,11 +2337,39 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
 interface String {
     Trim(): string;
     Element(): HTMLElement;
+    Element<T extends HTMLElement>(): T;
     CreateElement(objectProperties?): HTMLElement;
-    CreateElementFromHtml(): HTMLElement;
     IsStyle(): boolean;
     RemoveSpecialCharacters(replaceWithCharacter?: string): string;
+    Post(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
+    Put(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
+    Get(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);  
+    Delete(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
 }
+String.prototype.Delete = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Delete(this, parameter);
+};
+String.prototype.Get = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any , withProgress?: boolean) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Get(this, parameter);
+};
+String.prototype.Post = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Post(this, parameter);
+};
+String.prototype.Put = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean) {
+    withProgress = Is.Alive(withProgress) ? withProgress : true;
+    var a = new Ajax(withProgress);
+    a.AddListener(EventType.Any, cb);
+    a.Put(this, parameter);
+};
 String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter?: string) {
     var s = <string>this, p: string = null, r: string = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
     for (var i = 0; i < s.length; i++) {
@@ -2310,8 +2389,9 @@ String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter?: stri
 String.prototype.Trim = function () {
     return this.replace(/^\s+|\s+$/g, "");
 };
-String.prototype.Element = function (): HTMLElement {
-    return document.getElementById(this.toString());
+String.prototype.Element = function <T extends HTMLElement>(): T {
+    var e = document.getElementById(this.toString());
+    return e ? <T>e : null;
 };
 String.prototype.CreateElement = function (objectProperties?): HTMLElement {
     var o = document.createElement(this), op = objectProperties;
@@ -2319,14 +2399,6 @@ String.prototype.CreateElement = function (objectProperties?): HTMLElement {
         o.Set(op);
     }
     return o;
-};
-String.prototype.CreateElementFromHtml = function (): HTMLElement {
-    var d = "div".CreateElement({ innerHTML: this }),
-        dcs = d.children;
-    while (dcs.length > 0) {
-        var c = dcs[dcs.length - 1];
-        return <HTMLElement>c;
-    }
 };
 String.prototype.IsStyle = function () {
     for (var p in document.body.style) {
@@ -2339,17 +2411,5 @@ interface Window {
 }
 Window.prototype.Exception = function (parameters: any) {
     var a = alert, p = parameters;
-    if (Is.Array(p)) {
-        var o = {};
-        for (var i = 0; i < p.length; i++) {
-            o["parameter" + i] = p[i];
-        }
-        a(JSON.stringify(o));
-    }
-    else if (p.length > 1) {
-        a(JSON.stringify(p[0]));
-    }
-    else {
-        a(p.toString());
-    }
+    a(Is.Array(p) || !Is.String(p) ? JSON.stringify(p) : p.toString());
 };

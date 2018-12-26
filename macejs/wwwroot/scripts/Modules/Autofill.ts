@@ -27,7 +27,7 @@
         i.value = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
     }
     function SetCaretPosition(e: HTMLInputElement, caretPos) {
-        if (e != null) {
+        if (Is.Alive(e)) {
             if (e.selectionStart) {
                 e.focus();
                 e.setSelectionRange(caretPos, e.value.length);
@@ -38,7 +38,8 @@
         }
     }
     export function SetValue(ele: HTMLElement) {
-        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele : ele.parentElement.Input(i => Is.Alive(i.dataset[afapi]));
+        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele :
+            ele.parentElement.First<HTMLInputElement>(i => Is.Alive(i.dataset[afapi]));
 
         var dc = s[eleC],
             ds = s.dataset,
@@ -96,10 +97,10 @@
         else if (l === tl) {
             s[b] = true;
             v = s.value + k;
-            s["pv"] = v
-            var a = new Ajax(false);
-
-            a.AddListener(EventType.Any, (arg) => {
+            s["pv"] = v;
+            var api = s.dataset[afapi];
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            (api + v).Get((arg) => {
                 var ret = arg.Sender.GetRequestData();
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
@@ -108,9 +109,6 @@
                 SetCaretPosition(s, 4);
                 s[b] = false;
             });
-            var api = s.dataset[afapi];
-            api = api.slice(-1) !== "/" ? api + "/" : api;
-            a.Get(api + v);
         }
         else if (l > (tl + 1)) {
             v = s["pv"] + k;

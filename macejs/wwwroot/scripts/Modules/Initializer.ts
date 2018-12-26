@@ -42,25 +42,28 @@ module Initializer {
     }
     function setProgressElement() {
         var pg = document.getElementById("progress");
-        if (pg != null) {
+        if (Is.Alive(pg)) {
             ProgressManager.ProgressElement = pg;
         }
     }
 }
 module Reflection {
     export function GetName(o: any, ignoreThese: Array<string> = new Array<string>()) {
-        var r = o && o.toString ? o.toString() : null;
+        var r = <string>(o && o.toString ? o.toString() : "");
         if (!Is.NullOrEmpty(r)) {
-            var p = "^function\\s(\\w+)\\(\\)",
-                m = r.match(p);
-            if (m && !ignoreThese.First(i => i === m[1])) {
-                return m[1];
+            if (r.indexOf("function ") > -1 || r.indexOf("class ") > -1) {
+                var mark = r.indexOf("function") === 0 ? "()" : " ";
+                r = r.replace("function ", "");
+                r = r.replace("class ", "");
+                var si = r.indexOf(mark);
+                return r.substring(0, si);
             }
         }
         return null;
     }
     export function NewObject(type: { new() }) {
         return new type();
+
     }
 }
 Initializer.Execute();

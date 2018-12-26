@@ -42,7 +42,7 @@ var Initializer;
     }
     function setProgressElement() {
         var pg = document.getElementById("progress");
-        if (pg != null) {
+        if (Is.Alive(pg)) {
             ProgressManager.ProgressElement = pg;
         }
     }
@@ -51,11 +51,14 @@ var Reflection;
 (function (Reflection) {
     function GetName(o, ignoreThese) {
         if (ignoreThese === void 0) { ignoreThese = new Array(); }
-        var r = o && o.toString ? o.toString() : null;
+        var r = (o && o.toString ? o.toString() : "");
         if (!Is.NullOrEmpty(r)) {
-            var p = "^function\\s(\\w+)\\(\\)", m = r.match(p);
-            if (m && !ignoreThese.First(function (i) { return i === m[1]; })) {
-                return m[1];
+            if (r.indexOf("function ") > -1 || r.indexOf("class ") > -1) {
+                var mark = r.indexOf("function") === 0 ? "()" : " ";
+                r = r.replace("function ", "");
+                r = r.replace("class ", "");
+                var si = r.indexOf(mark);
+                return r.substring(0, si);
             }
         }
         return null;

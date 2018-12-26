@@ -25,7 +25,7 @@ var Autofill;
         i.value = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
     }
     function SetCaretPosition(e, caretPos) {
-        if (e != null) {
+        if (Is.Alive(e)) {
             if (e.selectionStart) {
                 e.focus();
                 e.setSelectionRange(caretPos, e.value.length);
@@ -36,7 +36,8 @@ var Autofill;
         }
     }
     function SetValue(ele) {
-        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? ele : ele.parentElement.Input(function (i) { return Is.Alive(i.dataset[afapi]); });
+        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? ele :
+            ele.parentElement.First(function (i) { return Is.Alive(i.dataset[afapi]); });
         var dc = s[eleC], ds = s.dataset, f = ds[afva], lf = LookupFields(s), arr = dc, found = arr.First(function (o) { return o[lf.DM] === s.value; });
         if (Is.Alive(f)) {
             var dob = s.DataObject;
@@ -81,8 +82,9 @@ var Autofill;
             s[b] = true;
             v = s.value + k;
             s["pv"] = v;
-            var a = new Ajax(false);
-            a.AddListener(EventType.Any, function (arg) {
+            var api = s.dataset[afapi];
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            (api + v).Get(function (arg) {
                 var ret = arg.Sender.GetRequestData();
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
@@ -91,9 +93,6 @@ var Autofill;
                 SetCaretPosition(s, 4);
                 s[b] = false;
             });
-            var api = s.dataset[afapi];
-            api = api.slice(-1) !== "/" ? api + "/" : api;
-            a.Get(api + v);
         }
         else if (l > (tl + 1)) {
             v = s["pv"] + k;
