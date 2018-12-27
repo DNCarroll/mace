@@ -70,9 +70,3 @@ enum ObjectState {
     Cleaning,
     Clean
 }
-interface Object {
-    As<T>(): T;
-}
-Object.prototype.As = function <T>() {
-    return <T>this;
-}; 
