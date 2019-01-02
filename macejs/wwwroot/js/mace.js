@@ -1538,9 +1538,6 @@ var ObjectState;
     ObjectState[ObjectState["Cleaning"] = 1] = "Cleaning";
     ObjectState[ObjectState["Clean"] = 2] = "Clean";
 })(ObjectState || (ObjectState = {}));
-Object.prototype.As = function () {
-    return this;
-};
 //# sourceMappingURL=CustomEvent.js.map
 //# sourceMappingURL=IView.js.map
 //# sourceMappingURL=IViewContainer.js.map
@@ -2364,4 +2361,4 @@ Window.prototype.Exception = function (parameters) {
     var a = alert, p = parameters;
     a(Is.Array(p) || !Is.String(p) ? JSON.stringify(p) : p.toString());
 };
-//# sourceMappingURL=Window.js.map 
+//# sourceMappingURL=Window.js.map
