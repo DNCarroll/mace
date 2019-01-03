@@ -129,7 +129,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         }
         return r;
     }
-    Array<T extends DataObject>(type: { new(serverObject:any): T; }) {
+    Array<T extends DataObject>(type: { new(serverObject: any): T; }) {
         var ret = new Array<T>();
         var r = this.GetRequestData();
         if (Is.Alive(r) && r.length) {
@@ -248,7 +248,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
         l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
     }
-} 
+}
 class Binder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
@@ -376,8 +376,7 @@ class Binder {
             t.DataObjects = new DataObjectCacheArray<IObjectState>();
             t.Element.ClearBoundElements();
         }
-        var a = new Ajax(t.WithProgress, t.DisableElement),
-            url = t.GetApiForAjax(vi.Parameters);
+        var url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
             url.Get(t.OnAjaxComplete.bind(this));
         }
@@ -404,8 +403,11 @@ class Binder {
     RouteBinding(data: any) {
         var t = this,
             d = data, da = t.DataObjects;
-        if (Is.Array(d)) {
-            (<Array<any>>d).forEach(d => t.add(t.NewObject(d)));
+        if (Is.Array(d)) {            
+            for (var i = 0; i < d.length; i++) {
+                var obj = t.NewObject(d[i]);
+                t.add(obj);
+            }
             if (t.DataObjects.length > 0) {
                 t.ResetSelectedObject();
             }
@@ -449,10 +451,10 @@ class Binder {
         }
         if (o) {
             var f = () => {
-                    var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
-                    es.forEach(e2 => e2.parentElement.removeChild(e2));                    
-                    td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
-                },
+                var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
+                es.forEach(e2 => e2.parentElement.removeChild(e2));
+                td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
+            },
                 afc = (arg: CustomEventArg<Ajax>) => {
                     var err = () => {
                         var x = arg.Sender.XHttp, s = x.status;
@@ -517,6 +519,9 @@ class Binder {
         let t = this, drt = t.DataRowTemplates;
         t.prepTemplates();
         if (drt.length > 0) {
+            if (!shouldNotAddItsAlreadyCached) {
+                t.DataObjects.Add(obj);
+            }
             drt.forEach(d => {
                 let ne = <HTMLElement>d.cloneNode(true),
                     be = ne.Get(e => e.HasDataSet()),
@@ -527,9 +532,7 @@ class Binder {
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
-                if (!shouldNotAddItsAlreadyCached) {
-                    t.DataObjects.Add(obj);
-                }
+                
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = () => {
                     t.SelectedObject = obj;
@@ -543,7 +546,7 @@ class Binder {
         }
         else {
             t.Bind(obj, null);
-            t.SelectedObject = obj; 
+            t.SelectedObject = obj;
         }
     }
     ResetSelectedObject() {
@@ -648,7 +651,7 @@ class Binder {
         var t = this;
         if (Is.Alive(t) && Is.Alive(t.PrimaryKeys)) {
             for (var i = 0; i < t.PrimaryKeys.length; i++) {
-                if (d.ServerObject[t.PrimaryKeys[i]]!==incoming[t.PrimaryKeys[i]]) {
+                if (d.ServerObject[t.PrimaryKeys[i]] !== incoming[t.PrimaryKeys[i]]) {
                     return false;
                 }
             }
@@ -870,7 +873,7 @@ class BinderWithBoundEvent extends Binder {
         let t = this;
         t.ElementBoundEvent = elementBoundEvent;
     }
-} 
+}
 class DataObject implements IObjectState {
     public static DefaultAlternatingRowClass: string = null;
     public static DefaultSelectedRowClass: string = null;
@@ -972,7 +975,7 @@ class DataObject implements IObjectState {
     }
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean = true) {
         this.OnPropertyChanged(p);
-        if (canCauseDirty && this.ObjectState!==ObjectState.Cleaning) {
+        if (canCauseDirty && this.ObjectState !== ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     }
@@ -999,13 +1002,13 @@ class DataObject implements IObjectState {
     }
     SetServerProperty(p: string, v: any) {
         var t = this,
-            change = v!==t.ServerObject[p];
+            change = v !== t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
             t.InstigatePropertyChangedListeners(p, true);
         }
     }
-} 
+}
 enum StorageType {
     none,
     session,
@@ -1038,7 +1041,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Data: Array<T> = new Array<T>();
     _cachingKey: string;
     _storageState: StorageType;
-    _newT: (obj: any) => T;    
+    _newT: (obj: any) => T;
     Add(obj: T) {
         this.Data.push(obj);
     }
@@ -1068,7 +1071,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Where(func?: (obj: T) => boolean): Array<T> {
         return this.Data.Where(func);
     }
-} 
+}
 enum CacheStrategy {
     None,
     ViewAndPreload,
@@ -1278,7 +1281,7 @@ class DataLoader {
         this._dataCallBack(arg);
         this._completed();
     }
-} 
+}
 var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
 abstract class ViewContainer implements IViewContainer {
     static VirtualPath: string;
@@ -1430,7 +1433,7 @@ class SingleViewContainer extends ViewContainer {
         t.IsDefault = isDefault;
         t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
     }
-} 
+}
 class ViewInstance {
     Parameters: Array<any>;
     ViewContainer: IViewContainer;
@@ -1441,7 +1444,7 @@ class ViewInstance {
         this.Parameters = parameters;
         this.ViewContainer = viewContainer;
     }
-} 
+}
 enum EventType {
     Any,
     Completed,
@@ -1507,26 +1510,20 @@ interface IObjectState extends IPropertyChangedDispatcher {
     Container: Array<IObjectState>;
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean);
     Binder: Binder;
-    
+
 }
 enum ObjectState {
     Dirty,
     Cleaning,
     Clean
 }
-interface Object {
-    As<T>(): T;
-}
-Object.prototype.As = function <T>() {
-    return <T>this;
-}; 
 interface IView extends IEventDispatcher<IView> {
     Url: () => string;
     Show: (route: ViewInstance) => void;
     ContainerID: () => string;
     CacheStrategy: CacheStrategy;
     Cache: (strategy: CacheStrategy) => void;
-} 
+}
 interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
     IsDefault: boolean;
@@ -1539,7 +1536,7 @@ interface IViewContainer {
     Views: Array<IView>;
     Name: string;
     Parameters: (url: string) => Array<string>;
-} 
+}
 module Autofill {
 
     var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember",
@@ -1669,7 +1666,7 @@ module Autofill {
             return true;
         }
     }
-} 
+}
 module HistoryContainer {
     export class History implements IEventDispatcher<ViewContainer> {
         private ViewInstances = new Array<ViewInstance>();
@@ -1709,7 +1706,7 @@ module HistoryContainer {
                 h = history,
                 u = vc.Url(vi);
             if (Is.Alive(u) && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = !Is.NullOrEmpty(u) ? u.indexOf("/")!==0 ? "/" + u : u : "/";
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/") !== 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
@@ -1746,7 +1743,7 @@ module HistoryContainer {
         }
     }
 }
-var HistoryManager = new HistoryContainer.History(); 
+var HistoryManager = new HistoryContainer.History();
 class WindowLoaded {
     constructor(loadedEvent: (e, onCompleteCallback: () => void) => any, shouldRunBeforeNavigation: boolean) {
         this.LoadedEvent = loadedEvent;
@@ -1815,7 +1812,7 @@ module Reflection {
 
     }
 }
-Initializer.Execute(); 
+Initializer.Execute();
 module Is {
     export function Array(value): boolean {
         return Object.prototype.toString.call(value) === '[object Array]';
@@ -1833,7 +1830,7 @@ module Is {
     }
     export function Alive(value): boolean {
         return value === undefined || value === null ? false : true;
-    } 
+    }
     export function HTMLElement(o): boolean {
         return Is.Alive(o["tagName"]);
     }
@@ -1848,7 +1845,7 @@ module Has {
         }
         return true;
     }
-} 
+}
 module Navigate {
     export function Spa<T extends IViewContainer>(type: { new(): T; }, parameters: any = null) {
         var p = Is.Array(parameters) ? <Array<any>>parameters : new Array<any>();
@@ -1881,7 +1878,7 @@ module Navigate {
             HistoryManager.Add(vi);
         }
     }
-} 
+}
 module ProgressManager {
     export var ProgressElement: HTMLElement = null;
     export function Show() {
@@ -1896,7 +1893,7 @@ module ProgressManager {
             pe.style.display = "none";
         }
     }
-} 
+}
 interface Array<T> {
     Add(obj: any);
     Add(...obj: T[]);
@@ -1974,7 +1971,7 @@ Array.prototype.Where = function (func: (obj) => boolean): Array<any> {
         }
     }
     return m;
-}; 
+};
 interface Date {
     Add(y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date;
     ToyyyymmddHHMMss();
@@ -2002,7 +1999,7 @@ Date.prototype.ToyyyymmddHHMMss = function () {
         M = f(t.getMinutes()),
         s = f(t.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
-}; 
+};
 interface HTMLElement extends Element {
     Get(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[];
     First(func: (ele: HTMLElement) => boolean): HTMLElement;
@@ -2041,7 +2038,7 @@ HTMLElement.prototype.First = function <T extends HTMLElement>(predicate: (item:
     var hp = <(o: HTMLElement) => boolean>predicate;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
             if (hp(c)) {
                 return <T>c;
             }
@@ -2049,7 +2046,7 @@ HTMLElement.prototype.First = function <T extends HTMLElement>(predicate: (item:
     }
     for (var j = 0; j < chs.length; j++) {
         let c = <HTMLElement>chs[j];
-        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
             if (c.First) {
                 let f = c.First(predicate);
                 if (f) {
@@ -2060,7 +2057,7 @@ HTMLElement.prototype.First = function <T extends HTMLElement>(predicate: (item:
     }
     return null;
 };
-HTMLElement.prototype.Relative = function <T extends HTMLElement>(predicate: (item: HTMLElement) => boolean): T { 
+HTMLElement.prototype.Relative = function <T extends HTMLElement>(predicate: (item: HTMLElement) => boolean): T {
     if (!Is.Alive(this || this.parentElement)) {
         return null;
     }
@@ -2176,10 +2173,12 @@ HTMLElement.prototype.IndexOf = function (child: HTMLElement) {
     return undefined;
 };
 HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
+    var t = <HTMLElement>this;
     if (refresh) {
-        this.RemoveDataRowElements();
+        //you might be clearing out elements before the template has been aquired
+        t.ClearBoundElements();
     }
-    var b = <Binder>this.Binder;
+    var b = t.Binder;
     if (b) {
         if (obj instanceof ViewInstance) {
             b.Refresh(<ViewInstance>obj);
@@ -2188,11 +2187,11 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
             var arr = <Array<any>>obj;
             for (var i = 0; i < arr.length; i++) {
                 var tempObj = arr[i];
-                b.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+                b.Append(tempObj);
             }
         }
         else if (obj) {
-            b.Append(obj instanceof DataObject ? obj : new DataObject(obj));
+            b.Append(obj);
         }
     }
 };
@@ -2218,7 +2217,7 @@ HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRe
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
             if (func(c)) {
                 n.push(c);
             }
@@ -2275,7 +2274,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
     var t = <HTMLElement>this, op = objectProperties;
     if (op) {
         for (var p in op) {
-            if (p!=="cls" && p!=="className") {
+            if (p !== "cls" && p !== "className") {
                 if (p.IsStyle()) {
                     t.style[p] = op[p];
                 }
@@ -2295,7 +2294,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
         }
     }
     return t;
-}; 
+};
 interface HTMLSelectElement {
     AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
 }
@@ -2333,7 +2332,7 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
         }
     }
     return s;
-}; 
+};
 interface String {
     Trim(): string;
     Element(): HTMLElement;
@@ -2343,7 +2342,7 @@ interface String {
     RemoveSpecialCharacters(replaceWithCharacter?: string): string;
     Post(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
     Put(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
-    Get(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);  
+    Get(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
     Delete(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
 }
 String.prototype.Delete = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean) {
@@ -2352,7 +2351,7 @@ String.prototype.Delete = function (cb: (arg: ICustomEventArg<Ajax>) => void, pa
     a.AddListener(EventType.Any, cb);
     a.Delete(this, parameter);
 };
-String.prototype.Get = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any , withProgress?: boolean) {
+String.prototype.Get = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean) {
     withProgress = Is.Alive(withProgress) ? withProgress : true;
     var a = new Ajax(withProgress);
     a.AddListener(EventType.Any, cb);
@@ -2405,7 +2404,7 @@ String.prototype.IsStyle = function () {
         return p.toLowerCase() === this.toLowerCase()
     }
     return false;
-}; 
+};
 interface Window {
     Exception(parameters: any);
 }
