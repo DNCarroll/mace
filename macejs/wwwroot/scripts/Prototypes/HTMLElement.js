@@ -143,10 +143,12 @@ HTMLElement.prototype.IndexOf = function (child) {
 };
 HTMLElement.prototype.Bind = function (obj, refresh) {
     if (refresh === void 0) { refresh = false; }
+    var t = this;
     if (refresh) {
-        this.RemoveDataRowElements();
+        //you might be clearing out elements before the template has been aquired
+        t.ClearBoundElements();
     }
-    var b = this.Binder;
+    var b = t.Binder;
     if (b) {
         if (obj instanceof ViewInstance) {
             b.Refresh(obj);
@@ -155,11 +157,11 @@ HTMLElement.prototype.Bind = function (obj, refresh) {
             var arr = obj;
             for (var i = 0; i < arr.length; i++) {
                 var tempObj = arr[i];
-                b.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+                b.Append(tempObj);
             }
         }
         else if (obj) {
-            b.Append(obj instanceof DataObject ? obj : new DataObject(obj));
+            b.Append(obj);
         }
     }
 };

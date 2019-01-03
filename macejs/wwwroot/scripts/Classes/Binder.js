@@ -133,7 +133,7 @@ var Binder = /** @class */ (function () {
             t.DataObjects = new DataObjectCacheArray();
             t.Element.ClearBoundElements();
         }
-        var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(vi.Parameters);
+        var url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
             url.Get(t.OnAjaxComplete.bind(this));
         }
@@ -274,6 +274,9 @@ var Binder = /** @class */ (function () {
         var t = this, drt = t.DataRowTemplates;
         t.prepTemplates();
         if (drt.length > 0) {
+            if (!shouldNotAddItsAlreadyCached) {
+                t.DataObjects.Add(obj);
+            }
             drt.forEach(function (d) {
                 var ne = d.cloneNode(true), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter, pe = t.Element.tagName === "TABLE" ? t.Element.tBodies[0] : t.Element;
                 be.Add(ne);
@@ -281,9 +284,6 @@ var Binder = /** @class */ (function () {
                     drf = pe.children[beforeIndex];
                 }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
-                if (!shouldNotAddItsAlreadyCached) {
-                    t.DataObjects.Add(obj);
-                }
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = function () {
                     t.SelectedObject = obj;
