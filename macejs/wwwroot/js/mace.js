@@ -1538,9 +1538,6 @@ var ObjectState;
     ObjectState[ObjectState["Cleaning"] = 1] = "Cleaning";
     ObjectState[ObjectState["Clean"] = 2] = "Clean";
 })(ObjectState || (ObjectState = {}));
-Object.prototype.As = function () {
-    return this;
-};
 //# sourceMappingURL=CustomEvent.js.map
 //# sourceMappingURL=IView.js.map
 //# sourceMappingURL=IViewContainer.js.map
