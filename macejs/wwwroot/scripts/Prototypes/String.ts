@@ -36,6 +36,7 @@ String.prototype.Put = function (cb: (arg: ICustomEventArg<Ajax>) => void, param
 };
 String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter?: string) {
     var s = <string>this, p: string = null, r: string = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
+    s = s.trim();
     for (var i = 0; i < s.length; i++) {
         let c = s.charAt(i);
         let m = c.match(/\w/);

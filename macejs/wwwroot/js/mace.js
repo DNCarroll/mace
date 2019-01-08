@@ -1580,30 +1580,60 @@ var Autofill;
     }
     function SetValue(ele) {
         var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? ele :
-            ele.parentElement.First(function (i) { return Is.Alive(i.dataset[afapi]); });
-        var dc = s[eleC], ds = s.dataset, f = ds[afva], lf = LookupFields(s), arr = dc, found = arr.First(function (o) { return o[lf.DM] === s.value; });
-        if (Is.Alive(f)) {
-            var dob = s.DataObject;
-            if (dob) {
-                if (s.value.length === 0) {
-                    dob[f] = null;
+            ele.parentElement.First(function (i) { return Is.Alive(i.dataset[afapi]); }), dc = s[eleC], ds = s.dataset, f = ds[afva], lf = LookupFields(s), arr = dc, dob = s.DataObject;
+        var directSet = function () {
+            ExecuteApi(s, s.value, function (ret) {
+                s[eleC] = ret;
+                if (ret && ret.length > 0) {
+                    SetObjectValues(s, dob, f, ret[0], lf.VM, lf.DM);
                 }
-                else if (found) {
-                    dob[f] = found[lf.VM];
-                    if (s.dataset[afodm]) {
-                        dob[s.dataset[afodm]] = found[lf.DM];
-                    }
+            });
+        };
+        if (s && Is.Alive(f) && !Is.NullOrEmpty(lf.VM) && dob) {
+            if (arr && arr.length > 0) {
+                var found = arr.First(function (o) { return o[lf.DM] === s.value; });
+                if (Is.Alive(found)) {
+                    SetObjectValues(s, dob, f, found, lf.VM, lf.DM);
+                }
+                else {
+                    directSet();
                 }
             }
-        }
-        var m = s.dataset[afc];
-        if (m) {
-            m = m + "(obj);";
-            var fun = new Function("obj", m);
-            fun(found);
+            else if (!Is.NullOrEmpty(s.value)) {
+                directSet();
+            }
         }
     }
     Autofill.SetValue = SetValue;
+    function ExecuteApi(s, v, fun) {
+        var api = s.dataset[afapi];
+        if (!Is.NullOrEmpty(api)) {
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            (api + v).Get(function (arg) {
+                fun(arg.Sender.GetRequestData());
+            });
+        }
+    }
+    function SetObjectValues(s, dob, f, found, vm, dm) {
+        if (s.value.length === 0) {
+            dob[f] = null;
+        }
+        else if (found) {
+            dob[f] = found[vm];
+            if (s.dataset[afodm]) {
+                dob[s.dataset[afodm]] = found[dm];
+            }
+        }
+        RunCompleted(found, s);
+    }
+    function RunCompleted(obj, s) {
+        var m = s.dataset[afc];
+        if (m && obj) {
+            m = m + "(obj);";
+            var fun = new Function("obj", m);
+            fun(obj);
+        }
+    }
     function LookupFields(s) {
         var r = { VM: "", DM: "" }, ds = s.dataset;
         r.DM = ds[afdm] ? ds[afdm] : ds[afvm];
@@ -1625,10 +1655,7 @@ var Autofill;
             s[b] = true;
             v = s.value + k;
             s["pv"] = v;
-            var api = s.dataset[afapi];
-            api = api.slice(-1) !== "/" ? api + "/" : api;
-            (api + v).Get(function (arg) {
-                var ret = arg.Sender.GetRequestData();
+            ExecuteApi(s, v, function (ret) {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
                     s.value = ret[0][lf.DM];
@@ -2324,6 +2351,7 @@ String.prototype.Put = function (cb, parameter, withProgress) {
 };
 String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter) {
     var s = this, p = null, r = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
+    s = s.trim();
     for (var i = 0; i < s.length; i++) {
         var c = s.charAt(i);
         var m = c.match(/\w/);

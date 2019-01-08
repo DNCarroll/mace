@@ -398,7 +398,7 @@ var Binder = /** @class */ (function () {
             t.DataObjects = new DataObjectCacheArray();
             t.Element.ClearBoundElements();
         }
-        var a = new Ajax(t.WithProgress, t.DisableElement), url = t.GetApiForAjax(vi.Parameters);
+        var url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
             url.Get(t.OnAjaxComplete.bind(this));
         }
@@ -539,6 +539,9 @@ var Binder = /** @class */ (function () {
         var t = this, drt = t.DataRowTemplates;
         t.prepTemplates();
         if (drt.length > 0) {
+            if (!shouldNotAddItsAlreadyCached) {
+                t.DataObjects.Add(obj);
+            }
             drt.forEach(function (d) {
                 var ne = d.cloneNode(true), be = ne.Get(function (e) { return e.HasDataSet(); }), drf = t.DataRowFooter, pe = t.Element.tagName === "TABLE" ? t.Element.tBodies[0] : t.Element;
                 be.Add(ne);
@@ -546,9 +549,6 @@ var Binder = /** @class */ (function () {
                     drf = pe.children[beforeIndex];
                 }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
-                if (!shouldNotAddItsAlreadyCached) {
-                    t.DataObjects.Add(obj);
-                }
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = function () {
                     t.SelectedObject = obj;
@@ -1580,30 +1580,60 @@ var Autofill;
     }
     function SetValue(ele) {
         var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? ele :
-            ele.parentElement.First(function (i) { return Is.Alive(i.dataset[afapi]); });
-        var dc = s[eleC], ds = s.dataset, f = ds[afva], lf = LookupFields(s), arr = dc, found = arr.First(function (o) { return o[lf.DM] === s.value; });
-        if (Is.Alive(f)) {
-            var dob = s.DataObject;
-            if (dob) {
-                if (s.value.length === 0) {
-                    dob[f] = null;
+            ele.parentElement.First(function (i) { return Is.Alive(i.dataset[afapi]); }), dc = s[eleC], ds = s.dataset, f = ds[afva], lf = LookupFields(s), arr = dc, dob = s.DataObject;
+        var directSet = function () {
+            ExecuteApi(s, s.value, function (ret) {
+                s[eleC] = ret;
+                if (ret && ret.length > 0) {
+                    SetObjectValues(s, dob, f, ret[0], lf.VM, lf.DM);
                 }
-                else if (found) {
-                    dob[f] = found[lf.VM];
-                    if (s.dataset[afodm]) {
-                        dob[s.dataset[afodm]] = found[lf.DM];
-                    }
+            });
+        };
+        if (s && Is.Alive(f) && !Is.NullOrEmpty(lf.VM) && dob) {
+            if (arr && arr.length > 0) {
+                var found = arr.First(function (o) { return o[lf.DM] === s.value; });
+                if (Is.Alive(found)) {
+                    SetObjectValues(s, dob, f, found, lf.VM, lf.DM);
+                }
+                else {
+                    directSet();
                 }
             }
-        }
-        var m = s.dataset[afc];
-        if (m) {
-            m = m + "(obj);";
-            var fun = new Function("obj", m);
-            fun(found);
+            else if (!Is.NullOrEmpty(s.value)) {
+                directSet();
+            }
         }
     }
     Autofill.SetValue = SetValue;
+    function ExecuteApi(s, v, fun) {
+        var api = s.dataset[afapi];
+        if (!Is.NullOrEmpty(api)) {
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            (api + v).Get(function (arg) {
+                fun(arg.Sender.GetRequestData());
+            });
+        }
+    }
+    function SetObjectValues(s, dob, f, found, vm, dm) {
+        if (s.value.length === 0) {
+            dob[f] = null;
+        }
+        else if (found) {
+            dob[f] = found[vm];
+            if (s.dataset[afodm]) {
+                dob[s.dataset[afodm]] = found[dm];
+            }
+        }
+        RunCompleted(found, s);
+    }
+    function RunCompleted(obj, s) {
+        var m = s.dataset[afc];
+        if (m && obj) {
+            m = m + "(obj);";
+            var fun = new Function("obj", m);
+            fun(obj);
+        }
+    }
     function LookupFields(s) {
         var r = { VM: "", DM: "" }, ds = s.dataset;
         r.DM = ds[afdm] ? ds[afdm] : ds[afvm];
@@ -1625,10 +1655,7 @@ var Autofill;
             s[b] = true;
             v = s.value + k;
             s["pv"] = v;
-            var api = s.dataset[afapi];
-            api = api.slice(-1) !== "/" ? api + "/" : api;
-            (api + v).Get(function (arg) {
-                var ret = arg.Sender.GetRequestData();
+            ExecuteApi(s, v, function (ret) {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
                     s.value = ret[0][lf.DM];
@@ -2145,10 +2172,12 @@ HTMLElement.prototype.IndexOf = function (child) {
 };
 HTMLElement.prototype.Bind = function (obj, refresh) {
     if (refresh === void 0) { refresh = false; }
+    var t = this;
     if (refresh) {
-        this.RemoveDataRowElements();
+        //you might be clearing out elements before the template has been aquired
+        t.ClearBoundElements();
     }
-    var b = this.Binder;
+    var b = t.Binder;
     if (b) {
         if (obj instanceof ViewInstance) {
             b.Refresh(obj);
@@ -2157,11 +2186,11 @@ HTMLElement.prototype.Bind = function (obj, refresh) {
             var arr = obj;
             for (var i = 0; i < arr.length; i++) {
                 var tempObj = arr[i];
-                b.Append(tempObj instanceof DataObject ? tempObj : new DataObject(tempObj));
+                b.Append(tempObj);
             }
         }
         else if (obj) {
-            b.Append(obj instanceof DataObject ? obj : new DataObject(obj));
+            b.Append(obj);
         }
     }
 };
@@ -2322,6 +2351,7 @@ String.prototype.Put = function (cb, parameter, withProgress) {
 };
 String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter) {
     var s = this, p = null, r = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
+    s = s.trim();
     for (var i = 0; i < s.length; i++) {
         var c = s.charAt(i);
         var m = c.match(/\w/);

@@ -38,38 +38,68 @@
         }
     }
     export function SetValue(ele: HTMLElement) {
-        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele :
-            ele.parentElement.First<HTMLInputElement>(i => Is.Alive(i.dataset[afapi]));
+        let s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele :
+            ele.parentElement.First<HTMLInputElement>(i => Is.Alive(i.dataset[afapi])),
+            dc = s[eleC], ds = s.dataset, f = ds[afva],
+            lf = LookupFields(s), arr = <Array<any>>dc,
+            dob = <DataObject>s.DataObject;
 
-        var dc = s[eleC],
-            ds = s.dataset,
-            f = ds[afva],
-            lf = LookupFields(s),
-            arr = <Array<any>>dc,
-            found = arr.First(o => o[lf.DM] === s.value);
+        var directSet = () => {
+            ExecuteApi(s, s.value, (ret) => {
+                s[eleC] = ret;
+                if (ret && ret.length > 0) {
+                    SetObjectValues(s, dob, f, ret[0], lf.VM, lf.DM);
+                }
+            });
+        };
 
-        if (Is.Alive(f)) {
-            var dob = <DataObject>s.DataObject;
-            if (dob) {
-                if (s.value.length === 0) {
-                    dob[f] = null;
+        if (s && Is.Alive(f) && !Is.NullOrEmpty(lf.VM) && dob) {
+            if (arr && arr.length > 0) {
+                var found = arr.First(o => o[lf.DM] === s.value);
+                if (Is.Alive(found)) {
+                    SetObjectValues(s, dob, f, found, lf.VM, lf.DM);
                 }
-                else if (found) {
-                    dob[f] = found[lf.VM];
-                    if (s.dataset[afodm]) {
-                        dob[s.dataset[afodm]] = found[lf.DM];
-                    }
+                else {
+                    directSet();
                 }
+            } else if (!Is.NullOrEmpty(s.value)) {
+                directSet();
             }
         }
+    }
 
-        let m = s.dataset[afc];
-        if (m) {
-            m = m + "(obj);";
-            let fun = new Function("obj", m);
-            fun(found);
+    function ExecuteApi(s: HTMLInputElement, v: string, fun: (ret) => void) {
+        var api = s.dataset[afapi];
+        if (!Is.NullOrEmpty(api)) {
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            (api + v).Get((arg) => {
+                fun(arg.Sender.GetRequestData());
+            });
         }
     }
+
+    function SetObjectValues(s: HTMLInputElement, dob: any, f: string, found: any, vm: string, dm: string) {
+        if (s.value.length === 0) {
+            dob[f] = null;
+        }
+        else if (found) {
+            dob[f] = found[vm];
+            if (s.dataset[afodm]) {
+                dob[s.dataset[afodm]] = found[dm];
+            }
+        }
+        RunCompleted(found, s);
+    }
+
+    function RunCompleted(obj: any, s: HTMLInputElement) {
+        let m = s.dataset[afc];
+        if (m && obj) {
+            m = m + "(obj);";
+            let fun = new Function("obj", m);
+            fun(obj);
+        }
+    }
+
     function LookupFields(s: HTMLInputElement): { VM: string, DM: string } {
         var r = { VM: "", DM: "" },
             ds = s.dataset;
@@ -98,10 +128,7 @@
             s[b] = true;
             v = s.value + k;
             s["pv"] = v;
-            var api = s.dataset[afapi];
-            api = api.slice(-1) !== "/" ? api + "/" : api;
-            (api + v).Get((arg) => {
-                var ret = arg.Sender.GetRequestData();
+            ExecuteApi(s, v, (ret) => {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
                     s.value = ret[0][lf.DM];
@@ -127,4 +154,4 @@
             return true;
         }
     }
-} 
+}

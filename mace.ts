@@ -129,7 +129,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         }
         return r;
     }
-    Array<T extends DataObject>(type: { new(serverObject: any): T; }) {
+    Array<T extends DataObject>(type: { new(serverObject:any): T; }) {
         var ret = new Array<T>();
         var r = this.GetRequestData();
         if (Is.Alive(r) && r.length) {
@@ -248,7 +248,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
         l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
     }
-}
+} 
 class Binder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
@@ -403,11 +403,8 @@ class Binder {
     RouteBinding(data: any) {
         var t = this,
             d = data, da = t.DataObjects;
-        if (Is.Array(d)) {            
-            for (var i = 0; i < d.length; i++) {
-                var obj = t.NewObject(d[i]);
-                t.add(obj);
-            }
+        if (Is.Array(d)) {
+            (<Array<any>>d).forEach(d => t.add(t.NewObject(d)));
             if (t.DataObjects.length > 0) {
                 t.ResetSelectedObject();
             }
@@ -451,10 +448,10 @@ class Binder {
         }
         if (o) {
             var f = () => {
-                var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
-                es.forEach(e2 => e2.parentElement.removeChild(e2));
-                td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
-            },
+                    var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
+                    es.forEach(e2 => e2.parentElement.removeChild(e2));                    
+                    td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
+                },
                 afc = (arg: CustomEventArg<Ajax>) => {
                     var err = () => {
                         var x = arg.Sender.XHttp, s = x.status;
@@ -532,7 +529,6 @@ class Binder {
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
-                
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = () => {
                     t.SelectedObject = obj;
@@ -546,7 +542,7 @@ class Binder {
         }
         else {
             t.Bind(obj, null);
-            t.SelectedObject = obj;
+            t.SelectedObject = obj; 
         }
     }
     ResetSelectedObject() {
@@ -651,7 +647,7 @@ class Binder {
         var t = this;
         if (Is.Alive(t) && Is.Alive(t.PrimaryKeys)) {
             for (var i = 0; i < t.PrimaryKeys.length; i++) {
-                if (d.ServerObject[t.PrimaryKeys[i]] !== incoming[t.PrimaryKeys[i]]) {
+                if (d.ServerObject[t.PrimaryKeys[i]]!==incoming[t.PrimaryKeys[i]]) {
                     return false;
                 }
             }
@@ -873,7 +869,7 @@ class BinderWithBoundEvent extends Binder {
         let t = this;
         t.ElementBoundEvent = elementBoundEvent;
     }
-}
+} 
 class DataObject implements IObjectState {
     public static DefaultAlternatingRowClass: string = null;
     public static DefaultSelectedRowClass: string = null;
@@ -975,7 +971,7 @@ class DataObject implements IObjectState {
     }
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean = true) {
         this.OnPropertyChanged(p);
-        if (canCauseDirty && this.ObjectState !== ObjectState.Cleaning) {
+        if (canCauseDirty && this.ObjectState!==ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     }
@@ -1002,13 +998,13 @@ class DataObject implements IObjectState {
     }
     SetServerProperty(p: string, v: any) {
         var t = this,
-            change = v !== t.ServerObject[p];
+            change = v!==t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
             t.InstigatePropertyChangedListeners(p, true);
         }
     }
-}
+} 
 enum StorageType {
     none,
     session,
@@ -1041,7 +1037,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Data: Array<T> = new Array<T>();
     _cachingKey: string;
     _storageState: StorageType;
-    _newT: (obj: any) => T;
+    _newT: (obj: any) => T;    
     Add(obj: T) {
         this.Data.push(obj);
     }
@@ -1071,7 +1067,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Where(func?: (obj: T) => boolean): Array<T> {
         return this.Data.Where(func);
     }
-}
+} 
 enum CacheStrategy {
     None,
     ViewAndPreload,
@@ -1281,7 +1277,7 @@ class DataLoader {
         this._dataCallBack(arg);
         this._completed();
     }
-}
+} 
 var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
 abstract class ViewContainer implements IViewContainer {
     static VirtualPath: string;
@@ -1433,7 +1429,7 @@ class SingleViewContainer extends ViewContainer {
         t.IsDefault = isDefault;
         t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
     }
-}
+} 
 class ViewInstance {
     Parameters: Array<any>;
     ViewContainer: IViewContainer;
@@ -1444,7 +1440,7 @@ class ViewInstance {
         this.Parameters = parameters;
         this.ViewContainer = viewContainer;
     }
-}
+} 
 enum EventType {
     Any,
     Completed,
@@ -1510,7 +1506,7 @@ interface IObjectState extends IPropertyChangedDispatcher {
     Container: Array<IObjectState>;
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean);
     Binder: Binder;
-
+    
 }
 enum ObjectState {
     Dirty,
@@ -1523,7 +1519,7 @@ interface IView extends IEventDispatcher<IView> {
     ContainerID: () => string;
     CacheStrategy: CacheStrategy;
     Cache: (strategy: CacheStrategy) => void;
-}
+} 
 interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
     IsDefault: boolean;
@@ -1536,7 +1532,7 @@ interface IViewContainer {
     Views: Array<IView>;
     Name: string;
     Parameters: (url: string) => Array<string>;
-}
+} 
 module Autofill {
 
     var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember",
@@ -1577,38 +1573,68 @@ module Autofill {
         }
     }
     export function SetValue(ele: HTMLElement) {
-        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele :
-            ele.parentElement.First<HTMLInputElement>(i => Is.Alive(i.dataset[afapi]));
+        let s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele :
+            ele.parentElement.First<HTMLInputElement>(i => Is.Alive(i.dataset[afapi])),
+            dc = s[eleC], ds = s.dataset, f = ds[afva],
+            lf = LookupFields(s), arr = <Array<any>>dc,
+            dob = <DataObject>s.DataObject;
 
-        var dc = s[eleC],
-            ds = s.dataset,
-            f = ds[afva],
-            lf = LookupFields(s),
-            arr = <Array<any>>dc,
-            found = arr.First(o => o[lf.DM] === s.value);
+        var directSet = () => {
+            ExecuteApi(s, s.value, (ret) => {
+                s[eleC] = ret;
+                if (ret && ret.length > 0) {
+                    SetObjectValues(s, dob, f, ret[0], lf.VM, lf.DM);
+                }
+            });
+        };
 
-        if (Is.Alive(f)) {
-            var dob = <DataObject>s.DataObject;
-            if (dob) {
-                if (s.value.length === 0) {
-                    dob[f] = null;
+        if (s && Is.Alive(f) && !Is.NullOrEmpty(lf.VM) && dob) {
+            if (arr && arr.length > 0) {
+                var found = arr.First(o => o[lf.DM] === s.value);
+                if (Is.Alive(found)) {
+                    SetObjectValues(s, dob, f, found, lf.VM, lf.DM);
                 }
-                else if (found) {
-                    dob[f] = found[lf.VM];
-                    if (s.dataset[afodm]) {
-                        dob[s.dataset[afodm]] = found[lf.DM];
-                    }
+                else {
+                    directSet();
                 }
+            } else if (!Is.NullOrEmpty(s.value)) {
+                directSet();
             }
         }
+    }
 
-        let m = s.dataset[afc];
-        if (m) {
-            m = m + "(obj);";
-            let fun = new Function("obj", m);
-            fun(found);
+    function ExecuteApi(s: HTMLInputElement, v: string, fun: (ret) => void) {
+        var api = s.dataset[afapi];
+        if (!Is.NullOrEmpty(api)) {
+            api = api.slice(-1) !== "/" ? api + "/" : api;
+            (api + v).Get((arg) => {
+                fun(arg.Sender.GetRequestData());
+            });
         }
     }
+
+    function SetObjectValues(s: HTMLInputElement, dob: any, f: string, found: any, vm: string, dm: string) {
+        if (s.value.length === 0) {
+            dob[f] = null;
+        }
+        else if (found) {
+            dob[f] = found[vm];
+            if (s.dataset[afodm]) {
+                dob[s.dataset[afodm]] = found[dm];
+            }
+        }
+        RunCompleted(found, s);
+    }
+
+    function RunCompleted(obj: any, s: HTMLInputElement) {
+        let m = s.dataset[afc];
+        if (m && obj) {
+            m = m + "(obj);";
+            let fun = new Function("obj", m);
+            fun(obj);
+        }
+    }
+
     function LookupFields(s: HTMLInputElement): { VM: string, DM: string } {
         var r = { VM: "", DM: "" },
             ds = s.dataset;
@@ -1637,10 +1663,7 @@ module Autofill {
             s[b] = true;
             v = s.value + k;
             s["pv"] = v;
-            var api = s.dataset[afapi];
-            api = api.slice(-1) !== "/" ? api + "/" : api;
-            (api + v).Get((arg) => {
-                var ret = arg.Sender.GetRequestData();
+            ExecuteApi(s, v, (ret) => {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
                     s.value = ret[0][lf.DM];
@@ -1706,7 +1729,7 @@ module HistoryContainer {
                 h = history,
                 u = vc.Url(vi);
             if (Is.Alive(u) && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = !Is.NullOrEmpty(u) ? u.indexOf("/") !== 0 ? "/" + u : u : "/";
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/")!==0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
@@ -1743,7 +1766,7 @@ module HistoryContainer {
         }
     }
 }
-var HistoryManager = new HistoryContainer.History();
+var HistoryManager = new HistoryContainer.History(); 
 class WindowLoaded {
     constructor(loadedEvent: (e, onCompleteCallback: () => void) => any, shouldRunBeforeNavigation: boolean) {
         this.LoadedEvent = loadedEvent;
@@ -1812,7 +1835,7 @@ module Reflection {
 
     }
 }
-Initializer.Execute();
+Initializer.Execute(); 
 module Is {
     export function Array(value): boolean {
         return Object.prototype.toString.call(value) === '[object Array]';
@@ -1830,7 +1853,7 @@ module Is {
     }
     export function Alive(value): boolean {
         return value === undefined || value === null ? false : true;
-    }
+    } 
     export function HTMLElement(o): boolean {
         return Is.Alive(o["tagName"]);
     }
@@ -1845,7 +1868,7 @@ module Has {
         }
         return true;
     }
-}
+} 
 module Navigate {
     export function Spa<T extends IViewContainer>(type: { new(): T; }, parameters: any = null) {
         var p = Is.Array(parameters) ? <Array<any>>parameters : new Array<any>();
@@ -1878,7 +1901,7 @@ module Navigate {
             HistoryManager.Add(vi);
         }
     }
-}
+} 
 module ProgressManager {
     export var ProgressElement: HTMLElement = null;
     export function Show() {
@@ -1893,7 +1916,7 @@ module ProgressManager {
             pe.style.display = "none";
         }
     }
-}
+} 
 interface Array<T> {
     Add(obj: any);
     Add(...obj: T[]);
@@ -1971,7 +1994,7 @@ Array.prototype.Where = function (func: (obj) => boolean): Array<any> {
         }
     }
     return m;
-};
+}; 
 interface Date {
     Add(y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date;
     ToyyyymmddHHMMss();
@@ -1999,7 +2022,7 @@ Date.prototype.ToyyyymmddHHMMss = function () {
         M = f(t.getMinutes()),
         s = f(t.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
-};
+}; 
 interface HTMLElement extends Element {
     Get(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[];
     First(func: (ele: HTMLElement) => boolean): HTMLElement;
@@ -2038,7 +2061,7 @@ HTMLElement.prototype.First = function <T extends HTMLElement>(predicate: (item:
     var hp = <(o: HTMLElement) => boolean>predicate;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
             if (hp(c)) {
                 return <T>c;
             }
@@ -2046,7 +2069,7 @@ HTMLElement.prototype.First = function <T extends HTMLElement>(predicate: (item:
     }
     for (var j = 0; j < chs.length; j++) {
         let c = <HTMLElement>chs[j];
-        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
             if (c.First) {
                 let f = c.First(predicate);
                 if (f) {
@@ -2057,7 +2080,7 @@ HTMLElement.prototype.First = function <T extends HTMLElement>(predicate: (item:
     }
     return null;
 };
-HTMLElement.prototype.Relative = function <T extends HTMLElement>(predicate: (item: HTMLElement) => boolean): T {
+HTMLElement.prototype.Relative = function <T extends HTMLElement>(predicate: (item: HTMLElement) => boolean): T { 
     if (!Is.Alive(this || this.parentElement)) {
         return null;
     }
@@ -2217,7 +2240,7 @@ HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRe
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
             if (func(c)) {
                 n.push(c);
             }
@@ -2274,7 +2297,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
     var t = <HTMLElement>this, op = objectProperties;
     if (op) {
         for (var p in op) {
-            if (p !== "cls" && p !== "className") {
+            if (p!=="cls" && p!=="className") {
                 if (p.IsStyle()) {
                     t.style[p] = op[p];
                 }
@@ -2294,7 +2317,7 @@ HTMLElement.prototype.Set = function (objectProperties) {
         }
     }
     return t;
-};
+}; 
 interface HTMLSelectElement {
     AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
 }
@@ -2332,7 +2355,7 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
         }
     }
     return s;
-};
+}; 
 interface String {
     Trim(): string;
     Element(): HTMLElement;
@@ -2342,7 +2365,7 @@ interface String {
     RemoveSpecialCharacters(replaceWithCharacter?: string): string;
     Post(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
     Put(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
-    Get(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
+    Get(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);  
     Delete(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
 }
 String.prototype.Delete = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean) {
@@ -2351,7 +2374,7 @@ String.prototype.Delete = function (cb: (arg: ICustomEventArg<Ajax>) => void, pa
     a.AddListener(EventType.Any, cb);
     a.Delete(this, parameter);
 };
-String.prototype.Get = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean) {
+String.prototype.Get = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any , withProgress?: boolean) {
     withProgress = Is.Alive(withProgress) ? withProgress : true;
     var a = new Ajax(withProgress);
     a.AddListener(EventType.Any, cb);
@@ -2371,6 +2394,7 @@ String.prototype.Put = function (cb: (arg: ICustomEventArg<Ajax>) => void, param
 };
 String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter?: string) {
     var s = <string>this, p: string = null, r: string = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
+    s = s.trim();
     for (var i = 0; i < s.length; i++) {
         let c = s.charAt(i);
         let m = c.match(/\w/);
@@ -2404,7 +2428,7 @@ String.prototype.IsStyle = function () {
         return p.toLowerCase() === this.toLowerCase()
     }
     return false;
-};
+}; 
 interface Window {
     Exception(parameters: any);
 }

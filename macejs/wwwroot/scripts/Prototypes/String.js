@@ -24,6 +24,7 @@ String.prototype.Put = function (cb, parameter, withProgress) {
 };
 String.prototype.RemoveSpecialCharacters = function (replaceWithCharacter) {
     var s = this, p = null, r = "", rc = !Is.Alive(replaceWithCharacter) ? "-" : replaceWithCharacter;
+    s = s.trim();
     for (var i = 0; i < s.length; i++) {
         var c = s.charAt(i);
         var m = c.match(/\w/);
