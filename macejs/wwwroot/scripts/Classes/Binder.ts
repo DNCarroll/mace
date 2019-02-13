@@ -497,10 +497,11 @@
             fun = (atr: string, v: any) => {
                 if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
                     if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
-                        var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
-                        r.forEach(r => r["checked"] = false);
-                        var f = r.First(r => r["value"] === v.toString());
-                        f ? f["checked"] = true : null;
+                        //var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
+                        //r.forEach(r => r["checked"] = false);
+                        //var f = r.First(r => r["value"] === v.toString());
+                        //f ? f["checked"] = true : null;
+                        e["checked"] = e["value"] === v.toString();
                     }
                     else if (atr === "className") {
                         e.className = null;
@@ -521,7 +522,6 @@
             };
         d.AddPropertyListener(p, a, fun);
     }
-
     getStyle(v: string): string {
         for (var p in document.body.style) {
             if (p.toLowerCase() === v.toLowerCase()) {
