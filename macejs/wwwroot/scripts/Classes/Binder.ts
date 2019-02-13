@@ -125,8 +125,7 @@
             t.DataObjects = new DataObjectCacheArray<IObjectState>();
             t.Element.ClearBoundElements();
         }
-        var a = new Ajax(t.WithProgress, t.DisableElement),
-            url = t.GetApiForAjax(vi.Parameters);
+        var url = t.GetApiForAjax(vi.Parameters);
         if (!Is.NullOrEmpty(url)) {
             url.Get(t.OnAjaxComplete.bind(this));
         }
@@ -266,6 +265,9 @@
         let t = this, drt = t.DataRowTemplates;
         t.prepTemplates();
         if (drt.length > 0) {
+            if (!shouldNotAddItsAlreadyCached) {
+                t.DataObjects.Add(obj);
+            }
             drt.forEach(d => {
                 let ne = <HTMLElement>d.cloneNode(true),
                     be = ne.Get(e => e.HasDataSet()),
@@ -276,9 +278,6 @@
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
-                if (!shouldNotAddItsAlreadyCached) {
-                    t.DataObjects.Add(obj);
-                }
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = () => {
                     t.SelectedObject = obj;
