@@ -748,14 +748,14 @@ var Binder = /** @class */ (function () {
         }
     };
     Binder.prototype.setObjPropListener = function (p, a, e, d) {
-        var _this = this;
         var t = this, fun = function (atr, v) {
             if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
                 if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
-                    var r = _this.Element.Get(function (e2) { return e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked; });
-                    r.forEach(function (r) { return r["checked"] = false; });
-                    var f = r.First(function (r) { return r["value"] === v.toString(); });
-                    f ? f["checked"] = true : null;
+                    //var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
+                    //r.forEach(r => r["checked"] = false);
+                    //var f = r.First(r => r["value"] === v.toString());
+                    //f ? f["checked"] = true : null;
+                    e["checked"] = e["value"] === v.toString();
                 }
                 else if (atr === "className") {
                     e.className = null;
