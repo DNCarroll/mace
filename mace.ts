@@ -748,10 +748,11 @@ class Binder {
             fun = (atr: string, v: any) => {
                 if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
                     if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
-                        var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
-                        r.forEach(r => r["checked"] = false);
-                        var f = r.First(r => r["value"] === v.toString());
-                        f ? f["checked"] = true : null;
+                        //var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
+                        //r.forEach(r => r["checked"] = false);
+                        //var f = r.First(r => r["value"] === v.toString());
+                        //f ? f["checked"] = true : null;
+                        e["checked"] = e["value"] === v.toString();
                     }
                     else if (atr === "className") {
                         e.className = null;
@@ -772,7 +773,6 @@ class Binder {
             };
         d.AddPropertyListener(p, a, fun);
     }
-
     getStyle(v: string): string {
         for (var p in document.body.style) {
             if (p.toLowerCase() === v.toLowerCase()) {
@@ -791,9 +791,7 @@ class Binder {
         v = !Is.Alive(v) && dad && dad.length > 0 ? dad[0] : v;
         if (v) {
             var prev = t.SelectedObject;
-            if (prev) {
-                prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
-            }
+
             if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
                 ftids.forEach(ft => {
                     var fte = ft.Element();
@@ -808,6 +806,9 @@ class Binder {
             }
             t.selectedObject = v;
             t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            if (prev) {
+                prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            }
             if (Is.Alive(t.OnSelectedItemChanged)) {
                 t.OnSelectedItemChanged(t.selectedObject);
             }
@@ -1290,6 +1291,7 @@ abstract class ViewContainer implements IViewContainer {
     UrlPattern: () => string = null;
     UrlReplacePattern: () => string = null;
     ContainerLoaded: () => void = null;
+    SubviewLoaded: (containerLoaded: HTMLElement) => void = null;
     public Name: string;
     Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
@@ -1335,6 +1337,7 @@ abstract class ViewContainer implements IViewContainer {
     }
     LoadSubViews(eleId: string) {
         var subviews = eleId.Element().Get(e => Is.Alive(e.dataset.subview));
+        let t = this;
         subviews.forEach(s => {
             s.dataset.subview.Get((arg) => {
                 var r = arg.Sender.ResponseText;
@@ -1365,6 +1368,7 @@ abstract class ViewContainer implements IViewContainer {
                         }
                     });
                 }
+                Is.Alive(t.SubviewLoaded) ? t.SubviewLoaded(s) : "";
             });
         });
     }
@@ -1539,33 +1543,33 @@ module Autofill {
         afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember";
 
     export function IsAutoFill(ele: HTMLElement, obj: IObjectState): boolean {
-        var ret = Is.Alive(ele.dataset[afapi] && (ele.dataset[afvm] || ele.dataset[afdm])) && ele.tagName === "INPUT" && ele["type"] === "text";
+        var ret = Is.Alive(ele.dataset[afapi] && (ele.dataset[afvm] || ele.dataset[afdm])) && ((ele.tagName === "INPUT" && ele["type"] === "text") || ele.tagName === "TEXTAREA");
         ret ? initialize(ele, obj) : null;
         return ret;
     }
 
     function initialize(ele: HTMLElement, obj: IObjectState) {
-        let i = <HTMLInputElement>ele;
+        let i = ele;
         i.onkeypress = null;
         i.onclick = () => {
             SetCaretPosition(i, 0);
         };
         i.onkeyup = () => {
             var code = (event["keyCode"] ? event["keyCode"] : event["which"]);
-            if (i.value.length === 0 && code === 8) {
+            if (i["value"].length === 0 && code === 8) {
                 SetValue(i);
             }
         };
         i.onkeypress = () => {
             KeyPress(event);
         };
-        i.value = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
+        i["value"] = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
     }
-    function SetCaretPosition(e: HTMLInputElement, caretPos) {
+    function SetCaretPosition(e: HTMLElement, caretPos) {
         if (Is.Alive(e)) {
-            if (e.selectionStart) {
+            if (e["selectionStart"]) {
                 e.focus();
-                e.setSelectionRange(caretPos, e.value.length);
+                e["setSelectionRange"](caretPos, e["value"].length);
             }
             else {
                 e.focus();
@@ -1573,14 +1577,14 @@ module Autofill {
         }
     }
     export function SetValue(ele: HTMLElement) {
-        let s = ele.tagName === "INPUT" && ele.dataset[afapi] ? <HTMLInputElement>ele :
-            ele.parentElement.First<HTMLInputElement>(i => Is.Alive(i.dataset[afapi])),
+        let s = (ele.tagName === "INPUT" || ele.tagName === "TEXTAREA") && ele.dataset[afapi] ? ele :
+            ele.parentElement.First(i => Is.Alive(i.dataset[afapi])),
             dc = s[eleC], ds = s.dataset, f = ds[afva],
             lf = LookupFields(s), arr = <Array<any>>dc,
             dob = <DataObject>s.DataObject;
 
         var directSet = () => {
-            ExecuteApi(s, s.value, (ret) => {
+            ExecuteApi(s, s["value"], (ret) => {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
                     SetObjectValues(s, dob, f, ret[0], lf.VM, lf.DM);
@@ -1590,20 +1594,20 @@ module Autofill {
 
         if (s && Is.Alive(f) && !Is.NullOrEmpty(lf.VM) && dob) {
             if (arr && arr.length > 0) {
-                var found = arr.First(o => o[lf.DM] === s.value);
+                var found = arr.First(o => o[lf.DM] === s["value"]);
                 if (Is.Alive(found)) {
                     SetObjectValues(s, dob, f, found, lf.VM, lf.DM);
                 }
                 else {
                     directSet();
                 }
-            } else if (!Is.NullOrEmpty(s.value)) {
+            } else if (!Is.NullOrEmpty(s["value"])) {
                 directSet();
             }
         }
     }
 
-    function ExecuteApi(s: HTMLInputElement, v: string, fun: (ret) => void) {
+    function ExecuteApi(s: HTMLElement, v: string, fun: (ret) => void) {
         var api = s.dataset[afapi];
         if (!Is.NullOrEmpty(api)) {
             api = api.slice(-1) !== "/" ? api + "/" : api;
@@ -1613,8 +1617,8 @@ module Autofill {
         }
     }
 
-    function SetObjectValues(s: HTMLInputElement, dob: any, f: string, found: any, vm: string, dm: string) {
-        if (s.value.length === 0) {
+    function SetObjectValues(s: HTMLElement, dob: any, f: string, found: any, vm: string, dm: string) {
+        if (s["value"].length === 0) {
             dob[f] = null;
         }
         else if (found) {
@@ -1626,7 +1630,7 @@ module Autofill {
         RunCompleted(found, s);
     }
 
-    function RunCompleted(obj: any, s: HTMLInputElement) {
+    function RunCompleted(obj: any, s: HTMLElement) {
         let m = s.dataset[afc];
         if (m && obj) {
             m = m + "(obj);";
@@ -1635,7 +1639,7 @@ module Autofill {
         }
     }
 
-    function LookupFields(s: HTMLInputElement): { VM: string, DM: string } {
+    function LookupFields(s: HTMLElement): { VM: string, DM: string } {
         var r = { VM: "", DM: "" },
             ds = s.dataset;
         r.DM = ds[afdm] ? ds[afdm] : ds[afvm];
@@ -1646,14 +1650,14 @@ module Autofill {
 
         var code = (event.keyCode ? event.keyCode : event.which);
         let k = event.char ? event.char : event.key,
-            s = <HTMLInputElement>event.target,
+            s = <HTMLElement>event.target,
             lf = LookupFields(s);
 
         if (s[b] === true) {
             return true;
         }
 
-        var l = s.value.length,
+        var l = s["value"].length,
             tl = s.dataset[afl] ? parseInt(s.dataset[afl]) : 3;
         let v: string;
         if (code === 13) {
@@ -1661,12 +1665,12 @@ module Autofill {
         }
         else if (l === tl) {
             s[b] = true;
-            v = s.value + k;
+            v = s["value"] + k;
             s["pv"] = v;
             ExecuteApi(s, v, (ret) => {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
-                    s.value = ret[0][lf.DM];
+                    s["value"] = ret[0][lf.DM];
                 }
                 SetCaretPosition(s, 4);
                 s[b] = false;
@@ -1681,7 +1685,7 @@ module Autofill {
                 if (arr) {
                     var found = arr.First(o => o[lf.DM].toLowerCase().indexOf(v.toLowerCase()) > -1);
                     if (found) {
-                        s.value = found[lf.DM];
+                        s["value"] = found[lf.DM];
                     }
                     SetCaretPosition(s, l)
                 }
@@ -2032,7 +2036,7 @@ interface HTMLElement extends Element {
     HasDataSet: () => boolean;
     GetDataSetAttributes: () => { Attribute: string; Property: any; }[];
     Binder: Binder;
-    CObject<T extends IObjectState>();
+    Cast<T extends DataObject>(type: { new(serverObject: any): T; }): T;
     DataObject: IObjectState;
     Delete();
     Save();
@@ -2052,7 +2056,7 @@ interface HTMLElement extends Element {
     InsertBeforeChild(childMatch: (child) => boolean, obj: any);
     Set(objectProperties): HTMLElement;
 }
-HTMLElement.prototype.CObject = function <T extends IObjectState>(): T {
+HTMLElement.prototype.Cast = function <T extends IObjectState>(type: { new(serverObject: any): T; }): T {
     var f = this.DataObject;
     return f ? <T>f : null;
 };
@@ -2369,7 +2373,88 @@ interface String {
     Delete(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
     GetStyle(): string;
     CopyToClipboard(sender: HTMLElement): (alertMessage: string, timeout?: number, attributeAndStyle?: any) => void;
-    Alert(target: HTMLElement, timeout?: any, attributesAndStyle?: any);  
+    Alert(target: HTMLElement, timeout?: any, attributesAndStyle?: any);
+}
+String.prototype.GetStyle = function (): string {
+    var v = <string>this;
+    if (v) {
+        for (var p in document.body.style) {
+            if (p.toLowerCase() === v.toLowerCase()) {
+                return p;
+            }
+        }
+    }
+    return null;
+}
+String.prototype.CopyToClipboard = function (sender: HTMLElement): (alertMessage: string, timeout?: number, attributeAndStyle?: any) => void {
+    var v = <string>this;
+    var el = document.createElement('textarea');
+    let t = sender;
+
+    el.value = v;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    t.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    t.removeChild(el);
+
+    var alert = (alertMessage: string = "Copied to clipboard", timeout: number = 1500, attributeAndStyle: any = null) => {
+        alertMessage.Alert(t, timeout, attributeAndStyle);
+    }
+    return alert;
+}
+String.prototype.Alert = function (target: HTMLElement, timeout: number = 1500, attributesAndStyle: any = null) {
+
+    var message = <string>this;
+    let s = target, b = document.body,
+        d = document.createElement("div");
+
+    var bx = s.getBoundingClientRect(),
+        de = document.documentElement, w = window,
+        st = w.pageYOffset || de.scrollTop || b.scrollTop,
+        sl = w.pageXOffset || de.scrollLeft || b.scrollLeft,
+        ct = de.clientTop || b.clientTop || 0,
+        cl = de.clientLeft || b.clientLeft || 0,
+        t = bx.top + st - ct + bx.height,
+        l = bx.left + sl - cl;
+
+    d.classList.add("alert");
+    d.classList.add("alert-light");
+    d["role"] = "alert"
+    d.style.fontSize = ".9rem";
+    d.style.padding = ".125rem .25rem";
+    d.style.position = "absolute";
+    d.style.zIndex = "1000000000";
+    d.style.top = t + "px";
+    d.style.left = l + "px";
+    d.style.border = 'solid 1px gray';
+
+    if (attributesAndStyle) {
+        var op = attributesAndStyle;
+        for (var p in op) {
+            var sp = p.GetStyle();
+            if (sp) {
+                d.style[sp] = op[p];
+            }
+            else if (p === "class") {
+                var cs = op[p].toString().split(" ");
+                cs.forEach(c => d.classList.add(c));
+            }
+            else {
+                d[p] = op[p];
+            }
+        }
+    }
+
+    d.innerHTML = message;
+    b.appendChild(d);
+
+    setTimeout(() => {
+        b.removeChild(d);
+    }, timeout);
+
 }
 String.prototype.Delete = function (cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean) {
     withProgress = Is.Alive(withProgress) ? withProgress : true;
@@ -2432,103 +2517,6 @@ String.prototype.IsStyle = function () {
     }
     return false;
 };
-String.prototype.GetStyle = function (): string {
-    var v = <string>this;
-    if (v) {
-        for (var p in document.body.style) {
-            if (p.toLowerCase() === v.toLowerCase()) {
-                return p;
-            }
-        }
-    }
-    return null;
-}
-String.prototype.CopyToClipboard = function (sender: HTMLElement): (alertMessage: string, timeout?: number, attributeAndStyle?: any) => void {
-    let t = sender;
-    let text = <string>this;
-    var fbCopyText = (text, housingElement: HTMLElement) => {
-        var ele = document.createElement("input");
-        ele.value = text;
-        ele.style.height = "1px";
-        ele.style.width = "1px";
-        housingElement.appendChild(ele);
-        ele.focus();
-        ele.select();
-        try {
-
-            var successful = document.execCommand('copy');
-            var msg = successful ? 'successful' : 'unsuccessful';
-            console.log('Fallback: Copying text command was ' + msg);
-        } catch (err) {
-            console.error('Fallback: Oops, unable to copy', err);
-        }
-        housingElement.removeChild(ele);
-    };
-    if (!navigator["clipboard"]) {
-        fbCopyText(text, t);
-    }
-    else {
-        navigator["clipboard"].writeText(text).then(function () {
-            console.log('Async: Copying to clipboard was successful!');
-        }, function (err) {
-            console.error('Async: Could not copy text: ', err);
-        });
-    }
-    var alert = (alertMessage: string = "Copied to clipboard", timeout: number = 1500, attributeAndStyle: any = null) => {
-        alertMessage.Alert(t, timeout, attributeAndStyle);
-    }
-    return alert;
-}
-String.prototype.Alert = function (target: HTMLElement, timeout: number = 1500, attributesAndStyle: any = null) {
-
-    var message = <string>this;
-    let s = target, b = document.body,
-        d = document.createElement("div");
-
-    var bx = s.getBoundingClientRect(),
-        de = document.documentElement, w = window,
-        st = w.pageYOffset || de.scrollTop || b.scrollTop,
-        sl = w.pageXOffset || de.scrollLeft || b.scrollLeft,
-        ct = de.clientTop || b.clientTop || 0,
-        cl = de.clientLeft || b.clientLeft || 0,
-        t = bx.top + st - ct - bx.height,
-        l = bx.left + sl - cl;
-
-    d.classList.add("alert");
-    d.classList.add("alert-light");
-    d["role"] = "alert"
-    d.style.fontSize = ".9rem";
-    d.style.padding = ".125rem .25rem";
-    d.style.position = "absolute";
-    d.style.zIndex = "1000000000";
-    d.style.top = t + "px";
-    d.style.left = l + "px";
-
-    if (attributesAndStyle) {
-        var op = attributesAndStyle;
-        for (var p in op) {
-            var sp = p.GetStyle();
-            if (sp) {
-                d.style[sp] = op[p];
-            }
-            else if (p === "class") {
-                var cs = op[p].toString().split(" ");
-                cs.forEach(c => d.classList.add(c));
-            }
-            else {
-                d[p] = op[p];
-            }
-        }
-    }
-
-    d.innerHTML = message;
-    b.appendChild(d);
-
-    setTimeout(() => {
-        b.removeChild(d);
-    }, timeout);
-
-}
 interface Window {
     Exception(parameters: any);
 }

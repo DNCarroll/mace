@@ -540,9 +540,7 @@
         v = !Is.Alive(v) && dad && dad.length > 0 ? dad[0] : v;
         if (v) {
             var prev = t.SelectedObject;
-            if (prev) {
-                prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
-            }
+
             if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
                 ftids.forEach(ft => {
                     var fte = ft.Element();
@@ -557,6 +555,9 @@
             }
             t.selectedObject = v;
             t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            if (prev) {
+                prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            }
             if (Is.Alive(t.OnSelectedItemChanged)) {
                 t.OnSelectedItemChanged(t.selectedObject);
             }

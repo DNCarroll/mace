@@ -748,14 +748,14 @@ var Binder = /** @class */ (function () {
         }
     };
     Binder.prototype.setObjPropListener = function (p, a, e, d) {
-        var _this = this;
         var t = this, fun = function (atr, v) {
             if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
                 if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
-                    var r = _this.Element.Get(function (e2) { return e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked; });
-                    r.forEach(function (r) { return r["checked"] = false; });
-                    var f = r.First(function (r) { return r["value"] === v.toString(); });
-                    f ? f["checked"] = true : null;
+                    //var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
+                    //r.forEach(r => r["checked"] = false);
+                    //var f = r.First(r => r["value"] === v.toString());
+                    //f ? f["checked"] = true : null;
+                    e["checked"] = e["value"] === v.toString();
                 }
                 else if (atr === "className") {
                     e.className = null;
@@ -2398,36 +2398,17 @@ String.prototype.GetStyle = function () {
     return null;
 };
 String.prototype.CopyToClipboard = function (sender) {
+    var v = this;
+    var el = document.createElement('textarea');
     var t = sender;
-    var text = this;
-    var fbCopyText = function (text, housingElement) {
-        var ele = document.createElement("input");
-        ele.value = text;
-        ele.style.height = "1px";
-        ele.style.width = "1px";
-        housingElement.appendChild(ele);
-        ele.focus();
-        ele.select();
-        try {
-            var successful = document.execCommand('copy');
-            var msg = successful ? 'successful' : 'unsuccessful';
-            console.log('Fallback: Copying text command was ' + msg);
-        }
-        catch (err) {
-            console.error('Fallback: Oops, unable to copy', err);
-        }
-        housingElement.removeChild(ele);
-    };
-    if (!navigator["clipboard"]) {
-        fbCopyText(text, t);
-    }
-    else {
-        navigator["clipboard"].writeText(text).then(function () {
-            console.log('Async: Copying to clipboard was successful!');
-        }, function (err) {
-            console.error('Async: Could not copy text: ', err);
-        });
-    }
+    el.value = v;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    t.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    t.removeChild(el);
     var alert = function (alertMessage, timeout, attributeAndStyle) {
         if (alertMessage === void 0) { alertMessage = "Copied to clipboard"; }
         if (timeout === void 0) { timeout = 1500; }

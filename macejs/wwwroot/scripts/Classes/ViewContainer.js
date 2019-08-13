@@ -17,6 +17,7 @@ var ViewContainer = /** @class */ (function () {
         this.UrlPattern = null;
         this.UrlReplacePattern = null;
         this.ContainerLoaded = null;
+        this.SubviewLoaded = null;
         this.Views = new Array();
         this.IsDefault = false;
         var n = Reflection.GetName(this.constructor);
@@ -65,6 +66,7 @@ var ViewContainer = /** @class */ (function () {
     };
     ViewContainer.prototype.LoadSubViews = function (eleId) {
         var subviews = eleId.Element().Get(function (e) { return Is.Alive(e.dataset.subview); });
+        var t = this;
         subviews.forEach(function (s) {
             s.dataset.subview.Get(function (arg) {
                 var r = arg.Sender.ResponseText;
@@ -95,6 +97,7 @@ var ViewContainer = /** @class */ (function () {
                         }
                     });
                 }
+                Is.Alive(t.SubviewLoaded) ? t.SubviewLoaded(s) : "";
             });
         });
     };

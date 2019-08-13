@@ -2398,36 +2398,17 @@ String.prototype.GetStyle = function () {
     return null;
 };
 String.prototype.CopyToClipboard = function (sender) {
+    var v = this;
+    var el = document.createElement('textarea');
     var t = sender;
-    var text = this;
-    var fbCopyText = function (text, housingElement) {
-        var ele = document.createElement("input");
-        ele.value = text;
-        ele.style.height = "1px";
-        ele.style.width = "1px";
-        housingElement.appendChild(ele);
-        ele.focus();
-        ele.select();
-        try {
-            var successful = document.execCommand('copy');
-            var msg = successful ? 'successful' : 'unsuccessful';
-            console.log('Fallback: Copying text command was ' + msg);
-        }
-        catch (err) {
-            console.error('Fallback: Oops, unable to copy', err);
-        }
-        housingElement.removeChild(ele);
-    };
-    if (!navigator["clipboard"]) {
-        fbCopyText(text, t);
-    }
-    else {
-        navigator["clipboard"].writeText(text).then(function () {
-            console.log('Async: Copying to clipboard was successful!');
-        }, function (err) {
-            console.error('Async: Could not copy text: ', err);
-        });
-    }
+    el.value = v;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    t.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    t.removeChild(el);
     var alert = function (alertMessage, timeout, attributeAndStyle) {
         if (alertMessage === void 0) { alertMessage = "Copied to clipboard"; }
         if (timeout === void 0) { timeout = 1500; }

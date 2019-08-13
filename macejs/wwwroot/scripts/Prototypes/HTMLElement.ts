@@ -7,7 +7,7 @@ interface HTMLElement extends Element {
     HasDataSet: () => boolean;
     GetDataSetAttributes: () => { Attribute: string; Property: any; }[];
     Binder: Binder;
-    CObject<T extends IObjectState>();
+    Cast<T extends DataObject>(type: { new(serverObject: any): T; }): T;
     DataObject: IObjectState;
     Delete();
     Save();
@@ -27,7 +27,7 @@ interface HTMLElement extends Element {
     InsertBeforeChild(childMatch: (child) => boolean, obj: any);
     Set(objectProperties): HTMLElement;
 }
-HTMLElement.prototype.CObject = function <T extends IObjectState>(): T {
+HTMLElement.prototype.Cast = function <T extends IObjectState>(type: { new(serverObject: any): T; }): T {
     var f = this.DataObject;
     return f ? <T>f : null;
 };

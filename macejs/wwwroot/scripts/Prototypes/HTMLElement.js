@@ -1,4 +1,4 @@
-HTMLElement.prototype.CObject = function () {
+HTMLElement.prototype.Cast = function (type) {
     var f = this.DataObject;
     return f ? f : null;
 };

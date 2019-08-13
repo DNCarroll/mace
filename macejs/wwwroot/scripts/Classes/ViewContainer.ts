@@ -10,6 +10,7 @@ abstract class ViewContainer implements IViewContainer {
     UrlPattern: () => string = null;
     UrlReplacePattern: () => string = null;
     ContainerLoaded: () => void = null;
+    SubviewLoaded: (containerLoaded: HTMLElement) => void = null;
     public Name: string;
     Views: Array<IView> = new Array<IView>();
     IsDefault: boolean = false;
@@ -55,6 +56,7 @@ abstract class ViewContainer implements IViewContainer {
     }
     LoadSubViews(eleId: string) {
         var subviews = eleId.Element().Get(e => Is.Alive(e.dataset.subview));
+        let t = this;
         subviews.forEach(s => {
             s.dataset.subview.Get((arg) => {
                 var r = arg.Sender.ResponseText;
@@ -85,6 +87,7 @@ abstract class ViewContainer implements IViewContainer {
                         }
                     });
                 }
+                Is.Alive(t.SubviewLoaded) ? t.SubviewLoaded(s) : "";
             });
         });
     }
