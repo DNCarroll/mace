@@ -197,10 +197,10 @@
         }
         if (o) {
             var f = () => {
-                    var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
-                    es.forEach(e2 => e2.parentElement.removeChild(e2));                    
-                    td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
-                },
+                var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
+                es.forEach(e2 => e2.parentElement.removeChild(e2));
+                td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
+            },
                 afc = (arg: CustomEventArg<Ajax>) => {
                     var err = () => {
                         var x = arg.Sender.XHttp, s = x.status;
@@ -278,6 +278,7 @@
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
+
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = () => {
                     t.SelectedObject = obj;
@@ -291,7 +292,7 @@
         }
         else {
             t.Bind(obj, null);
-            t.SelectedObject = obj; 
+            t.SelectedObject = obj;
         }
     }
     ResetSelectedObject() {
@@ -396,7 +397,7 @@
         var t = this;
         if (Is.Alive(t) && Is.Alive(t.PrimaryKeys)) {
             for (var i = 0; i < t.PrimaryKeys.length; i++) {
-                if (d.ServerObject[t.PrimaryKeys[i]]!==incoming[t.PrimaryKeys[i]]) {
+                if (d.ServerObject[t.PrimaryKeys[i]] !== incoming[t.PrimaryKeys[i]]) {
                     return false;
                 }
             }
@@ -497,11 +498,10 @@
             fun = (atr: string, v: any) => {
                 if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
                     if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
-                        //var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
-                        //r.forEach(r => r["checked"] = false);
-                        //var f = r.First(r => r["value"] === v.toString());
-                        //f ? f["checked"] = true : null;
-                        e["checked"] = e["value"] === v.toString();
+                        var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
+                        r.forEach(r => r["checked"] = false);
+                        var f = r.First(r => r["value"] === v.toString());
+                        f ? f["checked"] = true : null;
                     }
                     else if (atr === "className") {
                         e.className = null;
@@ -522,6 +522,7 @@
             };
         d.AddPropertyListener(p, a, fun);
     }
+
     getStyle(v: string): string {
         for (var p in document.body.style) {
             if (p.toLowerCase() === v.toLowerCase()) {
