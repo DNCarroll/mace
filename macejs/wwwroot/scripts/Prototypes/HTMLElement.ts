@@ -1,7 +1,58 @@
+type AllElements = {
+    'a': HTMLAnchorElement,
+    'div': HTMLDivElement,
+    'span': HTMLSpanElement,
+    'table': HTMLTableElement,
+    'tr': HTMLTableRowElement,
+    'td': HTMLTableCellElement,
+    'input': HTMLInputElement,
+    'textarea': HTMLTextAreaElement,
+    'select': HTMLSelectElement,
+    'button': HTMLButtonElement,
+    'label': HTMLLabelElement,
+    'th': HTMLTableHeaderCellElement,
+    'tfoot': HTMLTableSectionElement,
+    'tbody': HTMLTableSectionElement,
+    'thead': HTMLTableSectionElement,
+    'any': HTMLElement,
+    'form': HTMLFormElement,
+    'i': HTMLElement,
+    'fieldset': HTMLFieldSetElement
+};
+type Caster<T extends string> = T extends keyof AllElements ? AllElements[T] : HTMLElement;
+module tag {
+    export const any = 'any';
+    export const div = 'div';
+    export const input = 'input';
+    export const textarea = 'textarea';
+    export const select = 'select';
+    export const button = 'button';
+    export const a = 'a';
+    export const span = 'span';
+    export const label = 'label';
+    export const table = 'table';
+    export const tr = 'tr';
+    export const td = 'td';
+    export const th = 'th';
+    export const thead = 'thead';
+    export const tfoot = 'tfoot';
+    export const tbody = 'tbody';
+    export const form = 'form';
+    export const i = 'i';
+    export const fieldset = 'fieldset';
+};
+module HTMLElementHelper {
+    export function IsMatch<T extends string>(ele: HTMLElement, tagName: string, predicate: (ele: Caster<T>) => boolean = null): boolean {
+        predicate = predicate === null ? (e: Caster<T>) => true : predicate;
+        return (tagName === tag.any || ele.tagName.toLowerCase() === tagName) && predicate(<Caster<T>>ele);
+    }
+}
 interface HTMLElement extends Element {
     Get(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[];
-    First(func: (ele: HTMLElement) => boolean): HTMLElement;
-    First<T extends HTMLElement>(predicate: (item: T) => boolean): T;
+
+    First<T extends string>(tagName: T): Caster<T>;
+    First<T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean): Caster<T>;
+
     Clear();
     AddListener(eventName, method);
     HasDataSet: () => boolean;
@@ -12,9 +63,11 @@ interface HTMLElement extends Element {
     Delete();
     Save();
     SaveDirty();
-    Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
-    Relative(func: (ele: HTMLElement) => boolean): HTMLElement;
-    Relative<T extends HTMLElement>(predicate: (item: T) => boolean): T;
+    Ancestor<T extends string>(tagName: T): Caster<T>;
+    Ancestor<T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean): Caster<T>;
+    Relative<T extends string>(tagName: T): Caster<T>;
+    Relative<T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean): Caster<T>;
+
     ClearBoundElements();
     Bind(obj: any);
     Bind(obj: any, refresh: boolean);
@@ -26,63 +79,68 @@ interface HTMLElement extends Element {
     InsertBefore(obj: any, index: number);
     InsertBeforeChild(childMatch: (child) => boolean, obj: any);
     Set(objectProperties): HTMLElement;
+    Popup(coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string });
+}
+HTMLElement.prototype.Popup = function (coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string }) {
+    var e = <HTMLElement>this;
+    Popup.Show(e, coord);
 }
 HTMLElement.prototype.Cast = function <T extends IObjectState>(type: { new(serverObject: any): T; }): T {
     var f = this.DataObject;
     return f ? <T>f : null;
 };
-HTMLElement.prototype.First = function <T extends HTMLElement>(predicate: (item: T) => boolean): T {
+HTMLElement.prototype.First = function <T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean = null): Caster<T> {
     var chs = (<HTMLElement>this).children;
-    var hp = <(o: HTMLElement) => boolean>predicate;
+
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
-            if (hp(c)) {
-                return <T>c;
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
+            if (HTMLElementHelper.IsMatch(c, tagName, predicate)) {
+                return <Caster<T>>c;
             }
         }
     }
     for (var j = 0; j < chs.length; j++) {
         let c = <HTMLElement>chs[j];
-        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
             if (c.First) {
-                let f = c.First(predicate);
+                let f = c.First(tagName, predicate);
                 if (f) {
-                    return <T>f;
+                    return <Caster<T>>f;
                 }
             }
         }
     }
     return null;
 };
-HTMLElement.prototype.Relative = function <T extends HTMLElement>(predicate: (item: HTMLElement) => boolean): T { 
+HTMLElement.prototype.Relative = function <T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean = null): Caster<T> {
     if (!Is.Alive(this || this.parentElement)) {
         return null;
     }
     var p = <HTMLElement>this.parentElement;
-    if (predicate(p)) {
-        return <T>p;
+    if (HTMLElementHelper.IsMatch(p, tagName, predicate)) {
+        return <Caster<T>>p;
     } else {
         var chs = (<HTMLElement>p).children;
         for (var i = 0; i < chs.length; i++) {
             let c = <HTMLElement>chs[i];
             if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
-                if (predicate(c)) {
-                    return <T>c;
+                if (HTMLElementHelper.IsMatch(c, tagName, predicate)) {
+                    return <Caster<T>>c;
                 }
-                //cascade down now?
-                var r = c.First<T>(predicate);
+
+                var r = c.First(tagName, predicate);
                 if (Is.Alive(r)) {
-                    return <T>r;
+                    return <Caster<T>>r;
                 }
             }
         }
-        return p.Relative<T>(predicate);
+        return p.Relative(tagName, predicate);
     }
 };
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this;
-    var fc = p.First(childMatch);
+    var fc = p.First(tag.any, childMatch);
     if (fc) {
         p = fc.parentElement;
         var i = p.IndexOf(fc);
@@ -134,7 +192,7 @@ HTMLElement.prototype.PostAndAppend = function (obj: any) {
 };
 HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this;
-    var fc = p.First(childMatch);
+    var fc = p.First(tag.any, childMatch);
     if (fc) {
         p = fc.parentElement;
         var i = p.IndexOf(fc);
@@ -196,16 +254,21 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
 HTMLElement.prototype.ClearBoundElements = function () {
     var t = <HTMLElement>this;
     t.Get(e => Is.Alive(e.getAttribute("data-template"))).forEach(r => r.parentElement.removeChild(r));
+    if (t.Binder) {
+        while (t.Binder.DataObjects.Data.length > 0) {
+            t.Binder.DataObjects.Data.pop();
+        }
+    }
 };
 HTMLElement.prototype.SaveDirty = function () {
     let t = <HTMLElement>this,
-        p = Is.Alive(t.Binder) ? t : t.Ancestor(p => Is.Alive(p.Binder));
+        p = Is.Alive(t.Binder) ? t : t.Ancestor(tag.any, p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.SaveDirty();
     }
 };
 HTMLElement.prototype.Save = function () {
-    var t = <HTMLElement>this, p = t.Ancestor(p => Is.Alive(p.Binder));
+    var t = <HTMLElement>this, p = t.Ancestor(tag.any, p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.Save(t.DataObject);
     }
@@ -215,7 +278,7 @@ HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRe
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
             if (func(c)) {
                 n.push(c);
             }
@@ -256,23 +319,23 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     return r;
 };
 HTMLElement.prototype.Delete = function () {
-    var t = <HTMLElement>this, p = t.Ancestor(p => Is.Alive(p.Binder));
+    var t = <HTMLElement>this, p = t.Ancestor(tag.any, p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.Delete(this, null);
     }
 };
-HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean): HTMLElement {
-    var p = this.parentElement;
-    while (Is.Alive(p) && !func(p)) {
-        p = p.parentElement;
+HTMLElement.prototype.Ancestor = function <T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean = null): Caster<T> {
+    var p = <HTMLElement>this.parentElement;
+    if (!Is.Alive(p)) {
+        return null;
     }
-    return p;
-};
+    return HTMLElementHelper.IsMatch(p, tagName, predicate) ? <Caster<T>>p : p.Ancestor(tagName, predicate);
+}
 HTMLElement.prototype.Set = function (objectProperties) {
     var t = <HTMLElement>this, op = objectProperties;
     if (op) {
         for (var p in op) {
-            if (p!=="cls" && p!=="className") {
+            if (p !== "cls" && p !== "className") {
                 if (p.IsStyle()) {
                     t.style[p] = op[p];
                 }
@@ -292,4 +355,42 @@ HTMLElement.prototype.Set = function (objectProperties) {
         }
     }
     return t;
-}; 
+};
+interface HTMLSelectElement {
+    AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
+}
+HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement {
+    var s = <HTMLSelectElement>this,
+        sv = selectedValue,
+        aoo = arrayOrObject,
+        ao = (d, v) => {
+            var o = new Option(d, v);
+            s["options"][s.options.length] = o;
+            if (sv && v === sv) {
+                o.selected = true;
+            }
+        };
+    if (Is.Array(aoo)) {
+        var ta = <Array<any>>aoo,
+            dp = displayProperty,
+            vp = valueProperty;
+        if (dp && vp) {
+            ta.forEach(t => {
+                ao(t[dp], t[vp]);
+            });
+        }
+        else if (ta.length > 1 && typeof ta[0] === 'string') {
+            ta.forEach(t => {
+                ao(t, t);
+            });
+        }
+    }
+    else if (aoo) {
+        for (var p in aoo) {
+            if (!(aoo[p] && {}.toString.call(aoo[p]) === '[object Function]')) {
+                ao(aoo[p], aoo[p]);
+            }
+        }
+    }
+    return s;
+};

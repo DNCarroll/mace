@@ -298,6 +298,9 @@
     ResetSelectedObject() {
         this.SelectedObject = this.selectedObject;
     }
+    TempateOverload(ele: HTMLElement) {
+        return;
+    }
     private prepTemplates() {
         var t = this, drt = t.DataRowTemplates;
         if (drt.length === 0) {
@@ -310,15 +313,18 @@
                     li = i;
                 }
             }
+
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
                 <HTMLElement>e[e.length - 1] : null;
+
             r.forEach(r => {
+                t.TempateOverload(r);
                 drt.Add(r);
                 r.parentElement.removeChild(r);
             });
             var dmk = "data-morekeys",
                 dmt = "data-morethreshold",
-                more = t.Element.First(m => m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
+                more = t.Element.First(tag.any, m => m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
                     Is.Alive(m.getAttribute(dmt)));
             if (more) {
                 t.MoreElement = more;
@@ -405,19 +411,42 @@
         return true;
     }
     Bind(o: IObjectState, eles: Array<HTMLElement> = null) {
-        var t = this;
+        let t = this;
         o.Binder = t;
         if (!eles) {
             eles = t.Element.Get(e => e.HasDataSet());
             eles.Add(t.Element);
         }
-
-        o.AddObjectStateListener(t.objStateChanged.bind(this));
-        eles.forEach(e => {
-            e.DataObject = o;
-            t.setListeners(e, o);
+        eles.Where(e => e.dataset && Is.Alive(e.dataset.webcontrol)).forEach(e => {
+            var found = t.GetWebControl(e);
+            if (Is.Alive(found)) {
+                e.appendChild(found);
+                found.HasDataSet() ? eles.Add(found) : null;
+            }
         });
-        o.AllPropertiesChanged();
+        t.SubBind(o, eles);
+    }
+    GetWebControl(wc: HTMLElement): HTMLElement {
+        var found = document.getElementById(wc.dataset.webcontrol);
+        if (Is.Alive(found)) {
+            var c = found.cloneNode(true);
+            if (Is.Alive(c)) {
+                var ne = <HTMLElement>c;
+                return ne;
+            }
+        }
+        return null;
+    }
+    SubBind(o: IObjectState, eles: Array<HTMLElement>) {
+        var t = this;
+        if (Is.Alive(eles) && eles.length > 0) {
+            o.AddObjectStateListener(t.objStateChanged.bind(this));
+            eles.forEach(e => {
+                e.DataObject = o;
+                t.setListeners(e, o);
+            });
+            o.AllPropertiesChanged();
+        }
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;

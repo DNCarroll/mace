@@ -2,7 +2,6 @@ interface String {
     Trim(): string;
     Element(): HTMLElement;
     Element<T extends HTMLElement>(): T;
-    CreateElement(objectProperties?): HTMLElement;
     IsStyle(): boolean;
     RemoveSpecialCharacters(replaceWithCharacter?: string): string;
     Post(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
@@ -12,6 +11,10 @@ interface String {
     GetStyle(): string;
     CopyToClipboard(sender: HTMLElement): (alertMessage: string, timeout?: number, attributeAndStyle?: any) => void;
     Alert(target: HTMLElement, timeout?: any, attributesAndStyle?: any);
+    ReplaceAll(replace: string, withValue: string): string;
+}
+String.prototype.ReplaceAll = function (replace: string, withValue: string): string {
+    return this.replace(new RegExp(replace, 'g'), withValue);
 }
 String.prototype.GetStyle = function (): string {
     var v = <string>this;
@@ -46,8 +49,7 @@ String.prototype.CopyToClipboard = function (sender: HTMLElement): (alertMessage
 String.prototype.Alert = function (target: HTMLElement, timeout: number = 1500, attributesAndStyle: any = null) {
 
     var message = <string>this;
-    let s = target, b = document.body,
-        d = document.createElement("div");
+    let s = target, b = document.body;
 
     var bx = s.getBoundingClientRect(),
         de = document.documentElement, w = window,
@@ -58,16 +60,12 @@ String.prototype.Alert = function (target: HTMLElement, timeout: number = 1500, 
         t = bx.top + st - ct + bx.height,
         l = bx.left + sl - cl;
 
-    d.classList.add("alert");
-    d.classList.add("alert-light");
-    d["role"] = "alert"
-    d.style.fontSize = ".9rem";
-    d.style.padding = ".125rem .25rem";
-    d.style.position = "absolute";
-    d.style.zIndex = "1000000000";
-    d.style.top = t + "px";
-    d.style.left = l + "px";
-    d.style.border = 'solid 1px gray';
+    let d = document.NewE(tag.div, {
+        fontSize: ".9rem", padding: ".125rem .25rem", position: "absolute", zIndex: "1000000000", border: 'solid 1px gray', className: "alert alert-light",
+        top: t + "px", left: l + "px"
+    });
+
+    d["role"] = "alert";
 
     if (attributesAndStyle) {
         var op = attributesAndStyle;
@@ -142,16 +140,6 @@ String.prototype.Element = function <T extends HTMLElement>(): T {
     var e = document.getElementById(this.toString());
     return e ? <T>e : null;
 };
-String.prototype.CreateElement = function (objectProperties?): HTMLElement {
-    var o = document.createElement(this), op = objectProperties;
-    if (op) {
-        o.Set(op);
-    }
-    return o;
-};
 String.prototype.IsStyle = function () {
-    for (var p in document.body.style) {
-        return p.toLowerCase() === this.toLowerCase()
-    }
-    return false;
+    return Is.Alive(document.body.style[this]);
 };

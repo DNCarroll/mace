@@ -1,7 +1,7 @@
 ﻿module Autofill {
 
     var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember",
-        afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember";
+        afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember", afas = "autoset";
 
     export function IsAutoFill(ele: HTMLElement, obj: IObjectState): boolean {
         var ret = Is.Alive(ele.dataset[afapi] && (ele.dataset[afvm] || ele.dataset[afdm])) && ((ele.tagName === "INPUT" && ele["type"] === "text") || ele.tagName === "TEXTAREA");
@@ -39,7 +39,7 @@
     }
     export function SetValue(ele: HTMLElement) {
         let s = (ele.tagName === "INPUT" || ele.tagName === "TEXTAREA") && ele.dataset[afapi] ? ele :
-            ele.parentElement.First(i => Is.Alive(i.dataset[afapi])),
+            ele.parentElement.First(tag.any, i => Is.Alive(i.dataset[afapi])),
             dc = s[eleC], ds = s.dataset, f = ds[afva],
             lf = LookupFields(s), arr = <Array<any>>dc,
             dob = <DataObject>s.DataObject;
@@ -131,7 +131,7 @@
             ExecuteApi(s, v, (ret) => {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
-                    s["value"] = ret[0][lf.DM];
+                    SetDisplayValue(s, ret[0], lf);
                 }
                 SetCaretPosition(s, 4);
                 s[b] = false;
@@ -145,13 +145,21 @@
                 var arr = <Array<any>>s[eleC];
                 if (arr) {
                     var found = arr.First(o => o[lf.DM].toLowerCase().indexOf(v.toLowerCase()) > -1);
-                    if (found) {
-                        s["value"] = found[lf.DM];
-                    }
+                    SetDisplayValue(s, found, lf);
                     SetCaretPosition(s, l)
                 }
             }, 10);
             return true;
+        }
+    }
+    function SetDisplayValue(s: HTMLElement, o: any, lf: { VM: string, DM: string }) {
+        if (o) {
+            s["value"] = o[lf.DM];
+            var sas = s.dataset[afas];
+            if (sas === "true") {
+                s.DataObject[s.dataset[afva]] = o[lf.VM];
+                s.DataObject[s.dataset[afodm]] = o[lf.DM];
+            }
         }
     }
 }

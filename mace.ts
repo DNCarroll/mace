@@ -549,6 +549,9 @@ class Binder {
     ResetSelectedObject() {
         this.SelectedObject = this.selectedObject;
     }
+    TempateOverload(ele: HTMLElement) {
+        return;
+    }
     private prepTemplates() {
         var t = this, drt = t.DataRowTemplates;
         if (drt.length === 0) {
@@ -561,15 +564,18 @@ class Binder {
                     li = i;
                 }
             }
+
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
                 <HTMLElement>e[e.length - 1] : null;
+
             r.forEach(r => {
+                t.TempateOverload(r);
                 drt.Add(r);
                 r.parentElement.removeChild(r);
             });
             var dmk = "data-morekeys",
                 dmt = "data-morethreshold",
-                more = t.Element.First(m => m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
+                more = t.Element.First(tag.any, m => m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
                     Is.Alive(m.getAttribute(dmt)));
             if (more) {
                 t.MoreElement = more;
@@ -656,19 +662,42 @@ class Binder {
         return true;
     }
     Bind(o: IObjectState, eles: Array<HTMLElement> = null) {
-        var t = this;
+        let t = this;
         o.Binder = t;
         if (!eles) {
             eles = t.Element.Get(e => e.HasDataSet());
             eles.Add(t.Element);
         }
-
-        o.AddObjectStateListener(t.objStateChanged.bind(this));
-        eles.forEach(e => {
-            e.DataObject = o;
-            t.setListeners(e, o);
+        eles.Where(e => e.dataset && Is.Alive(e.dataset.webcontrol)).forEach(e => {
+            var found = t.GetWebControl(e);
+            if (Is.Alive(found)) {
+                e.appendChild(found);
+                found.HasDataSet() ? eles.Add(found) : null;
+            }
         });
-        o.AllPropertiesChanged();
+        t.SubBind(o, eles);
+    }
+    GetWebControl(wc: HTMLElement): HTMLElement {
+        var found = document.getElementById(wc.dataset.webcontrol);
+        if (Is.Alive(found)) {
+            var c = found.cloneNode(true);
+            if (Is.Alive(c)) {
+                var ne = <HTMLElement>c;
+                return ne;
+            }
+        }
+        return null;
+    }
+    SubBind(o: IObjectState, eles: Array<HTMLElement>) {
+        var t = this;
+        if (Is.Alive(eles) && eles.length > 0) {
+            o.AddObjectStateListener(t.objStateChanged.bind(this));
+            eles.forEach(e => {
+                e.DataObject = o;
+                t.setListeners(e, o);
+            });
+            o.AllPropertiesChanged();
+        }
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -1146,7 +1175,7 @@ class View implements IView {
         var t = this,
             c = t.ContainerID().Element();
         if (!Is.NullOrEmpty(c)) {
-            t.cached = "div".CreateElement({ "innerHTML": html });
+            t.cached = document.NewE(tag.div, { "innerHTML": html });
             var ele = t.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
             t.countBindersReported = 0;
             if (ele.length > 0) {
@@ -1541,7 +1570,7 @@ interface IViewContainer {
 module Autofill {
 
     var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember",
-        afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember";
+        afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember", afas = "autoset";
 
     export function IsAutoFill(ele: HTMLElement, obj: IObjectState): boolean {
         var ret = Is.Alive(ele.dataset[afapi] && (ele.dataset[afvm] || ele.dataset[afdm])) && ((ele.tagName === "INPUT" && ele["type"] === "text") || ele.tagName === "TEXTAREA");
@@ -1579,7 +1608,7 @@ module Autofill {
     }
     export function SetValue(ele: HTMLElement) {
         let s = (ele.tagName === "INPUT" || ele.tagName === "TEXTAREA") && ele.dataset[afapi] ? ele :
-            ele.parentElement.First(i => Is.Alive(i.dataset[afapi])),
+            ele.parentElement.First(tag.any, i => Is.Alive(i.dataset[afapi])),
             dc = s[eleC], ds = s.dataset, f = ds[afva],
             lf = LookupFields(s), arr = <Array<any>>dc,
             dob = <DataObject>s.DataObject;
@@ -1671,7 +1700,7 @@ module Autofill {
             ExecuteApi(s, v, (ret) => {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
-                    s["value"] = ret[0][lf.DM];
+                    SetDisplayValue(s, ret[0], lf);
                 }
                 SetCaretPosition(s, 4);
                 s[b] = false;
@@ -1685,13 +1714,21 @@ module Autofill {
                 var arr = <Array<any>>s[eleC];
                 if (arr) {
                     var found = arr.First(o => o[lf.DM].toLowerCase().indexOf(v.toLowerCase()) > -1);
-                    if (found) {
-                        s["value"] = found[lf.DM];
-                    }
+                    SetDisplayValue(s, found, lf);
                     SetCaretPosition(s, l)
                 }
             }, 10);
             return true;
+        }
+    }
+    function SetDisplayValue(s: HTMLElement, o: any, lf: { VM: string, DM: string }) {
+        if (o) {
+            s["value"] = o[lf.DM];
+            var sas = s.dataset[afas];
+            if (sas === "true") {
+                s.DataObject[s.dataset[afva]] = o[lf.VM];
+                s.DataObject[s.dataset[afodm]] = o[lf.DM];
+            }
         }
     }
 }
@@ -1907,6 +1944,52 @@ module Navigate {
         }
     }
 } 
+module Popup {
+    export var Element: HTMLElement;
+    export function Show(ele: HTMLElement, coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string }) {
+        var cpup = Popup.Element;
+        document.removeEventListener('click', Popup.Click);
+        if (cpup !== ele) {
+            Is.Alive(cpup) ? cpup.style.display = "none" : null;
+            Popup.Element = ele;
+        }
+        else if (cpup.style.display === "") {
+            Popup.Hide();
+            return;
+        }
+        ele.style.display = coord && coord.displayOverride ? coord.displayOverride : "";
+        ele.focus();
+        if (Is.Alive(coord)) {
+            Popup.SetCoord(ele, "left", coord);
+            Popup.SetCoord(ele, "right", coord);
+            Popup.SetCoord(ele, "top", coord);
+            Popup.SetCoord(ele, "bottom", coord);
+        }
+        setTimeout(() => {
+            document.addEventListener('click', Popup.Click);
+        }, 1);
+    }
+    export function SetCoord(ele: HTMLElement, attr: string, coord?: { left?: number, right?: number, top?: number, bottom?: number }) {
+        if (Is.Alive(coord) &&
+            Is.Alive(coord[attr]) &&
+            coord[attr] > 0) {
+            ele.style[attr] = coord[attr] + "px";
+        }
+    }
+    export function Hide() {
+        if (Popup.Element) {
+            Popup.Element.style.display = 'none'
+            Popup.Element = null;
+        }
+    }
+    export function Click(event) {
+        var cpup = Popup.Element;
+        if (Is.Alive(cpup) && !cpup.contains(event.target)) { // or use: event.target.closest(selector) === null            
+            Popup.Hide();
+            document.removeEventListener('click', Popup.Click);
+        }
+    }
+}
 module ProgressManager {
     export var ProgressElement: HTMLElement = null;
     export function Show() {
@@ -2028,10 +2111,72 @@ Date.prototype.ToyyyymmddHHMMss = function () {
         s = f(t.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
 }; 
+interface Document {
+    NewE<T extends string>(tagName: T): Caster<T>;
+    NewE<T extends string>(tagName: T, objectProperties?: any): Caster<T>;
+}
+Document.prototype.NewE = function <T extends string>(tagName: T, objectProperties?: any): Caster<T> {
+    var ele = document.createElement(tagName.toUpperCase()), op = objectProperties;
+    if (op) {
+        ele.Set(op);
+    }
+    return <Caster<T>>ele;
+};
+type AllElements = {
+    'a': HTMLAnchorElement,
+    'div': HTMLDivElement,
+    'span': HTMLSpanElement,
+    'table': HTMLTableElement,
+    'tr': HTMLTableRowElement,
+    'td': HTMLTableCellElement,
+    'input': HTMLInputElement,
+    'textarea': HTMLTextAreaElement,
+    'select': HTMLSelectElement,
+    'button': HTMLButtonElement,
+    'label': HTMLLabelElement,
+    'th': HTMLTableHeaderCellElement,
+    'tfoot': HTMLTableSectionElement,
+    'tbody': HTMLTableSectionElement,
+    'thead': HTMLTableSectionElement,
+    'any': HTMLElement,
+    'form': HTMLFormElement,
+    'i': HTMLElement,
+    'fieldset': HTMLFieldSetElement
+};
+type Caster<T extends string> = T extends keyof AllElements ? AllElements[T] : HTMLElement;
+module tag {
+    export const any = 'any';
+    export const div = 'div';
+    export const input = 'input';
+    export const textarea = 'textarea';
+    export const select = 'select';
+    export const button = 'button';
+    export const a = 'a';
+    export const span = 'span';
+    export const label = 'label';
+    export const table = 'table';
+    export const tr = 'tr';
+    export const td = 'td';
+    export const th = 'th';
+    export const thead = 'thead';
+    export const tfoot = 'tfoot';
+    export const tbody = 'tbody';
+    export const form = 'form';
+    export const i = 'i';
+    export const fieldset = 'fieldset';
+};
+module HTMLElementHelper {
+    export function IsMatch<T extends string>(ele: HTMLElement, tagName: string, predicate: (ele: Caster<T>) => boolean = null): boolean {
+        predicate = predicate === null ? (e: Caster<T>) => true : predicate;
+        return (tagName === tag.any || ele.tagName.toLowerCase() === tagName) && predicate(<Caster<T>>ele);
+    }
+}
 interface HTMLElement extends Element {
     Get(func: (ele: HTMLElement) => boolean, notRecursive?: boolean, nodes?: Array<HTMLElement>): HTMLElement[];
-    First(func: (ele: HTMLElement) => boolean): HTMLElement;
-    First<T extends HTMLElement>(predicate: (item: T) => boolean): T;
+
+    First<T extends string>(tagName: T): Caster<T>;
+    First<T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean): Caster<T>;
+
     Clear();
     AddListener(eventName, method);
     HasDataSet: () => boolean;
@@ -2042,9 +2187,11 @@ interface HTMLElement extends Element {
     Delete();
     Save();
     SaveDirty();
-    Ancestor(func: (ele: HTMLElement) => boolean): HTMLElement;
-    Relative(func: (ele: HTMLElement) => boolean): HTMLElement;
-    Relative<T extends HTMLElement>(predicate: (item: T) => boolean): T;
+    Ancestor<T extends string>(tagName: T): Caster<T>;
+    Ancestor<T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean): Caster<T>;
+    Relative<T extends string>(tagName: T): Caster<T>;
+    Relative<T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean): Caster<T>;
+
     ClearBoundElements();
     Bind(obj: any);
     Bind(obj: any, refresh: boolean);
@@ -2056,63 +2203,68 @@ interface HTMLElement extends Element {
     InsertBefore(obj: any, index: number);
     InsertBeforeChild(childMatch: (child) => boolean, obj: any);
     Set(objectProperties): HTMLElement;
+    Popup(coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string });
+}
+HTMLElement.prototype.Popup = function (coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string }) {
+    var e = <HTMLElement>this;
+    Popup.Show(e, coord);
 }
 HTMLElement.prototype.Cast = function <T extends IObjectState>(type: { new(serverObject: any): T; }): T {
     var f = this.DataObject;
     return f ? <T>f : null;
 };
-HTMLElement.prototype.First = function <T extends HTMLElement>(predicate: (item: T) => boolean): T {
+HTMLElement.prototype.First = function <T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean = null): Caster<T> {
     var chs = (<HTMLElement>this).children;
-    var hp = <(o: HTMLElement) => boolean>predicate;
+
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
-            if (hp(c)) {
-                return <T>c;
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
+            if (HTMLElementHelper.IsMatch(c, tagName, predicate)) {
+                return <Caster<T>>c;
             }
         }
     }
     for (var j = 0; j < chs.length; j++) {
         let c = <HTMLElement>chs[j];
-        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
             if (c.First) {
-                let f = c.First(predicate);
+                let f = c.First(tagName, predicate);
                 if (f) {
-                    return <T>f;
+                    return <Caster<T>>f;
                 }
             }
         }
     }
     return null;
 };
-HTMLElement.prototype.Relative = function <T extends HTMLElement>(predicate: (item: HTMLElement) => boolean): T { 
+HTMLElement.prototype.Relative = function <T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean = null): Caster<T> {
     if (!Is.Alive(this || this.parentElement)) {
         return null;
     }
     var p = <HTMLElement>this.parentElement;
-    if (predicate(p)) {
-        return <T>p;
+    if (HTMLElementHelper.IsMatch(p, tagName, predicate)) {
+        return <Caster<T>>p;
     } else {
         var chs = (<HTMLElement>p).children;
         for (var i = 0; i < chs.length; i++) {
             let c = <HTMLElement>chs[i];
             if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
-                if (predicate(c)) {
-                    return <T>c;
+                if (HTMLElementHelper.IsMatch(c, tagName, predicate)) {
+                    return <Caster<T>>c;
                 }
-                //cascade down now?
-                var r = c.First<T>(predicate);
+
+                var r = c.First(tagName, predicate);
                 if (Is.Alive(r)) {
-                    return <T>r;
+                    return <Caster<T>>r;
                 }
             }
         }
-        return p.Relative<T>(predicate);
+        return p.Relative(tagName, predicate);
     }
 };
 HTMLElement.prototype.InsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this;
-    var fc = p.First(childMatch);
+    var fc = p.First(tag.any, childMatch);
     if (fc) {
         p = fc.parentElement;
         var i = p.IndexOf(fc);
@@ -2164,7 +2316,7 @@ HTMLElement.prototype.PostAndAppend = function (obj: any) {
 };
 HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch: (child) => boolean, obj: any) {
     var p = <HTMLElement>this;
-    var fc = p.First(childMatch);
+    var fc = p.First(tag.any, childMatch);
     if (fc) {
         p = fc.parentElement;
         var i = p.IndexOf(fc);
@@ -2226,16 +2378,21 @@ HTMLElement.prototype.Bind = function (obj: any, refresh: boolean = false) {
 HTMLElement.prototype.ClearBoundElements = function () {
     var t = <HTMLElement>this;
     t.Get(e => Is.Alive(e.getAttribute("data-template"))).forEach(r => r.parentElement.removeChild(r));
+    if (t.Binder) {
+        while (t.Binder.DataObjects.Data.length > 0) {
+            t.Binder.DataObjects.Data.pop();
+        }
+    }
 };
 HTMLElement.prototype.SaveDirty = function () {
     let t = <HTMLElement>this,
-        p = Is.Alive(t.Binder) ? t : t.Ancestor(p => Is.Alive(p.Binder));
+        p = Is.Alive(t.Binder) ? t : t.Ancestor(tag.any, p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.SaveDirty();
     }
 };
 HTMLElement.prototype.Save = function () {
-    var t = <HTMLElement>this, p = t.Ancestor(p => Is.Alive(p.Binder));
+    var t = <HTMLElement>this, p = t.Ancestor(tag.any, p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.Save(t.DataObject);
     }
@@ -2245,7 +2402,7 @@ HTMLElement.prototype.Get = function (func: (ele: HTMLElement) => boolean, notRe
     var chs = (<HTMLElement>this).children;
     for (var i = 0; i < chs.length; i++) {
         let c = <HTMLElement>chs[i];
-        if (c.nodeType === 1 && c.tagName.toLowerCase()!=="svg") {
+        if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
             if (func(c)) {
                 n.push(c);
             }
@@ -2286,23 +2443,23 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     return r;
 };
 HTMLElement.prototype.Delete = function () {
-    var t = <HTMLElement>this, p = t.Ancestor(p => Is.Alive(p.Binder));
+    var t = <HTMLElement>this, p = t.Ancestor(tag.any, p => Is.Alive(p.Binder));
     if (p && p.Binder) {
         p.Binder.Delete(this, null);
     }
 };
-HTMLElement.prototype.Ancestor = function (func: (ele: HTMLElement) => boolean): HTMLElement {
-    var p = this.parentElement;
-    while (Is.Alive(p) && !func(p)) {
-        p = p.parentElement;
+HTMLElement.prototype.Ancestor = function <T extends string>(tagName: T, predicate: (ele: Caster<T>) => boolean = null): Caster<T> {
+    var p = <HTMLElement>this.parentElement;
+    if (!Is.Alive(p)) {
+        return null;
     }
-    return p;
-};
+    return HTMLElementHelper.IsMatch(p, tagName, predicate) ? <Caster<T>>p : p.Ancestor(tagName, predicate);
+}
 HTMLElement.prototype.Set = function (objectProperties) {
     var t = <HTMLElement>this, op = objectProperties;
     if (op) {
         for (var p in op) {
-            if (p!=="cls" && p!=="className") {
+            if (p !== "cls" && p !== "className") {
                 if (p.IsStyle()) {
                     t.style[p] = op[p];
                 }
@@ -2322,7 +2479,45 @@ HTMLElement.prototype.Set = function (objectProperties) {
         }
     }
     return t;
-}; 
+};
+interface HTMLSelectElement {
+    AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
+}
+HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement {
+    var s = <HTMLSelectElement>this,
+        sv = selectedValue,
+        aoo = arrayOrObject,
+        ao = (d, v) => {
+            var o = new Option(d, v);
+            s["options"][s.options.length] = o;
+            if (sv && v === sv) {
+                o.selected = true;
+            }
+        };
+    if (Is.Array(aoo)) {
+        var ta = <Array<any>>aoo,
+            dp = displayProperty,
+            vp = valueProperty;
+        if (dp && vp) {
+            ta.forEach(t => {
+                ao(t[dp], t[vp]);
+            });
+        }
+        else if (ta.length > 1 && typeof ta[0] === 'string') {
+            ta.forEach(t => {
+                ao(t, t);
+            });
+        }
+    }
+    else if (aoo) {
+        for (var p in aoo) {
+            if (!(aoo[p] && {}.toString.call(aoo[p]) === '[object Function]')) {
+                ao(aoo[p], aoo[p]);
+            }
+        }
+    }
+    return s;
+};
 interface HTMLSelectElement {
     AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
 }
@@ -2365,7 +2560,6 @@ interface String {
     Trim(): string;
     Element(): HTMLElement;
     Element<T extends HTMLElement>(): T;
-    CreateElement(objectProperties?): HTMLElement;
     IsStyle(): boolean;
     RemoveSpecialCharacters(replaceWithCharacter?: string): string;
     Post(cb: (arg: ICustomEventArg<Ajax>) => void, parameter?: any, withProgress?: boolean);
@@ -2375,6 +2569,10 @@ interface String {
     GetStyle(): string;
     CopyToClipboard(sender: HTMLElement): (alertMessage: string, timeout?: number, attributeAndStyle?: any) => void;
     Alert(target: HTMLElement, timeout?: any, attributesAndStyle?: any);
+    ReplaceAll(replace: string, withValue: string): string;
+}
+String.prototype.ReplaceAll = function (replace: string, withValue: string): string {
+    return this.replace(new RegExp(replace, 'g'), withValue);
 }
 String.prototype.GetStyle = function (): string {
     var v = <string>this;
@@ -2409,8 +2607,7 @@ String.prototype.CopyToClipboard = function (sender: HTMLElement): (alertMessage
 String.prototype.Alert = function (target: HTMLElement, timeout: number = 1500, attributesAndStyle: any = null) {
 
     var message = <string>this;
-    let s = target, b = document.body,
-        d = document.createElement("div");
+    let s = target, b = document.body;
 
     var bx = s.getBoundingClientRect(),
         de = document.documentElement, w = window,
@@ -2421,16 +2618,12 @@ String.prototype.Alert = function (target: HTMLElement, timeout: number = 1500, 
         t = bx.top + st - ct + bx.height,
         l = bx.left + sl - cl;
 
-    d.classList.add("alert");
-    d.classList.add("alert-light");
-    d["role"] = "alert"
-    d.style.fontSize = ".9rem";
-    d.style.padding = ".125rem .25rem";
-    d.style.position = "absolute";
-    d.style.zIndex = "1000000000";
-    d.style.top = t + "px";
-    d.style.left = l + "px";
-    d.style.border = 'solid 1px gray';
+    let d = document.NewE(tag.div, {
+        fontSize: ".9rem", padding: ".125rem .25rem", position: "absolute", zIndex: "1000000000", border: 'solid 1px gray', className: "alert alert-light",
+        top: t + "px", left: l + "px"
+    });
+
+    d["role"] = "alert";
 
     if (attributesAndStyle) {
         var op = attributesAndStyle;
@@ -2505,18 +2698,8 @@ String.prototype.Element = function <T extends HTMLElement>(): T {
     var e = document.getElementById(this.toString());
     return e ? <T>e : null;
 };
-String.prototype.CreateElement = function (objectProperties?): HTMLElement {
-    var o = document.createElement(this), op = objectProperties;
-    if (op) {
-        o.Set(op);
-    }
-    return o;
-};
 String.prototype.IsStyle = function () {
-    for (var p in document.body.style) {
-        return p.toLowerCase() === this.toLowerCase()
-    }
-    return false;
+    return Is.Alive(document.body.style[this]);
 };
 interface Window {
     Exception(parameters: any);

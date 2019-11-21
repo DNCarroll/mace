@@ -1,14 +1,50 @@
+var tag;
+(function (tag) {
+    tag.any = 'any';
+    tag.div = 'div';
+    tag.input = 'input';
+    tag.textarea = 'textarea';
+    tag.select = 'select';
+    tag.button = 'button';
+    tag.a = 'a';
+    tag.span = 'span';
+    tag.label = 'label';
+    tag.table = 'table';
+    tag.tr = 'tr';
+    tag.td = 'td';
+    tag.th = 'th';
+    tag.thead = 'thead';
+    tag.tfoot = 'tfoot';
+    tag.tbody = 'tbody';
+    tag.form = 'form';
+    tag.i = 'i';
+    tag.fieldset = 'fieldset';
+})(tag || (tag = {}));
+;
+var HTMLElementHelper;
+(function (HTMLElementHelper) {
+    function IsMatch(ele, tagName, predicate) {
+        if (predicate === void 0) { predicate = null; }
+        predicate = predicate === null ? function (e) { return true; } : predicate;
+        return (tagName === tag.any || ele.tagName.toLowerCase() === tagName) && predicate(ele);
+    }
+    HTMLElementHelper.IsMatch = IsMatch;
+})(HTMLElementHelper || (HTMLElementHelper = {}));
+HTMLElement.prototype.Popup = function (coord) {
+    var e = this;
+    Popup.Show(e, coord);
+};
 HTMLElement.prototype.Cast = function (type) {
     var f = this.DataObject;
     return f ? f : null;
 };
-HTMLElement.prototype.First = function (predicate) {
+HTMLElement.prototype.First = function (tagName, predicate) {
+    if (predicate === void 0) { predicate = null; }
     var chs = this.children;
-    var hp = predicate;
     for (var i = 0; i < chs.length; i++) {
         var c = chs[i];
         if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
-            if (hp(c)) {
+            if (HTMLElementHelper.IsMatch(c, tagName, predicate)) {
                 return c;
             }
         }
@@ -17,7 +53,7 @@ HTMLElement.prototype.First = function (predicate) {
         var c = chs[j];
         if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
             if (c.First) {
-                var f = c.First(predicate);
+                var f = c.First(tagName, predicate);
                 if (f) {
                     return f;
                 }
@@ -26,12 +62,13 @@ HTMLElement.prototype.First = function (predicate) {
     }
     return null;
 };
-HTMLElement.prototype.Relative = function (predicate) {
+HTMLElement.prototype.Relative = function (tagName, predicate) {
+    if (predicate === void 0) { predicate = null; }
     if (!Is.Alive(this || this.parentElement)) {
         return null;
     }
     var p = this.parentElement;
-    if (predicate(p)) {
+    if (HTMLElementHelper.IsMatch(p, tagName, predicate)) {
         return p;
     }
     else {
@@ -39,22 +76,21 @@ HTMLElement.prototype.Relative = function (predicate) {
         for (var i = 0; i < chs.length; i++) {
             var c = chs[i];
             if (c.nodeType === 1 && c.tagName.toLowerCase() !== "svg") {
-                if (predicate(c)) {
+                if (HTMLElementHelper.IsMatch(c, tagName, predicate)) {
                     return c;
                 }
-                //cascade down now?
-                var r = c.First(predicate);
+                var r = c.First(tagName, predicate);
                 if (Is.Alive(r)) {
                     return r;
                 }
             }
         }
-        return p.Relative(predicate);
+        return p.Relative(tagName, predicate);
     }
 };
 HTMLElement.prototype.InsertBeforeChild = function (childMatch, obj) {
     var p = this;
-    var fc = p.First(childMatch);
+    var fc = p.First(tag.any, childMatch);
     if (fc) {
         p = fc.parentElement;
         var i = p.IndexOf(fc);
@@ -105,7 +141,7 @@ HTMLElement.prototype.PostAndAppend = function (obj) {
 };
 HTMLElement.prototype.PostAndInsertBeforeChild = function (childMatch, obj) {
     var p = this;
-    var fc = p.First(childMatch);
+    var fc = p.First(tag.any, childMatch);
     if (fc) {
         p = fc.parentElement;
         var i = p.IndexOf(fc);
@@ -168,15 +204,20 @@ HTMLElement.prototype.Bind = function (obj, refresh) {
 HTMLElement.prototype.ClearBoundElements = function () {
     var t = this;
     t.Get(function (e) { return Is.Alive(e.getAttribute("data-template")); }).forEach(function (r) { return r.parentElement.removeChild(r); });
+    if (t.Binder) {
+        while (t.Binder.DataObjects.Data.length > 0) {
+            t.Binder.DataObjects.Data.pop();
+        }
+    }
 };
 HTMLElement.prototype.SaveDirty = function () {
-    var t = this, p = Is.Alive(t.Binder) ? t : t.Ancestor(function (p) { return Is.Alive(p.Binder); });
+    var t = this, p = Is.Alive(t.Binder) ? t : t.Ancestor(tag.any, function (p) { return Is.Alive(p.Binder); });
     if (p && p.Binder) {
         p.Binder.SaveDirty();
     }
 };
 HTMLElement.prototype.Save = function () {
-    var t = this, p = t.Ancestor(function (p) { return Is.Alive(p.Binder); });
+    var t = this, p = t.Ancestor(tag.any, function (p) { return Is.Alive(p.Binder); });
     if (p && p.Binder) {
         p.Binder.Save(t.DataObject);
     }
@@ -227,17 +268,18 @@ HTMLElement.prototype.GetDataSetAttributes = function () {
     return r;
 };
 HTMLElement.prototype.Delete = function () {
-    var t = this, p = t.Ancestor(function (p) { return Is.Alive(p.Binder); });
+    var t = this, p = t.Ancestor(tag.any, function (p) { return Is.Alive(p.Binder); });
     if (p && p.Binder) {
         p.Binder.Delete(this, null);
     }
 };
-HTMLElement.prototype.Ancestor = function (func) {
+HTMLElement.prototype.Ancestor = function (tagName, predicate) {
+    if (predicate === void 0) { predicate = null; }
     var p = this.parentElement;
-    while (Is.Alive(p) && !func(p)) {
-        p = p.parentElement;
+    if (!Is.Alive(p)) {
+        return null;
     }
-    return p;
+    return HTMLElementHelper.IsMatch(p, tagName, predicate) ? p : p.Ancestor(tagName, predicate);
 };
 HTMLElement.prototype.Set = function (objectProperties) {
     var t = this, op = objectProperties;
@@ -263,5 +305,35 @@ HTMLElement.prototype.Set = function (objectProperties) {
         }
     }
     return t;
+};
+HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty, displayProperty, selectedValue) {
+    var s = this, sv = selectedValue, aoo = arrayOrObject, ao = function (d, v) {
+        var o = new Option(d, v);
+        s["options"][s.options.length] = o;
+        if (sv && v === sv) {
+            o.selected = true;
+        }
+    };
+    if (Is.Array(aoo)) {
+        var ta = aoo, dp = displayProperty, vp = valueProperty;
+        if (dp && vp) {
+            ta.forEach(function (t) {
+                ao(t[dp], t[vp]);
+            });
+        }
+        else if (ta.length > 1 && typeof ta[0] === 'string') {
+            ta.forEach(function (t) {
+                ao(t, t);
+            });
+        }
+    }
+    else if (aoo) {
+        for (var p in aoo) {
+            if (!(aoo[p] && {}.toString.call(aoo[p]) === '[object Function]')) {
+                ao(aoo[p], aoo[p]);
+            }
+        }
+    }
+    return s;
 };
 //# sourceMappingURL=HTMLElement.js.map

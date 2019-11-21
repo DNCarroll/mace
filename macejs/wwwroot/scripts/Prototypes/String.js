@@ -1,3 +1,6 @@
+String.prototype.ReplaceAll = function (replace, withValue) {
+    return this.replace(new RegExp(replace, 'g'), withValue);
+};
 String.prototype.GetStyle = function () {
     var v = this;
     if (v) {
@@ -33,18 +36,13 @@ String.prototype.Alert = function (target, timeout, attributesAndStyle) {
     if (timeout === void 0) { timeout = 1500; }
     if (attributesAndStyle === void 0) { attributesAndStyle = null; }
     var message = this;
-    var s = target, b = document.body, d = document.createElement("div");
+    var s = target, b = document.body;
     var bx = s.getBoundingClientRect(), de = document.documentElement, w = window, st = w.pageYOffset || de.scrollTop || b.scrollTop, sl = w.pageXOffset || de.scrollLeft || b.scrollLeft, ct = de.clientTop || b.clientTop || 0, cl = de.clientLeft || b.clientLeft || 0, t = bx.top + st - ct + bx.height, l = bx.left + sl - cl;
-    d.classList.add("alert");
-    d.classList.add("alert-light");
+    var d = document.NewE(tag.div, {
+        fontSize: ".9rem", padding: ".125rem .25rem", position: "absolute", zIndex: "1000000000", border: 'solid 1px gray', className: "alert alert-light",
+        top: t + "px", left: l + "px"
+    });
     d["role"] = "alert";
-    d.style.fontSize = ".9rem";
-    d.style.padding = ".125rem .25rem";
-    d.style.position = "absolute";
-    d.style.zIndex = "1000000000";
-    d.style.top = t + "px";
-    d.style.left = l + "px";
-    d.style.border = 'solid 1px gray';
     if (attributesAndStyle) {
         var op = attributesAndStyle;
         for (var p in op) {
@@ -115,17 +113,7 @@ String.prototype.Element = function () {
     var e = document.getElementById(this.toString());
     return e ? e : null;
 };
-String.prototype.CreateElement = function (objectProperties) {
-    var o = document.createElement(this), op = objectProperties;
-    if (op) {
-        o.Set(op);
-    }
-    return o;
-};
 String.prototype.IsStyle = function () {
-    for (var p in document.body.style) {
-        return p.toLowerCase() === this.toLowerCase();
-    }
-    return false;
+    return Is.Alive(document.body.style[this]);
 };
 //# sourceMappingURL=String.js.map
