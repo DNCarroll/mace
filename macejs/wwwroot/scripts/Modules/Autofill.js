@@ -1,8 +1,8 @@
 var Autofill;
 (function (Autofill) {
-    var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember", afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember";
+    var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember", afc = "completed", afl = "length", b = "busy", eleC = "cache", afodm = "objdisplaymember", afas = "autoset";
     function IsAutoFill(ele, obj) {
-        var ret = Is.Alive(ele.dataset[afapi] && (ele.dataset[afvm] || ele.dataset[afdm])) && ele.tagName === "INPUT" && ele["type"] === "text";
+        var ret = Is.Alive(ele.dataset[afapi] && (ele.dataset[afvm] || ele.dataset[afdm])) && ((ele.tagName === "INPUT" && ele["type"] === "text") || ele.tagName === "TEXTAREA");
         ret ? initialize(ele, obj) : null;
         return ret;
     }
@@ -15,20 +15,20 @@ var Autofill;
         };
         i.onkeyup = function () {
             var code = (event["keyCode"] ? event["keyCode"] : event["which"]);
-            if (i.value.length === 0 && code === 8) {
+            if (i["value"].length === 0 && code === 8) {
                 SetValue(i);
             }
         };
         i.onkeypress = function () {
             KeyPress(event);
         };
-        i.value = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
+        i["value"] = i.dataset[afodm] ? obj[i.dataset[afodm]] : "";
     }
     function SetCaretPosition(e, caretPos) {
         if (Is.Alive(e)) {
-            if (e.selectionStart) {
+            if (e["selectionStart"]) {
                 e.focus();
-                e.setSelectionRange(caretPos, e.value.length);
+                e["setSelectionRange"](caretPos, e["value"].length);
             }
             else {
                 e.focus();
@@ -36,10 +36,10 @@ var Autofill;
         }
     }
     function SetValue(ele) {
-        var s = ele.tagName === "INPUT" && ele.dataset[afapi] ? ele :
-            ele.parentElement.First(function (i) { return Is.Alive(i.dataset[afapi]); }), dc = s[eleC], ds = s.dataset, f = ds[afva], lf = LookupFields(s), arr = dc, dob = s.DataObject;
+        var s = (ele.tagName === "INPUT" || ele.tagName === "TEXTAREA") && ele.dataset[afapi] ? ele :
+            ele.parentElement.First(tag.any, function (i) { return Is.Alive(i.dataset[afapi]); }), dc = s[eleC], ds = s.dataset, f = ds[afva], lf = LookupFields(s), arr = dc, dob = s.DataObject;
         var directSet = function () {
-            ExecuteApi(s, s.value, function (ret) {
+            ExecuteApi(s, s["value"], function (ret) {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
                     SetObjectValues(s, dob, f, ret[0], lf.VM, lf.DM);
@@ -48,7 +48,7 @@ var Autofill;
         };
         if (s && Is.Alive(f) && !Is.NullOrEmpty(lf.VM) && dob) {
             if (arr && arr.length > 0) {
-                var found = arr.First(function (o) { return o[lf.DM] === s.value; });
+                var found = arr.First(function (o) { return o[lf.DM] === s["value"]; });
                 if (Is.Alive(found)) {
                     SetObjectValues(s, dob, f, found, lf.VM, lf.DM);
                 }
@@ -56,7 +56,7 @@ var Autofill;
                     directSet();
                 }
             }
-            else if (!Is.NullOrEmpty(s.value)) {
+            else if (!Is.NullOrEmpty(s["value"])) {
                 directSet();
             }
         }
@@ -72,7 +72,7 @@ var Autofill;
         }
     }
     function SetObjectValues(s, dob, f, found, vm, dm) {
-        if (s.value.length === 0) {
+        if (s["value"].length === 0) {
             dob[f] = null;
         }
         else if (found) {
@@ -103,19 +103,19 @@ var Autofill;
         if (s[b] === true) {
             return true;
         }
-        var l = s.value.length, tl = s.dataset[afl] ? parseInt(s.dataset[afl]) : 3;
+        var l = s["value"].length, tl = s.dataset[afl] ? parseInt(s.dataset[afl]) : 3;
         var v;
         if (code === 13) {
             SetValue(s);
         }
         else if (l === tl) {
             s[b] = true;
-            v = s.value + k;
+            v = s["value"] + k;
             s["pv"] = v;
             ExecuteApi(s, v, function (ret) {
                 s[eleC] = ret;
                 if (ret && ret.length > 0) {
-                    s.value = ret[0][lf.DM];
+                    SetDisplayValue(s, ret[0], lf);
                 }
                 SetCaretPosition(s, 4);
                 s[b] = false;
@@ -129,13 +129,21 @@ var Autofill;
                 var arr = s[eleC];
                 if (arr) {
                     var found = arr.First(function (o) { return o[lf.DM].toLowerCase().indexOf(v.toLowerCase()) > -1; });
-                    if (found) {
-                        s.value = found[lf.DM];
-                    }
+                    SetDisplayValue(s, found, lf);
                     SetCaretPosition(s, l);
                 }
             }, 10);
             return true;
+        }
+    }
+    function SetDisplayValue(s, o, lf) {
+        if (o) {
+            s["value"] = o[lf.DM];
+            var sas = s.dataset[afas];
+            if (sas === "true") {
+                s.DataObject[s.dataset[afva]] = o[lf.VM];
+                s.DataObject[s.dataset[afodm]] = o[lf.DM];
+            }
         }
     }
 })(Autofill || (Autofill = {}));

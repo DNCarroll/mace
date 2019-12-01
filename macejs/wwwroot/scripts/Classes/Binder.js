@@ -302,6 +302,9 @@ var Binder = /** @class */ (function () {
     Binder.prototype.ResetSelectedObject = function () {
         this.SelectedObject = this.selectedObject;
     };
+    Binder.prototype.TempateOverload = function (ele) {
+        return;
+    };
     Binder.prototype.prepTemplates = function () {
         var t = this, drt = t.DataRowTemplates;
         if (drt.length === 0) {
@@ -315,10 +318,11 @@ var Binder = /** @class */ (function () {
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
                 e[e.length - 1] : null;
             r.forEach(function (r) {
+                t.TempateOverload(r);
                 drt.Add(r);
                 r.parentElement.removeChild(r);
             });
-            var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(function (m) { return m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
+            var dmk = "data-morekeys", dmt = "data-morethreshold", more = t.Element.First(tag.any, function (m) { return m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
                 Is.Alive(m.getAttribute(dmt)); });
             if (more) {
                 t.MoreElement = more;
@@ -406,12 +410,36 @@ var Binder = /** @class */ (function () {
             eles = t.Element.Get(function (e) { return e.HasDataSet(); });
             eles.Add(t.Element);
         }
-        o.AddObjectStateListener(t.objStateChanged.bind(this));
-        eles.forEach(function (e) {
-            e.DataObject = o;
-            t.setListeners(e, o);
+        eles.Where(function (e) { return e.dataset && Is.Alive(e.dataset.webcontrol); }).forEach(function (e) {
+            var found = t.GetWebControl(e);
+            if (Is.Alive(found)) {
+                e.appendChild(found);
+                found.HasDataSet() ? eles.Add(found) : null;
+            }
         });
-        o.AllPropertiesChanged();
+        t.SubBind(o, eles);
+    };
+    Binder.prototype.GetWebControl = function (wc) {
+        var found = document.getElementById(wc.dataset.webcontrol);
+        if (Is.Alive(found)) {
+            var c = found.cloneNode(true);
+            if (Is.Alive(c)) {
+                var ne = c;
+                return ne;
+            }
+        }
+        return null;
+    };
+    Binder.prototype.SubBind = function (o, eles) {
+        var t = this;
+        if (Is.Alive(eles) && eles.length > 0) {
+            o.AddObjectStateListener(t.objStateChanged.bind(this));
+            eles.forEach(function (e) {
+                e.DataObject = o;
+                t.setListeners(e, o);
+            });
+            o.AllPropertiesChanged();
+        }
     };
     Binder.prototype.setListeners = function (ele, d) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -483,14 +511,14 @@ var Binder = /** @class */ (function () {
         }
     };
     Binder.prototype.setObjPropListener = function (p, a, e, d) {
+        var _this = this;
         var t = this, fun = function (atr, v) {
             if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
                 if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
-                    //var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
-                    //r.forEach(r => r["checked"] = false);
-                    //var f = r.First(r => r["value"] === v.toString());
-                    //f ? f["checked"] = true : null;
-                    e["checked"] = e["value"] === v.toString();
+                    var r = _this.Element.Get(function (e2) { return e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked; });
+                    r.forEach(function (r) { return r["checked"] = false; });
+                    var f = r.First(function (r) { return r["value"] === v.toString(); });
+                    f ? f["checked"] = true : null;
                 }
                 else if (atr === "className") {
                     e.className = null;
@@ -529,9 +557,6 @@ var Binder = /** @class */ (function () {
             v = !Is.Alive(v) && dad && dad.length > 0 ? dad[0] : v;
             if (v) {
                 var prev = t.SelectedObject;
-                if (prev) {
-                    prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
-                }
                 if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
                     ftids.forEach(function (ft) {
                         var fte = ft.Element();
@@ -546,6 +571,9 @@ var Binder = /** @class */ (function () {
                 }
                 t.selectedObject = v;
                 t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                if (prev) {
+                    prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+                }
                 if (Is.Alive(t.OnSelectedItemChanged)) {
                     t.OnSelectedItemChanged(t.selectedObject);
                 }

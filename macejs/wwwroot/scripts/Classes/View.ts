@@ -74,7 +74,7 @@ class View implements IView {
         var t = this,
             c = t.ContainerID().Element();
         if (!Is.NullOrEmpty(c)) {
-            t.cached = "div".CreateElement({ "innerHTML": html });
+            t.cached = document.NewE(tag.div, { "innerHTML": html });
             var ele = t.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
             t.countBindersReported = 0;
             if (ele.length > 0) {

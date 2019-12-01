@@ -250,3 +250,6 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+/macejs/wwwroot/scripts/Modules/WebControlCache.ts
+/macejs/wwwroot/scripts/Modules/WebControlCache.js.map
+/macejs/wwwroot/scripts/Modules/WebControlCache.js

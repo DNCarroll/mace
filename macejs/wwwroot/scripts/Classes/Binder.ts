@@ -197,10 +197,10 @@
         }
         if (o) {
             var f = () => {
-                    var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
-                    es.forEach(e2 => e2.parentElement.removeChild(e2));                    
-                    td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
-                },
+                var es = t.Element.Get(e => e.DataObject === o), td = t.DataObjects.Data, i = td.indexOf(o);
+                es.forEach(e2 => e2.parentElement.removeChild(e2));
+                td.forEach(o => o.InstigatePropertyChangedListeners("AlternatingRowClass", false));
+            },
                 afc = (arg: CustomEventArg<Ajax>) => {
                     var err = () => {
                         var x = arg.Sender.XHttp, s = x.status;
@@ -278,6 +278,7 @@
                     drf = <HTMLElement>pe.children[beforeIndex];
                 }
                 drf ? pe.insertBefore(ne, drf) : pe.appendChild(ne);
+
                 obj.Container = t.DataObjects.Data;
                 ne.onclick = () => {
                     t.SelectedObject = obj;
@@ -291,11 +292,14 @@
         }
         else {
             t.Bind(obj, null);
-            t.SelectedObject = obj; 
+            t.SelectedObject = obj;
         }
     }
     ResetSelectedObject() {
         this.SelectedObject = this.selectedObject;
+    }
+    TempateOverload(ele: HTMLElement) {
+        return;
     }
     private prepTemplates() {
         var t = this, drt = t.DataRowTemplates;
@@ -309,15 +313,18 @@
                     li = i;
                 }
             }
+
             t.DataRowFooter = e[e.length - 1] !== r[r.length - 1] ?
                 <HTMLElement>e[e.length - 1] : null;
+
             r.forEach(r => {
+                t.TempateOverload(r);
                 drt.Add(r);
                 r.parentElement.removeChild(r);
             });
             var dmk = "data-morekeys",
                 dmt = "data-morethreshold",
-                more = t.Element.First(m => m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
+                more = t.Element.First(tag.any, m => m.HasDataSet() && Is.Alive(m.getAttribute(dmk)) &&
                     Is.Alive(m.getAttribute(dmt)));
             if (more) {
                 t.MoreElement = more;
@@ -396,7 +403,7 @@
         var t = this;
         if (Is.Alive(t) && Is.Alive(t.PrimaryKeys)) {
             for (var i = 0; i < t.PrimaryKeys.length; i++) {
-                if (d.ServerObject[t.PrimaryKeys[i]]!==incoming[t.PrimaryKeys[i]]) {
+                if (d.ServerObject[t.PrimaryKeys[i]] !== incoming[t.PrimaryKeys[i]]) {
                     return false;
                 }
             }
@@ -404,19 +411,42 @@
         return true;
     }
     Bind(o: IObjectState, eles: Array<HTMLElement> = null) {
-        var t = this;
+        let t = this;
         o.Binder = t;
         if (!eles) {
             eles = t.Element.Get(e => e.HasDataSet());
             eles.Add(t.Element);
         }
-
-        o.AddObjectStateListener(t.objStateChanged.bind(this));
-        eles.forEach(e => {
-            e.DataObject = o;
-            t.setListeners(e, o);
+        eles.Where(e => e.dataset && Is.Alive(e.dataset.webcontrol)).forEach(e => {
+            var found = t.GetWebControl(e);
+            if (Is.Alive(found)) {
+                e.appendChild(found);
+                found.HasDataSet() ? eles.Add(found) : null;
+            }
         });
-        o.AllPropertiesChanged();
+        t.SubBind(o, eles);
+    }
+    GetWebControl(wc: HTMLElement): HTMLElement {
+        var found = document.getElementById(wc.dataset.webcontrol);
+        if (Is.Alive(found)) {
+            var c = found.cloneNode(true);
+            if (Is.Alive(c)) {
+                var ne = <HTMLElement>c;
+                return ne;
+            }
+        }
+        return null;
+    }
+    SubBind(o: IObjectState, eles: Array<HTMLElement>) {
+        var t = this;
+        if (Is.Alive(eles) && eles.length > 0) {
+            o.AddObjectStateListener(t.objStateChanged.bind(this));
+            eles.forEach(e => {
+                e.DataObject = o;
+                t.setListeners(e, o);
+            });
+            o.AllPropertiesChanged();
+        }
     }
     private setListeners(ele: HTMLElement, d: IObjectState) {
         var ba = ele.GetDataSetAttributes(), t = this;
@@ -497,11 +527,10 @@
             fun = (atr: string, v: any) => {
                 if (Has.Properties(e, atr) && (atr !== "width" && atr !== "height")) {
                     if (e.tagName === "INPUT" && e["type"] === "radio" && atr === "checked") {
-                        //var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
-                        //r.forEach(r => r["checked"] = false);
-                        //var f = r.First(r => r["value"] === v.toString());
-                        //f ? f["checked"] = true : null;
-                        e["checked"] = e["value"] === v.toString();
+                        var r = this.Element.Get(e2 => e2.DataObject === d && e2["type"] === "radio" && e2.dataset.checked === e.dataset.checked);
+                        r.forEach(r => r["checked"] = false);
+                        var f = r.First(r => r["value"] === v.toString());
+                        f ? f["checked"] = true : null;
                     }
                     else if (atr === "className") {
                         e.className = null;
@@ -522,6 +551,7 @@
             };
         d.AddPropertyListener(p, a, fun);
     }
+
     getStyle(v: string): string {
         for (var p in document.body.style) {
             if (p.toLowerCase() === v.toLowerCase()) {
@@ -540,9 +570,7 @@
         v = !Is.Alive(v) && dad && dad.length > 0 ? dad[0] : v;
         if (v) {
             var prev = t.SelectedObject;
-            if (prev) {
-                prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
-            }
+
             if (fts.length === 0 && Is.Alive(ftids) && ftids.length > 0) {
                 ftids.forEach(ft => {
                     var fte = ft.Element();
@@ -557,6 +585,9 @@
             }
             t.selectedObject = v;
             t.selectedObject.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            if (prev) {
+                prev.InstigatePropertyChangedListeners("SelectedRowClass", false);
+            }
             if (Is.Alive(t.OnSelectedItemChanged)) {
                 t.OnSelectedItemChanged(t.selectedObject);
             }
