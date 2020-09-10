@@ -1,27 +1,30 @@
-﻿module Popup {
+﻿enum Placement {
+    LeftTop, LeftBottom, RightTop, RightBottom
+}
+module Popup {
+
     export var Element: HTMLElement;
-    export function Show(ele: HTMLElement, coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string }) {
+    export function Show(ele: HTMLElement, coord?: any) {
         var cpup = Popup.Element;
         document.removeEventListener('click', Popup.Click);
-        if (cpup !== ele) {
-            Is.Alive(cpup) ? cpup.style.display = "none" : null;
-            Popup.Element = ele;
-        }
-        else if (cpup.style.display === "") {
-            Popup.Hide();
-            return;
-        }
-        ele.style.display = coord && coord.displayOverride ? coord.displayOverride : "";
-        ele.focus();
-        if (Is.Alive(coord)) {
-            Popup.SetCoord(ele, "left", coord);
-            Popup.SetCoord(ele, "right", coord);
-            Popup.SetCoord(ele, "top", coord);
-            Popup.SetCoord(ele, "bottom", coord);
+
+        Is.Alive(cpup) ? cpup.style.display = "none" : null;
+        Popup.Element = ele;
+
+        var isFun = Is.Alive(coord) && Is.Func(coord);
+        ele.style.display = !isFun && coord && coord.displayOverride ? coord.displayOverride : "";
+
+        var tempC = Is.Alive(coord) && Is.Func(coord) ? coord() : coord;
+        if (Is.Alive(tempC)) {
+            Popup.SetCoord(ele, "left", tempC);
+            Popup.SetCoord(ele, "right", tempC);
+            Popup.SetCoord(ele, "top", tempC);
+            Popup.SetCoord(ele, "bottom", tempC);
         }
         setTimeout(() => {
             document.addEventListener('click', Popup.Click);
         }, 1);
+        ele.focus();
     }
     export function SetCoord(ele: HTMLElement, attr: string, coord?: { left?: number, right?: number, top?: number, bottom?: number }) {
         if (Is.Alive(coord) &&

@@ -1,19 +1,19 @@
-var Placement;
-(function (Placement) {
-    Placement[Placement["LeftTop"] = 0] = "LeftTop";
-    Placement[Placement["LeftBottom"] = 1] = "LeftBottom";
-    Placement[Placement["RightTop"] = 2] = "RightTop";
-    Placement[Placement["RightBottom"] = 3] = "RightBottom";
-})(Placement || (Placement = {}));
-var Popup;
-(function (Popup) {
-    function Show(ele, coord) {
+enum Placement {
+    LeftTop, LeftBottom, RightTop, RightBottom
+}
+module Popup {
+
+    export var Element: HTMLElement;
+    export function Show(ele: HTMLElement, coord?: any) {
         var cpup = Popup.Element;
         document.removeEventListener('click', Popup.Click);
+
         Is.Alive(cpup) ? cpup.style.display = "none" : null;
         Popup.Element = ele;
+
         var isFun = Is.Alive(coord) && Is.Func(coord);
         ele.style.display = !isFun && coord && coord.displayOverride ? coord.displayOverride : "";
+
         var tempC = Is.Alive(coord) && Is.Func(coord) ? coord() : coord;
         if (Is.Alive(tempC)) {
             Popup.SetCoord(ele, "left", tempC);
@@ -21,34 +21,29 @@ var Popup;
             Popup.SetCoord(ele, "top", tempC);
             Popup.SetCoord(ele, "bottom", tempC);
         }
-        setTimeout(function () {
+        setTimeout(() => {
             document.addEventListener('click', Popup.Click);
         }, 1);
         ele.focus();
     }
-    Popup.Show = Show;
-    function SetCoord(ele, attr, coord) {
+    export function SetCoord(ele: HTMLElement, attr: string, coord?: { left?: number, right?: number, top?: number, bottom?: number }) {
         if (Is.Alive(coord) &&
             Is.Alive(coord[attr]) &&
             coord[attr] > 0) {
             ele.style[attr] = coord[attr] + "px";
         }
     }
-    Popup.SetCoord = SetCoord;
-    function Hide() {
+    export function Hide() {
         if (Popup.Element) {
-            Popup.Element.style.display = 'none';
+            Popup.Element.style.display = 'none'
             Popup.Element = null;
         }
     }
-    Popup.Hide = Hide;
-    function Click(event) {
+    export function Click(event) {
         var cpup = Popup.Element;
         if (Is.Alive(cpup) && !cpup.contains(event.target)) { // or use: event.target.closest(selector) === null            
             Popup.Hide();
             document.removeEventListener('click', Popup.Click);
         }
     }
-    Popup.Click = Click;
-})(Popup || (Popup = {}));
-//# sourceMappingURL=popup.js.map
+}

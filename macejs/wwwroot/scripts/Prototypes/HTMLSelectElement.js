@@ -1,3 +1,10 @@
+HTMLSelectElement.prototype.SetSelectedValue = function (value) {
+    var dd = this;
+    for (var i = 0; i < dd.options.length; i++) {
+        var opt = dd.options[i];
+        opt.selected = opt.text === value;
+    }
+};
 HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty, displayProperty, selectedValue) {
     var s = this, sv = selectedValue, aoo = arrayOrObject, ao = function (d, v) {
         var o = new Option(d, v);

@@ -1,10 +1,10 @@
-﻿interface Array<T> {     
+﻿interface Array<T> {
     Add(obj: any);
     Add(...obj: T[]);
     First(func?: (obj: T) => boolean): T;
     Last(func: (obj: T) => boolean): T;
     Remove(func: (obj: T) => boolean): T[];
-    Where(func: (obj: T) => boolean): T[];    
+    Where(func: (obj: T) => boolean): T[];
     Select<U>(keySelector: (element: T) => U): Array<U>;
 }
 Array.prototype.Select = function (keySelector: (element: any) => any): Array<any> {
@@ -75,4 +75,4 @@ Array.prototype.Where = function (func: (obj) => boolean): Array<any> {
         }
     }
     return m;
-};
+}; 

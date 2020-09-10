@@ -8,7 +8,12 @@
         ret ? initialize(ele, obj) : null;
         return ret;
     }
-
+    export function OnKeyDownHookup(sender: HTMLElement) {
+        if (!Is.Alive(sender["hasBeenHookedUpToKeypress"])) {
+            Autofill.IsAutoFill(sender, new DataObject({}));
+            sender["hasBeenHookedUpToKeypress"] = true;
+        }
+    }
     function initialize(ele: HTMLElement, obj: IObjectState) {
         let i = ele;
         i.onkeypress = null;
@@ -155,6 +160,10 @@
     function SetDisplayValue(s: HTMLElement, o: any, lf: { VM: string, DM: string }) {
         if (o) {
             s["value"] = o[lf.DM];
+
+            s["autofill_local_value"] = o[lf.VM];
+            s["autofill_local_display"] = o[lf.DM];
+
             var sas = s.dataset[afas];
             if (sas === "true") {
                 s.DataObject[s.dataset[afva]] = o[lf.VM];

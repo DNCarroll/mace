@@ -129,7 +129,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         }
         return r;
     }
-    Array<T extends DataObject>(type: { new(serverObject:any): T; }) {
+    Array<T extends DataObject>(type: { new(serverObject: any): T; }) {
         var ret = new Array<T>();
         var r = this.GetRequestData();
         if (Is.Alive(r) && r.length) {
@@ -248,7 +248,7 @@ class Ajax implements IEventDispatcher<Ajax>{
         var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
         l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
     }
-} 
+}
 class Binder {
     _api: string = null;
     PrimaryKeys: Array<string> = new Array<string>();
@@ -661,6 +661,14 @@ class Binder {
         }
         return true;
     }
+    ManualLoad(objs: IObjectState[]) {
+        var d = this.DataObjects.Data;
+        objs.forEach(o => {
+            d.Add(o);
+            o.Container = d;
+        });
+        d.forEach(o => this.add(o, true));
+    }
     Bind(o: IObjectState, eles: Array<HTMLElement> = null) {
         let t = this;
         o.Binder = t;
@@ -669,21 +677,28 @@ class Binder {
             eles.Add(t.Element);
         }
         eles.Where(e => e.dataset && Is.Alive(e.dataset.webcontrol)).forEach(e => {
-            var found = t.GetWebControl(e);
+            var found = t.GetWebControl(e, o);
             if (Is.Alive(found)) {
                 e.appendChild(found);
+                var wds = found.Get(e2 => e2.HasDataSet());
                 found.HasDataSet() ? eles.Add(found) : null;
+                wds.forEach(e2 => eles.Add(e2));
             }
         });
         t.SubBind(o, eles);
     }
-    GetWebControl(wc: HTMLElement): HTMLElement {
-        var found = document.getElementById(wc.dataset.webcontrol);
-        if (Is.Alive(found)) {
-            var c = found.cloneNode(true);
-            if (Is.Alive(c)) {
-                var ne = <HTMLElement>c;
-                return ne;
+    GetWebControl(wc: HTMLElement, obj: IObjectState): HTMLElement {
+        var eleId = obj[wc.dataset.webcontrol];
+        if (eleId) {
+            var found = document.getElementById(eleId);
+            if (Is.Alive(found)) {
+                var c = found.cloneNode(true);
+                if (Is.Alive(c)) {
+                    var ne = <HTMLElement>c;
+                    ne.style.display = "";
+                    ne.style.visibility = "visible";
+                    return ne;
+                }
             }
         }
         return null;
@@ -900,7 +915,7 @@ class BinderWithBoundEvent extends Binder {
         let t = this;
         t.ElementBoundEvent = elementBoundEvent;
     }
-} 
+}
 class DataObject implements IObjectState {
     public static DefaultAlternatingRowClass: string = null;
     public static DefaultSelectedRowClass: string = null;
@@ -1002,7 +1017,7 @@ class DataObject implements IObjectState {
     }
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean = true) {
         this.OnPropertyChanged(p);
-        if (canCauseDirty && this.ObjectState!==ObjectState.Cleaning) {
+        if (canCauseDirty && this.ObjectState !== ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     }
@@ -1029,13 +1044,13 @@ class DataObject implements IObjectState {
     }
     SetServerProperty(p: string, v: any) {
         var t = this,
-            change = v!==t.ServerObject[p];
+            change = v !== t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
             t.InstigatePropertyChangedListeners(p, true);
         }
     }
-} 
+}
 enum StorageType {
     none,
     session,
@@ -1068,7 +1083,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Data: Array<T> = new Array<T>();
     _cachingKey: string;
     _storageState: StorageType;
-    _newT: (obj: any) => T;    
+    _newT: (obj: any) => T;
     Add(obj: T) {
         this.Data.push(obj);
     }
@@ -1098,7 +1113,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Where(func?: (obj: T) => boolean): Array<T> {
         return this.Data.Where(func);
     }
-} 
+}
 enum CacheStrategy {
     None,
     ViewAndPreload,
@@ -1175,7 +1190,7 @@ class View implements IView {
         var t = this,
             c = t.ContainerID().Element();
         if (!Is.NullOrEmpty(c)) {
-            t.cached = document.NewE(tag.div, { "innerHTML": html });
+            t.cached = document.NewE(tag.div, { "innerHTML": html });            
             var ele = t.cached.Get(ele => !Is.NullOrEmpty(ele.getAttribute("data-binder")));
             t.countBindersReported = 0;
             if (ele.length > 0) {
@@ -1308,7 +1323,7 @@ class DataLoader {
         this._dataCallBack(arg);
         this._completed();
     }
-} 
+}
 var ViewContainers: Array<IViewContainer> = new Array<IViewContainer>();
 abstract class ViewContainer implements IViewContainer {
     static VirtualPath: string;
@@ -1463,7 +1478,7 @@ class SingleViewContainer extends ViewContainer {
         t.IsDefault = isDefault;
         t.Views.push(new View(cacheStrategy, containerId, "/Views/" + t.Name + ".html"));
     }
-} 
+}
 class ViewInstance {
     Parameters: Array<any>;
     ViewContainer: IViewContainer;
@@ -1474,7 +1489,7 @@ class ViewInstance {
         this.Parameters = parameters;
         this.ViewContainer = viewContainer;
     }
-} 
+}
 enum EventType {
     Any,
     Completed,
@@ -1540,7 +1555,7 @@ interface IObjectState extends IPropertyChangedDispatcher {
     Container: Array<IObjectState>;
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean);
     Binder: Binder;
-    
+
 }
 enum ObjectState {
     Dirty,
@@ -1553,7 +1568,7 @@ interface IView extends IEventDispatcher<IView> {
     ContainerID: () => string;
     CacheStrategy: CacheStrategy;
     Cache: (strategy: CacheStrategy) => void;
-} 
+}
 interface IViewContainer {
     DocumentTitle: (route: ViewInstance) => string;
     IsDefault: boolean;
@@ -1566,7 +1581,7 @@ interface IViewContainer {
     Views: Array<IView>;
     Name: string;
     Parameters: (url: string) => Array<string>;
-} 
+}
 module Autofill {
 
     var afapi = "autofillapi", afva = "value", afvm = "valuemember", afdm = "displaymember",
@@ -1577,7 +1592,12 @@ module Autofill {
         ret ? initialize(ele, obj) : null;
         return ret;
     }
-
+    export function OnKeyDownHookup(sender: HTMLElement) {
+        if (!Is.Alive(sender["hasBeenHookedUpToKeypress"])) {
+            Autofill.IsAutoFill(sender, new DataObject({}));
+            sender["hasBeenHookedUpToKeypress"] = true;
+        }
+    }
     function initialize(ele: HTMLElement, obj: IObjectState) {
         let i = ele;
         i.onkeypress = null;
@@ -1724,10 +1744,117 @@ module Autofill {
     function SetDisplayValue(s: HTMLElement, o: any, lf: { VM: string, DM: string }) {
         if (o) {
             s["value"] = o[lf.DM];
+
+            s["autofill_local_value"] = o[lf.VM];
+            s["autofill_local_display"] = o[lf.DM];
+
             var sas = s.dataset[afas];
             if (sas === "true") {
                 s.DataObject[s.dataset[afva]] = o[lf.VM];
                 s.DataObject[s.dataset[afodm]] = o[lf.DM];
+            }
+        }
+    }
+}
+module Exporter {
+    export function Execute(sender: HTMLElement, name: string, includeSpans: boolean = true) {
+        var t = sender.tagName === "TABLE" ? sender : sender.Ancestor(tag.table),
+            h = t.First(tag.thead),
+            ths = h.Get(e => e.tagName === "TH"),
+            l = h.First(tag.any, e => Is.Alive(e.First(tag.any, e2 => Is.Alive(e2.dataset.exportheader) || e2.tagName === "LABEL"))).Get(e => Is.Alive(e.dataset.exportheader) || e.tagName === "LABEL"),
+            r = t.Get(e => e.tagName == "TR" && Is.Alive(e.dataset.template)),
+            rows = new Array<string>(),
+            rh = "";
+
+        ths.forEach(he => {
+            if (he.style.display !== "none") {
+                var hv = Exporter.GetHeaderElementInnerHtml(he);
+                rh += (Is.NullOrEmpty(rh) ? "" : ",") + "\"" + hv + "\"";
+            }
+        });
+        rows.Add(rh);
+        r.forEach(e => {
+            var td = e.querySelectorAll("td");
+            var rv = "";
+            for (var j = 0; j < td.length; j++) {
+                if (td[j].style.display !== "none") {
+                    var etd = td[j];
+                    rv += (Is.NullOrEmpty(rv) ? "" : ",") + GetValue(etd);
+                }
+            }
+            rows.Add(rv);
+        })
+        let csvContent = "";
+        rows.forEach(rv => {
+            csvContent += rv + "\r\n";
+        });
+
+        OpenCsv(csvContent, name);
+
+    }
+    export function GetHeaderElementInnerHtml(ele: HTMLElement) {
+        var exportheader = ele.First(tag.any, e => Is.Alive(e.dataset.exportheader));
+        exportheader = Is.Alive(exportheader) ? exportheader : ele.First(tag.label);
+        return exportheader ? exportheader.innerHTML.trim() : "";
+    }
+
+    export function GetValue(td: HTMLTableCellElement, inludeReadOnlys: boolean = true) {
+        var eles = td.Get(e => e.tagName === "INPUT" || e.tagName === "SELECT" || e.tagName === "TEXTAREA");
+        if (inludeReadOnlys) {
+            td.Get(e => Is.Alive(e.dataset.innerhtml)).forEach(e => eles.Add(e));
+        }
+        if (eles.length === 0) {
+            return td.innerHTML;
+        }
+        var v = "";
+        if (eles.length > 0) {
+            eles.forEach(e => {
+                var tv = Exporter.GetExportValue(e);
+                v += (!Is.NullOrEmpty(v) ? "-" : "") + tv
+            });
+
+        }
+        return "\"" + v + "\"";
+    }
+    export function GetExportValue(ele: HTMLElement): string {
+        if (ele.tagName === "INPUT" && ele["type"] === "checkbox") {
+            return ele["checked"] ? "true" : "false";
+        }
+        else if (ele.tagName === "INPUT" || ele.tagName === "SELECT" || ele.tagName === "TEXTAREA") {
+            return ele["value"];
+        }
+        else if (ele.tagName === "SPAN" || ele.tagName === "DIV") {
+            return ele.innerHTML;
+        }
+        else if (ele.tagName === "A") {
+            if (Is.Alive(ele.dataset.exportvalue) && Is.Alive(ele.DataObject)) {
+                return ele.DataObject[ele.dataset.exportvalue];
+            }
+            else if (ele["href"] === "javascript:") {
+                return ele.innerHTML;
+            }
+            return ele["href"];
+        }
+    }
+    export function OpenCsv(csvContent: string, name: string) {
+        var link = document.createElement("a"),
+            us = window.location.href.split("/");
+
+        name = us[us.length - 2].RemoveSpecialCharacters() + "_" + name + ".csv";
+
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        if (navigator.msSaveBlob) {
+            navigator.msSaveBlob(blob, name);
+        } else {
+            var link = document.createElement("a");
+            if (link.download !== undefined) {
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", name);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
         }
     }
@@ -1771,7 +1898,7 @@ module HistoryContainer {
                 h = history,
                 u = vc.Url(vi);
             if (Is.Alive(u) && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = !Is.NullOrEmpty(u) ? u.indexOf("/")!==0 ? "/" + u : u : "/";
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/") !== 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
@@ -1808,7 +1935,7 @@ module HistoryContainer {
         }
     }
 }
-var HistoryManager = new HistoryContainer.History(); 
+var HistoryManager = new HistoryContainer.History();
 class WindowLoaded {
     constructor(loadedEvent: (e, onCompleteCallback: () => void) => any, shouldRunBeforeNavigation: boolean) {
         this.LoadedEvent = loadedEvent;
@@ -1877,8 +2004,11 @@ module Reflection {
 
     }
 }
-Initializer.Execute(); 
+Initializer.Execute();
 module Is {
+    export function Func(obj: any): boolean {
+        return obj instanceof Function;
+    }
     export function Array(value): boolean {
         return Object.prototype.toString.call(value) === '[object Array]';
     }
@@ -1895,9 +2025,15 @@ module Is {
     }
     export function Alive(value): boolean {
         return value === undefined || value === null ? false : true;
-    } 
+    }
     export function HTMLElement(o): boolean {
         return Is.Alive(o["tagName"]);
+    }
+    export function Boolean(o): boolean {
+        return typeof o === "boolean";
+    }
+    export function ValueType(o) {
+        return typeof o !== "object" && !Is.Array(o);
     }
 }
 module Has {
@@ -1910,7 +2046,7 @@ module Has {
         }
         return true;
     }
-} 
+}
 module Navigate {
     export function Spa<T extends IViewContainer>(type: { new(): T; }, parameters: any = null) {
         var p = Is.Array(parameters) ? <Array<any>>parameters : new Array<any>();
@@ -1924,7 +2060,7 @@ module Navigate {
         HistoryManager.Add(vi);
     }
     export function Url(url: string) {
-        var vp = ViewContainer.VirtualPath, vcs = ViewContainers;
+        var vp = ViewContainer.VirtualPath ? ViewContainer.VirtualPath : "", vcs = ViewContainers;
         url = vp && url.length > 0 ? url.replace(vp, '') : url;
         url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
         var vc: IViewContainer = url.length === 0 ? vcs.First(vc => vc.IsDefault) : vcs.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
@@ -1943,31 +2079,34 @@ module Navigate {
             HistoryManager.Add(vi);
         }
     }
-} 
+}
+enum Placement {
+    LeftTop, LeftBottom, RightTop, RightBottom
+}
 module Popup {
+
     export var Element: HTMLElement;
-    export function Show(ele: HTMLElement, coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string }) {
+    export function Show(ele: HTMLElement, coord?: any) {
         var cpup = Popup.Element;
         document.removeEventListener('click', Popup.Click);
-        if (cpup !== ele) {
-            Is.Alive(cpup) ? cpup.style.display = "none" : null;
-            Popup.Element = ele;
-        }
-        else if (cpup.style.display === "") {
-            Popup.Hide();
-            return;
-        }
-        ele.style.display = coord && coord.displayOverride ? coord.displayOverride : "";
-        ele.focus();
-        if (Is.Alive(coord)) {
-            Popup.SetCoord(ele, "left", coord);
-            Popup.SetCoord(ele, "right", coord);
-            Popup.SetCoord(ele, "top", coord);
-            Popup.SetCoord(ele, "bottom", coord);
+
+        Is.Alive(cpup) ? cpup.style.display = "none" : null;
+        Popup.Element = ele;
+
+        var isFun = Is.Alive(coord) && Is.Func(coord);
+        ele.style.display = !isFun && coord && coord.displayOverride ? coord.displayOverride : "";
+
+        var tempC = Is.Alive(coord) && Is.Func(coord) ? coord() : coord;
+        if (Is.Alive(tempC)) {
+            Popup.SetCoord(ele, "left", tempC);
+            Popup.SetCoord(ele, "right", tempC);
+            Popup.SetCoord(ele, "top", tempC);
+            Popup.SetCoord(ele, "bottom", tempC);
         }
         setTimeout(() => {
             document.addEventListener('click', Popup.Click);
         }, 1);
+        ele.focus();
     }
     export function SetCoord(ele: HTMLElement, attr: string, coord?: { left?: number, right?: number, top?: number, bottom?: number }) {
         if (Is.Alive(coord) &&
@@ -2004,7 +2143,7 @@ module ProgressManager {
             pe.style.display = "none";
         }
     }
-} 
+}
 interface Array<T> {
     Add(obj: any);
     Add(...obj: T[]);
@@ -2082,7 +2221,7 @@ Array.prototype.Where = function (func: (obj) => boolean): Array<any> {
         }
     }
     return m;
-}; 
+};
 interface Date {
     Add(y?: number, m?: number, d?: number, h?: number, mm?: number, s?: number): Date;
     ToyyyymmddHHMMss();
@@ -2110,7 +2249,7 @@ Date.prototype.ToyyyymmddHHMMss = function () {
         M = f(t.getMinutes()),
         s = f(t.getSeconds());
     return '' + y + '-' + m + '-' + d + ' ' + h + ":" + M + ":" + s;
-}; 
+};
 interface Document {
     NewE<T extends string>(tagName: T): Caster<T>;
     NewE<T extends string>(tagName: T, objectProperties?: any): Caster<T>;
@@ -2141,7 +2280,9 @@ type AllElements = {
     'any': HTMLElement,
     'form': HTMLFormElement,
     'i': HTMLElement,
-    'fieldset': HTMLFieldSetElement
+    'fieldset': HTMLFieldSetElement,
+    'ul': HTMLUListElement,
+    "li": HTMLLIElement
 };
 type Caster<T extends string> = T extends keyof AllElements ? AllElements[T] : HTMLElement;
 module tag {
@@ -2164,6 +2305,8 @@ module tag {
     export const form = 'form';
     export const i = 'i';
     export const fieldset = 'fieldset';
+    export const ul = 'ul';
+    export const li = 'li';
 };
 module HTMLElementHelper {
     export function IsMatch<T extends string>(ele: HTMLElement, tagName: string, predicate: (ele: Caster<T>) => boolean = null): boolean {
@@ -2203,12 +2346,66 @@ interface HTMLElement extends Element {
     InsertBefore(obj: any, index: number);
     InsertBeforeChild(childMatch: (child) => boolean, obj: any);
     Set(objectProperties): HTMLElement;
-    Popup(coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string });
+    PopupShow(coord?: any);
+    PopupHide();
+    PopupAt(target: HTMLElement, placement: Placement, offset?: { x: number, y: number });
+    GetPosition(): { x: number, y: number };
 }
-HTMLElement.prototype.Popup = function (coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string }) {
+HTMLElement.prototype.PopupHide = function () {
+    Popup.Hide();
+};
+HTMLElement.prototype.GetPosition = function () {
+    var pos = { x: 0, y: 0 };
+    var el = <HTMLElement>this;
+    var xPos = 0;
+    var yPos = 0;
+
+    while (el) {
+        if (el.tagName == "BODY") {
+            var xScroll = el.scrollLeft || document.documentElement.scrollLeft;
+            var yScroll = el.scrollTop || document.documentElement.scrollTop;
+
+            xPos += (el.offsetLeft - xScroll + el.clientLeft);
+            yPos += (el.offsetTop - yScroll + el.clientTop);
+        } else {
+            xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+            yPos += (el.offsetTop - el.scrollTop + el.clientTop);
+        }
+        el = <HTMLElement>el.offsetParent;
+    }
+    return {
+        x: xPos,
+        y: yPos
+    };
+};
+HTMLElement.prototype.PopupAt = function (target: HTMLElement, placement: Placement, offset?: { x: number, y: number }) {
+
+    var pup = <HTMLElement>this;
+    let pos = target.GetPosition(),
+        width = pup.style.width,
+        wrad = width.indexOf("px") > -1 ? parseInt(width.replace("px", "")) :
+            parseInt(pup.style.width.replace("rem", "").replace("em", "")) * 16;
+    switch (placement) {
+        case Placement.RightBottom:
+            pos.x += target.clientWidth;
+            pos.y += target.clientHeight;
+            break;
+        case Placement.RightTop:
+            pos.x += target.clientWidth;
+            break;
+        case Placement.LeftBottom:
+            pos.y += target.clientHeight;
+            break;
+        case Placement.LeftTop:
+        default:
+            break;
+    }
+    pup.PopupShow({ left: pos.x - wrad + (offset ? offset.x : 0), top: pos.y + (offset ? offset.y : 0) });
+};
+HTMLElement.prototype.PopupShow = function (coord?: any) {
     var e = <HTMLElement>this;
     Popup.Show(e, coord);
-}
+};
 HTMLElement.prototype.Cast = function <T extends IObjectState>(type: { new(serverObject: any): T; }): T {
     var f = this.DataObject;
     return f ? <T>f : null;
@@ -2482,7 +2679,15 @@ HTMLElement.prototype.Set = function (objectProperties) {
 };
 interface HTMLSelectElement {
     AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
+    SetSelectedValue(value: string);
 }
+HTMLSelectElement.prototype.SetSelectedValue = function (value: string) {
+    var dd = <HTMLSelectElement>this;
+    for (var i = 0; i < dd.options.length; i++) {
+        var opt = dd.options[i];
+        opt.selected = opt.text === value;
+    }
+};
 HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement {
     var s = <HTMLSelectElement>this,
         sv = selectedValue,
@@ -2518,44 +2723,6 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
     }
     return s;
 };
-interface HTMLSelectElement {
-    AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
-}
-HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement {
-    var s = <HTMLSelectElement>this,
-        sv = selectedValue,
-        aoo = arrayOrObject,
-        ao = (d, v) => {
-            var o = new Option(d, v);
-            s["options"][s.options.length] = o;
-            if (sv && v === sv) {
-                o.selected = true;
-            }
-        };
-    if (Is.Array(aoo)) {
-        var ta = <Array<any>>aoo,
-            dp = displayProperty,
-            vp = valueProperty;
-        if (dp && vp) {
-            ta.forEach(t => {
-                ao(t[dp], t[vp]);
-            });
-        }
-        else if (ta.length > 1 && typeof ta[0] === 'string') {
-            ta.forEach(t => {
-                ao(t, t);
-            });
-        }
-    }
-    else if (aoo) {
-        for (var p in aoo) {
-            if (!(aoo[p] && {}.toString.call(aoo[p]) === '[object Function]')) {
-                ao(aoo[p], aoo[p]);
-            }
-        }
-    }
-    return s;
-}; 
 interface String {
     Trim(): string;
     Element(): HTMLElement;
@@ -2570,6 +2737,7 @@ interface String {
     CopyToClipboard(sender: HTMLElement): (alertMessage: string, timeout?: number, attributeAndStyle?: any) => void;
     Alert(target: HTMLElement, timeout?: any, attributesAndStyle?: any);
     ReplaceAll(replace: string, withValue: string): string;
+
 }
 String.prototype.ReplaceAll = function (replace: string, withValue: string): string {
     return this.replace(new RegExp(replace, 'g'), withValue);

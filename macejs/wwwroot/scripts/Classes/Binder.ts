@@ -410,6 +410,14 @@
         }
         return true;
     }
+    ManualLoad(objs: IObjectState[]) {
+        var d = this.DataObjects.Data;
+        objs.forEach(o => {
+            d.Add(o);
+            o.Container = d;
+        });
+        d.forEach(o => this.add(o, true));
+    }
     Bind(o: IObjectState, eles: Array<HTMLElement> = null) {
         let t = this;
         o.Binder = t;
@@ -418,21 +426,28 @@
             eles.Add(t.Element);
         }
         eles.Where(e => e.dataset && Is.Alive(e.dataset.webcontrol)).forEach(e => {
-            var found = t.GetWebControl(e);
+            var found = t.GetWebControl(e, o);
             if (Is.Alive(found)) {
                 e.appendChild(found);
+                var wds = found.Get(e2 => e2.HasDataSet());
                 found.HasDataSet() ? eles.Add(found) : null;
+                wds.forEach(e2 => eles.Add(e2));
             }
         });
         t.SubBind(o, eles);
     }
-    GetWebControl(wc: HTMLElement): HTMLElement {
-        var found = document.getElementById(wc.dataset.webcontrol);
-        if (Is.Alive(found)) {
-            var c = found.cloneNode(true);
-            if (Is.Alive(c)) {
-                var ne = <HTMLElement>c;
-                return ne;
+    GetWebControl(wc: HTMLElement, obj: IObjectState): HTMLElement {
+        var eleId = obj[wc.dataset.webcontrol];
+        if (eleId) {
+            var found = document.getElementById(eleId);
+            if (Is.Alive(found)) {
+                var c = found.cloneNode(true);
+                if (Is.Alive(c)) {
+                    var ne = <HTMLElement>c;
+                    ne.style.display = "";
+                    ne.style.visibility = "visible";
+                    return ne;
+                }
             }
         }
         return null;
@@ -649,4 +664,4 @@ class BinderWithBoundEvent extends Binder {
         let t = this;
         t.ElementBoundEvent = elementBoundEvent;
     }
-} 
+}

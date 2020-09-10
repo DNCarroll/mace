@@ -1,3 +1,14 @@
+interface Document {
+    NewE<T extends string>(tagName: T): Caster<T>;
+    NewE<T extends string>(tagName: T, objectProperties?: any): Caster<T>;
+}
+Document.prototype.NewE = function <T extends string>(tagName: T, objectProperties?: any): Caster<T> {
+    var ele = document.createElement(tagName.toUpperCase()), op = objectProperties;
+    if (op) {
+        ele.Set(op);
+    }
+    return <Caster<T>>ele;
+};
 type AllElements = {
     'a': HTMLAnchorElement,
     'div': HTMLDivElement,
@@ -17,7 +28,9 @@ type AllElements = {
     'any': HTMLElement,
     'form': HTMLFormElement,
     'i': HTMLElement,
-    'fieldset': HTMLFieldSetElement
+    'fieldset': HTMLFieldSetElement,
+    'ul': HTMLUListElement,
+    "li": HTMLLIElement
 };
 type Caster<T extends string> = T extends keyof AllElements ? AllElements[T] : HTMLElement;
 module tag {
@@ -40,6 +53,8 @@ module tag {
     export const form = 'form';
     export const i = 'i';
     export const fieldset = 'fieldset';
+    export const ul = 'ul';
+    export const li = 'li';
 };
 module HTMLElementHelper {
     export function IsMatch<T extends string>(ele: HTMLElement, tagName: string, predicate: (ele: Caster<T>) => boolean = null): boolean {
@@ -79,12 +94,66 @@ interface HTMLElement extends Element {
     InsertBefore(obj: any, index: number);
     InsertBeforeChild(childMatch: (child) => boolean, obj: any);
     Set(objectProperties): HTMLElement;
-    Popup(coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string });
+    PopupShow(coord?: any);
+    PopupHide();
+    PopupAt(target: HTMLElement, placement: Placement, offset?: { x: number, y: number });
+    GetPosition(): { x: number, y: number };
 }
-HTMLElement.prototype.Popup = function (coord?: { left?: number, right?: number, top?: number, bottom?: number, displayOverride?: string }) {
+HTMLElement.prototype.PopupHide = function () {
+    Popup.Hide();
+};
+HTMLElement.prototype.GetPosition = function () {
+    var pos = { x: 0, y: 0 };
+    var el = <HTMLElement>this;
+    var xPos = 0;
+    var yPos = 0;
+
+    while (el) {
+        if (el.tagName == "BODY") {
+            var xScroll = el.scrollLeft || document.documentElement.scrollLeft;
+            var yScroll = el.scrollTop || document.documentElement.scrollTop;
+
+            xPos += (el.offsetLeft - xScroll + el.clientLeft);
+            yPos += (el.offsetTop - yScroll + el.clientTop);
+        } else {
+            xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+            yPos += (el.offsetTop - el.scrollTop + el.clientTop);
+        }
+        el = <HTMLElement>el.offsetParent;
+    }
+    return {
+        x: xPos,
+        y: yPos
+    };
+};
+HTMLElement.prototype.PopupAt = function (target: HTMLElement, placement: Placement, offset?: { x: number, y: number }) {
+
+    var pup = <HTMLElement>this;
+    let pos = target.GetPosition(),
+        width = pup.style.width,
+        wrad = width.indexOf("px") > -1 ? parseInt(width.replace("px", "")) :
+            parseInt(pup.style.width.replace("rem", "").replace("em", "")) * 16;
+    switch (placement) {
+        case Placement.RightBottom:
+            pos.x += target.clientWidth;
+            pos.y += target.clientHeight;
+            break;
+        case Placement.RightTop:
+            pos.x += target.clientWidth;
+            break;
+        case Placement.LeftBottom:
+            pos.y += target.clientHeight;
+            break;
+        case Placement.LeftTop:
+        default:
+            break;
+    }
+    pup.PopupShow({ left: pos.x - wrad + (offset ? offset.x : 0), top: pos.y + (offset ? offset.y : 0) });
+};
+HTMLElement.prototype.PopupShow = function (coord?: any) {
     var e = <HTMLElement>this;
     Popup.Show(e, coord);
-}
+};
 HTMLElement.prototype.Cast = function <T extends IObjectState>(type: { new(serverObject: any): T; }): T {
     var f = this.DataObject;
     return f ? <T>f : null;
@@ -355,42 +424,4 @@ HTMLElement.prototype.Set = function (objectProperties) {
         }
     }
     return t;
-};
-interface HTMLSelectElement {
-    AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
-}
-HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement {
-    var s = <HTMLSelectElement>this,
-        sv = selectedValue,
-        aoo = arrayOrObject,
-        ao = (d, v) => {
-            var o = new Option(d, v);
-            s["options"][s.options.length] = o;
-            if (sv && v === sv) {
-                o.selected = true;
-            }
-        };
-    if (Is.Array(aoo)) {
-        var ta = <Array<any>>aoo,
-            dp = displayProperty,
-            vp = valueProperty;
-        if (dp && vp) {
-            ta.forEach(t => {
-                ao(t[dp], t[vp]);
-            });
-        }
-        else if (ta.length > 1 && typeof ta[0] === 'string') {
-            ta.forEach(t => {
-                ao(t, t);
-            });
-        }
-    }
-    else if (aoo) {
-        for (var p in aoo) {
-            if (!(aoo[p] && {}.toString.call(aoo[p]) === '[object Function]')) {
-                ao(aoo[p], aoo[p]);
-            }
-        }
-    }
-    return s;
 };

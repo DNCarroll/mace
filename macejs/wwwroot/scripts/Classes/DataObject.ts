@@ -99,7 +99,7 @@
     }
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean = true) {
         this.OnPropertyChanged(p);
-        if (canCauseDirty && this.ObjectState!==ObjectState.Cleaning) {
+        if (canCauseDirty && this.ObjectState !== ObjectState.Cleaning) {
             this.ObjectState = ObjectState.Dirty;
         }
     }
@@ -126,10 +126,10 @@
     }
     SetServerProperty(p: string, v: any) {
         var t = this,
-            change = v!==t.ServerObject[p];
+            change = v !== t.ServerObject[p];
         t.ServerObject[p] = v;
         if (change) {
             t.InstigatePropertyChangedListeners(p, true);
         }
     }
-} 
+}

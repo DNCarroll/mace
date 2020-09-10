@@ -1,3 +1,10 @@
+Document.prototype.NewE = function (tagName, objectProperties) {
+    var ele = document.createElement(tagName.toUpperCase()), op = objectProperties;
+    if (op) {
+        ele.Set(op);
+    }
+    return ele;
+};
 var tag;
 (function (tag) {
     tag.any = 'any';
@@ -19,6 +26,8 @@ var tag;
     tag.form = 'form';
     tag.i = 'i';
     tag.fieldset = 'fieldset';
+    tag.ul = 'ul';
+    tag.li = 'li';
 })(tag || (tag = {}));
 ;
 var HTMLElementHelper;
@@ -30,7 +39,54 @@ var HTMLElementHelper;
     }
     HTMLElementHelper.IsMatch = IsMatch;
 })(HTMLElementHelper || (HTMLElementHelper = {}));
-HTMLElement.prototype.Popup = function (coord) {
+HTMLElement.prototype.PopupHide = function () {
+    Popup.Hide();
+};
+HTMLElement.prototype.GetPosition = function () {
+    var pos = { x: 0, y: 0 };
+    var el = this;
+    var xPos = 0;
+    var yPos = 0;
+    while (el) {
+        if (el.tagName == "BODY") {
+            var xScroll = el.scrollLeft || document.documentElement.scrollLeft;
+            var yScroll = el.scrollTop || document.documentElement.scrollTop;
+            xPos += (el.offsetLeft - xScroll + el.clientLeft);
+            yPos += (el.offsetTop - yScroll + el.clientTop);
+        }
+        else {
+            xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+            yPos += (el.offsetTop - el.scrollTop + el.clientTop);
+        }
+        el = el.offsetParent;
+    }
+    return {
+        x: xPos,
+        y: yPos
+    };
+};
+HTMLElement.prototype.PopupAt = function (target, placement, offset) {
+    var pup = this;
+    var pos = target.GetPosition(), width = pup.style.width, wrad = width.indexOf("px") > -1 ? parseInt(width.replace("px", "")) :
+        parseInt(pup.style.width.replace("rem", "").replace("em", "")) * 16;
+    switch (placement) {
+        case Placement.RightBottom:
+            pos.x += target.clientWidth;
+            pos.y += target.clientHeight;
+            break;
+        case Placement.RightTop:
+            pos.x += target.clientWidth;
+            break;
+        case Placement.LeftBottom:
+            pos.y += target.clientHeight;
+            break;
+        case Placement.LeftTop:
+        default:
+            break;
+    }
+    pup.PopupShow({ left: pos.x - wrad + (offset ? offset.x : 0), top: pos.y + (offset ? offset.y : 0) });
+};
+HTMLElement.prototype.PopupShow = function (coord) {
     var e = this;
     Popup.Show(e, coord);
 };
@@ -305,35 +361,5 @@ HTMLElement.prototype.Set = function (objectProperties) {
         }
     }
     return t;
-};
-HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty, displayProperty, selectedValue) {
-    var s = this, sv = selectedValue, aoo = arrayOrObject, ao = function (d, v) {
-        var o = new Option(d, v);
-        s["options"][s.options.length] = o;
-        if (sv && v === sv) {
-            o.selected = true;
-        }
-    };
-    if (Is.Array(aoo)) {
-        var ta = aoo, dp = displayProperty, vp = valueProperty;
-        if (dp && vp) {
-            ta.forEach(function (t) {
-                ao(t[dp], t[vp]);
-            });
-        }
-        else if (ta.length > 1 && typeof ta[0] === 'string') {
-            ta.forEach(function (t) {
-                ao(t, t);
-            });
-        }
-    }
-    else if (aoo) {
-        for (var p in aoo) {
-            if (!(aoo[p] && {}.toString.call(aoo[p]) === '[object Function]')) {
-                ao(aoo[p], aoo[p]);
-            }
-        }
-    }
-    return s;
 };
 //# sourceMappingURL=HTMLElement.js.map

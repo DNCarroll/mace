@@ -75,4 +75,4 @@ Array.prototype.Where = function (func: (obj) => boolean): Array<any> {
         }
     }
     return m;
-}; 
+};

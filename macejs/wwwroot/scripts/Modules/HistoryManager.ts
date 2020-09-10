@@ -37,7 +37,7 @@
                 h = history,
                 u = vc.Url(vi);
             if (Is.Alive(u) && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = !Is.NullOrEmpty(u) ? u.indexOf("/")!==0 ? "/" + u : u : "/";
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/") !== 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
@@ -74,4 +74,4 @@
         }
     }
 }
-var HistoryManager = new HistoryContainer.History(); 
+var HistoryManager = new HistoryContainer.History();

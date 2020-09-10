@@ -1,5 +1,9 @@
 var Is;
 (function (Is) {
+    function Func(obj) {
+        return obj instanceof Function;
+    }
+    Is.Func = Func;
     function Array(value) {
         return Object.prototype.toString.call(value) === '[object Array]';
     }
@@ -26,6 +30,14 @@ var Is;
         return Is.Alive(o["tagName"]);
     }
     Is.HTMLElement = HTMLElement;
+    function Boolean(o) {
+        return typeof o === "boolean";
+    }
+    Is.Boolean = Boolean;
+    function ValueType(o) {
+        return typeof o !== "object" && !Is.Array(o);
+    }
+    Is.ValueType = ValueType;
 })(Is || (Is = {}));
 var Has;
 (function (Has) {
