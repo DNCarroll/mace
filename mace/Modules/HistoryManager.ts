@@ -1,9 +1,9 @@
 ﻿module HistoryContainer {
-    export class History implements IEventDispatcher<ViewContainer> {        
+    export class History implements IEventDispatcher<ViewContainer> {
         private ViewInstances = new Array<ViewInstance>();
         CurrentViewInstance(): ViewInstance {
             var vi = this.ViewInstances;
-            return vi != null && vi.length > 0 ? vi[vi.length - 1] : null;
+            return Is.Alive(vi) && vi.length > 0 ? vi[vi.length - 1] : null;
         }
         BackEvent(e) {
             HistoryManager.Back();
@@ -28,9 +28,6 @@
                 t.ManageRouteInfo(i);
                 t.Dispatch(EventType.Completed);
             }
-            else {
-                //do nothing?
-            }
         }
         ManageRouteInfo(viewInstance: ViewInstance) {
             var vi = viewInstance,
@@ -39,18 +36,24 @@
                 dt = vc.DocumentTitle(vi),
                 h = history,
                 u = vc.Url(vi);
-            if (u !== null && !Is.NullOrEmpty(t) && h && h.pushState) {
-                u = this.FormatUrl(!Is.NullOrEmpty(u) ? u.indexOf("/") != 0 ? "/" + u : u : "/");
+            if (Is.Alive(u) && !Is.NullOrEmpty(t) && h && h.pushState) {
+                u = !Is.NullOrEmpty(u) ? u.indexOf("/") !== 0 ? "/" + u : u : "/";
                 h.pushState(null, t, u);
             }
             if (dt) {
                 document.title = dt;
             }
         }
-        FormatUrl(url: string) {
-            url = url.replace(/[^A-z0-9/]/g, "");
-            return url;
+        Manual(title: string, url: string, documentTitle: string = null) {
+            document.title = documentTitle ? documentTitle : title;
+            history.pushState(null, title, url);
         }
+        //this method isnt used anymore but it maybe needed still
+        //the "g" is absolutely wrong
+        //FormatUrl(url: string) {
+        //    url = url.replace(new RegExp("[^A-z0-9_/\\-]"), "g");
+        //    return url;
+        //}
         private eHandlrs = new Array<Listener<ViewContainer>>();
         AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<ViewContainer>) => void) {
             var t = this,
@@ -71,4 +74,4 @@
         }
     }
 }
-var HistoryManager = new HistoryContainer.History();
+var HistoryManager = new HistoryContainer.History(); 

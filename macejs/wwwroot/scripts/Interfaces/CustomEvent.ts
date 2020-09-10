@@ -63,7 +63,7 @@ interface IObjectState extends IPropertyChangedDispatcher {
     Container: Array<IObjectState>;
     InstigatePropertyChangedListeners(p: string, canCauseDirty: boolean);
     Binder: Binder;
-    
+
 }
 enum ObjectState {
     Dirty,

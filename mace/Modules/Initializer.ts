@@ -1,45 +1,60 @@
 ﻿module Initializer {
-    export var WindowLoaded: (e: any) => any;
+    export var WindowLoaded: WindowLoaded;
     export function Execute(e?) {
-        var w = window;
         if (document.readyState === "complete") {
-            windowLoaded();
-            WindowLoaded ? WindowLoaded(e) : null;
+            loadedWrapper(e);
         }
         else {
-            w.onload = function () {
-                windowLoaded();
-                WindowLoaded ? WindowLoaded(e) : null;
+            window.onload = function () {
+                loadedWrapper(e);
             };
         }
     }
+    function loadedWrapper(e?) {
+        var WL = WindowLoaded, wL = windowLoaded;
+        if (WL) {
+            if (WL.ShouldRunBeforeNavigation) {
+                WL.LoadedEvent(e, wL);
+            }
+            else {
+                wL();
+                WL.LoadedEvent(e, null);
+            }
+        }
+        else {
+            wL();
+        }
+    }
     function windowLoaded() {
-        var w = window;        
+        var w = window;
         setProgressElement();
-        w.ShowByUrl(w.location.pathname.substring(1));
+        Navigate.Url(w.location.pathname.substring(1));
         w.addEventListener("popstate", HistoryManager.BackEvent);
     }
     function setProgressElement() {
         var pg = document.getElementById("progress");
-        if (pg != null) {
+        if (Is.Alive(pg)) {
             ProgressManager.ProgressElement = pg;
         }
     }
 }
 module Reflection {
     export function GetName(o: any, ignoreThese: Array<string> = new Array<string>()) {
-        var r = o && o.toString ? o.toString() : null;
+        var r = <string>(o && o.toString ? o.toString() : "");
         if (!Is.NullOrEmpty(r)) {
-            var p = "^function\\s(\\w+)\\(\\)",
-                m = r.match(p);
-            if (m && !ignoreThese.First(i => i === m[1])) {
-                return m[1];
+            if (r.indexOf("function ") > -1 || r.indexOf("class ") > -1) {
+                var mark = r.indexOf("function") === 0 ? "()" : " ";
+                r = r.replace("function ", "");
+                r = r.replace("class ", "");
+                var si = r.indexOf(mark);
+                return r.substring(0, si);
             }
         }
         return null;
     }
-    export function NewObject(type: { new () }) {
+    export function NewObject(type: { new() }) {
         return new type();
+
     }
 }
-Initializer.Execute();
+Initializer.Execute(); 

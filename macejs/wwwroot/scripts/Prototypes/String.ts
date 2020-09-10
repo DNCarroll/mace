@@ -12,6 +12,7 @@ interface String {
     CopyToClipboard(sender: HTMLElement): (alertMessage: string, timeout?: number, attributeAndStyle?: any) => void;
     Alert(target: HTMLElement, timeout?: any, attributesAndStyle?: any);
     ReplaceAll(replace: string, withValue: string): string;
+
 }
 String.prototype.ReplaceAll = function (replace: string, withValue: string): string {
     return this.replace(new RegExp(replace, 'g'), withValue);

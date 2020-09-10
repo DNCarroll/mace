@@ -129,7 +129,7 @@
         }
         return r;
     }
-    Array<T extends DataObject>(type: { new(serverObject:any): T; }) {
+    Array<T extends DataObject>(type: { new(serverObject: any): T; }) {
         var ret = new Array<T>();
         var r = this.GetRequestData();
         if (Is.Alive(r) && r.length) {
@@ -248,4 +248,4 @@
         var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
         l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
     }
-} 
+}

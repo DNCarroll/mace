@@ -402,6 +402,15 @@ var Binder = /** @class */ (function () {
         }
         return true;
     };
+    Binder.prototype.ManualLoad = function (objs) {
+        var _this = this;
+        var d = this.DataObjects.Data;
+        objs.forEach(function (o) {
+            d.Add(o);
+            o.Container = d;
+        });
+        d.forEach(function (o) { return _this.add(o, true); });
+    };
     Binder.prototype.Bind = function (o, eles) {
         if (eles === void 0) { eles = null; }
         var t = this;
@@ -411,21 +420,28 @@ var Binder = /** @class */ (function () {
             eles.Add(t.Element);
         }
         eles.Where(function (e) { return e.dataset && Is.Alive(e.dataset.webcontrol); }).forEach(function (e) {
-            var found = t.GetWebControl(e);
+            var found = t.GetWebControl(e, o);
             if (Is.Alive(found)) {
                 e.appendChild(found);
+                var wds = found.Get(function (e2) { return e2.HasDataSet(); });
                 found.HasDataSet() ? eles.Add(found) : null;
+                wds.forEach(function (e2) { return eles.Add(e2); });
             }
         });
         t.SubBind(o, eles);
     };
-    Binder.prototype.GetWebControl = function (wc) {
-        var found = document.getElementById(wc.dataset.webcontrol);
-        if (Is.Alive(found)) {
-            var c = found.cloneNode(true);
-            if (Is.Alive(c)) {
-                var ne = c;
-                return ne;
+    Binder.prototype.GetWebControl = function (wc, obj) {
+        var eleId = obj[wc.dataset.webcontrol];
+        if (eleId) {
+            var found = document.getElementById(eleId);
+            if (Is.Alive(found)) {
+                var c = found.cloneNode(true);
+                if (Is.Alive(c)) {
+                    var ne = c;
+                    ne.style.display = "";
+                    ne.style.visibility = "visible";
+                    return ne;
+                }
             }
         }
         return null;

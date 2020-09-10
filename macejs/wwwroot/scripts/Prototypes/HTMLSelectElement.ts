@@ -1,6 +1,14 @@
 interface HTMLSelectElement {
     AddOptions(arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement;
+    SetSelectedValue(value: string);
 }
+HTMLSelectElement.prototype.SetSelectedValue = function (value: string) {
+    var dd = <HTMLSelectElement>this;
+    for (var i = 0; i < dd.options.length; i++) {
+        var opt = dd.options[i];
+        opt.selected = opt.text === value;
+    }
+};
 HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?: string, displayProperty?: string, selectedValue?): HTMLSelectElement {
     var s = <HTMLSelectElement>this,
         sv = selectedValue,
@@ -35,4 +43,4 @@ HTMLSelectElement.prototype.AddOptions = function (arrayOrObject, valueProperty?
         }
     }
     return s;
-}; 
+};

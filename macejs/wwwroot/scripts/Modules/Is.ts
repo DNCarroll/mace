@@ -1,4 +1,7 @@
 ﻿module Is {
+    export function Func(obj: any): boolean {
+        return obj instanceof Function;
+    }
     export function Array(value): boolean {
         return Object.prototype.toString.call(value) === '[object Array]';
     }
@@ -15,9 +18,15 @@
     }
     export function Alive(value): boolean {
         return value === undefined || value === null ? false : true;
-    } 
+    }
     export function HTMLElement(o): boolean {
         return Is.Alive(o["tagName"]);
+    }
+    export function Boolean(o): boolean {
+        return typeof o === "boolean";
+    }
+    export function ValueType(o) {
+        return typeof o !== "object" && !Is.Array(o);
     }
 }
 module Has {
@@ -30,4 +39,4 @@ module Has {
         }
         return true;
     }
-} 
+}

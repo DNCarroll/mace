@@ -13,7 +13,7 @@ var Navigate;
     }
     Navigate.Spa = Spa;
     function Url(url) {
-        var vp = ViewContainer.VirtualPath, vcs = ViewContainers;
+        var vp = ViewContainer.VirtualPath ? ViewContainer.VirtualPath : "", vcs = ViewContainers;
         url = vp && url.length > 0 ? url.replace(vp, '') : url;
         url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
         var vc = url.length === 0 ? vcs.First(function (vc) { return vc.IsDefault; }) : vcs.Where(function (vc) { return !vc.IsDefault; }).First(function (d) { return d.IsUrlPatternMatch(url); });

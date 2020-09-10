@@ -1,5 +1,5 @@
 ﻿class Ajax implements IEventDispatcher<Ajax>{
-    constructor(withProgress: boolean = false, disableElement:any = null) {
+    constructor(withProgress: boolean = false, disableElement: any = null) {
         this.WithProgress = withProgress;
         this.DisableElement = disableElement;
     }
@@ -7,13 +7,14 @@
     static Host: string;
     WithProgress = false;
     UseAsDateUTC = false;
-    ContentType = "application/json; charset=utf-8";
+    ContentType: any = "application/json; charset=utf-8";
     Header: () => any;
+    static GlobalHeader: () => any;
     eventHandlers = new Array<Listener<Ajax>>();
     get ResponseText(): string {
         return this.XHttp.responseText;
     }
-    XHttp: XMLHttpRequest;  
+    XHttp: XMLHttpRequest;
     Url: string;
     Submit(method: string, url: string, parameters: any = null, asRaw: boolean = false) {
         var t = this;
@@ -36,20 +37,20 @@
     private xStateChanged(e) {
         var t = this, x = t.XHttp, s = x.status;
         if (t.isRequestReady()) {
-            t.Progress(false);            
-            t.Dispatch(s === 200 || s === 204 || s === 201  ? EventType.Completed : EventType.Any);
+            t.Progress(false);
+            t.Dispatch(s === 200 || s === 204 || s === 201 ? EventType.Completed : EventType.Any);
         }
     }
     private getUrl(url: string): string {
         var u = url, a = Ajax.Host;
-        if (u.indexOf("http") == -1 && !Is.NullOrEmpty(a)) {
-            u = a + (u.indexOf("/") == 0 ? u : "/" + u);
+        if (u.indexOf("http") === -1 && a) {
+            u = a + (u.indexOf("/") === 0 ? u : "/" + u);
         }
         return u;
     }
     private isRequestReady(): boolean {
         var x = this.XHttp;
-        return x && x.readyState == 4;
+        return x && x.readyState === 4;
     }
     private Progress(show: boolean = true) {
         if (this.WithProgress) {
@@ -73,30 +74,45 @@
         }
     }
     private setHead() {
-        var t = this;
+        var t = this, x = t.XHttp;
+        if (t.ContentType) {
+            x.setRequestHeader("content-type", t.ContentType);
+        }
         if (t.Header) {
             var h = t.Header();
             if (h) {
                 for (var p in h) {
-                    t.XHttp.setRequestHeader(p, h[p]);
+                    x.setRequestHeader(p, h[p]);
+                }
+            }
+        }
+        if (Ajax.GlobalHeader) {
+            var gh = Ajax.GlobalHeader()
+            if (gh) {
+                for (var p2 in gh) {
+                    x.setRequestHeader(p2, gh[p2]);
                 }
             }
         }
     }
+    static RemoveScript = true;
     private getParameters(parameters: any): string {
         var r = "", p = parameters;
         if (p && this.ContentType === "application/json; charset=utf-8") {
+            p = DataObject.IsDataObject(p) ? p["ServerObject"] : p;
             r = JSON.stringify(p).replace(/\\\"__type\\\"\:\\\"[\w+\.?]+\\\"\,/g, "")
-                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "")
-                .replace(/<script/ig, "")
-                .replace(/script>/ig, "");
+                .replace(/\"__type\"\:\"[\w+\.?]+\"\,/g, "");
+            if (Ajax.RemoveScript) {
+                r = r.replace(/<script/ig, "")
+                    .replace(/script>/ig, "");
+            }
         }
         return r;
     }
 
     GetRequestData(): any {
         var r = null, t = this, x = this.XHttp, s = x.status;
-        if (t.isRequestReady() && (s == 200) &&
+        if (t.isRequestReady() && (s === 200) &&
             !Is.NullOrEmpty(x.responseText)) {
             r = x.responseText;
             try {
@@ -112,6 +128,23 @@
             }
         }
         return r;
+    }
+    Array<T extends DataObject>(type: { new(serverObject: any): T; }) {
+        var ret = new Array<T>();
+        var r = this.GetRequestData();
+        if (Is.Alive(r) && r.length) {
+            for (var i = 0; i < r.length; i++) {
+                ret.Add(new type(r[i]));
+            }
+        }
+        return ret;
+    }
+    FirstOrDefault<T extends DataObject>(type: { new(serverObject: any): T; }) {
+        var r = this.GetRequestData();
+        if (Is.Alive(r)) {
+            return new type(r);
+        }
+        return null;
     }
     private convertProperties(obj) {
         var km: Array<any>, t = this;
@@ -134,8 +167,8 @@
         else if (obj && typeof obj === 'object') {
             km = t.getKeyMap(obj);
             t.setValues(obj, km);
-            for (var p in obj) {
-                t.convertProperties(obj[p]);
+            for (var p2 in obj) {
+                t.convertProperties(obj[p2]);
             }
         }
     }
@@ -145,7 +178,7 @@
             let v = obj[p];
             if (v && typeof v === 'string') {
                 v = v.Trim();
-                if (v.indexOf("/Date(") == 0 || v.indexOf("Date(") == 0) {
+                if (v.indexOf("/Date(") === 0 || v.indexOf("Date(") === 0) {
                     km.push({ Key: p, Type: "Date" });
                 }
                 else if (v.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/i)) {
@@ -166,7 +199,7 @@
             switch (t) {
                 case "Date":
                     if (v) {
-                        v = parseInt(v.substring(6).replace(")/", ""));                        
+                        v = parseInt(v.substring(6).replace(")/", ""));
                         if (v > -62135575200000) {
                             v = new Date(v);
                             obj[k] = v;
@@ -201,7 +234,7 @@
     Put(url: string, prmtrs: any = null) { this.Submit("PUT", url, prmtrs); }
     Post(url: string, prmtrs: any = null) { this.Submit("POST", url, prmtrs); }
     Delete(url: string, prmtrs: any = null) { this.Submit("DELETE", url, prmtrs); }
-        
+
     AddListener(eventType: EventType, eventHandler: (eventArg: ICustomEventArg<Ajax>) => void) {
         this.eventHandlers.Add(new Listener(eventType, eventHandler));
     }
@@ -213,7 +246,6 @@
     }
     Dispatch(eventType: EventType) {
         var l = this.eventHandlers.Where(e => e.EventType === eventType || e.EventType === EventType.Any);
-        l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));        
+        l.forEach(l => l.EventHandler(new CustomEventArg<Ajax>(this, eventType)));
     }
 }
-

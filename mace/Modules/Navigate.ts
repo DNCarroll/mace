@@ -1,4 +1,4 @@
-﻿module Navigate {
+module Navigate {
     export function Spa<T extends IViewContainer>(type: { new(): T; }, parameters: any = null) {
         var p = Is.Array(parameters) ? <Array<any>>parameters : new Array<any>();
         if (Is.Alive(parameters) && !Is.Array(parameters)) {
@@ -11,7 +11,7 @@
         HistoryManager.Add(vi);
     }
     export function Url(url: string) {
-        var vp = ViewContainer.VirtualPath ? ViewContainer.VirtualPath : "", vcs = ViewContainers;
+        var vp = ViewContainer.VirtualPath, vcs = ViewContainers;
         url = vp && url.length > 0 ? url.replace(vp, '') : url;
         url = url.length > 0 && url.indexOf("/") === 0 ? url.substr(1) : url;
         var vc: IViewContainer = url.length === 0 ? vcs.First(vc => vc.IsDefault) : vcs.Where(vc => !vc.IsDefault).First(d => d.IsUrlPatternMatch(url));
@@ -30,4 +30,4 @@
             HistoryManager.Add(vi);
         }
     }
-}
+} 

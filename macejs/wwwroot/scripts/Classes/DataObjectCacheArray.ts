@@ -30,7 +30,7 @@ class DataObjectCacheArray<T extends IObjectState>
     Data: Array<T> = new Array<T>();
     _cachingKey: string;
     _storageState: StorageType;
-    _newT: (obj: any) => T;    
+    _newT: (obj: any) => T;
     Add(obj: T) {
         this.Data.push(obj);
     }
@@ -60,4 +60,4 @@ class DataObjectCacheArray<T extends IObjectState>
     Where(func?: (obj: T) => boolean): Array<T> {
         return this.Data.Where(func);
     }
-} 
+}

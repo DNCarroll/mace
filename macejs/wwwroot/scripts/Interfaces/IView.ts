@@ -4,4 +4,4 @@
     ContainerID: () => string;
     CacheStrategy: CacheStrategy;
     Cache: (strategy: CacheStrategy) => void;
-} 
+}

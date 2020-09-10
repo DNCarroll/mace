@@ -5,15 +5,16 @@
     CacheStrategy: CacheStrategy;
     Cache: (strategy: CacheStrategy) => void;
 }
-interface IBinder extends IEventDispatcher<IBinder> {
-    Add(obj: IObjectState);
-    Execute: (viewInstance: ViewInstance) => void;
-    Dispose: () => void;
-    Element: HTMLElement;
-    DataObjects: Array<IObjectState>;
-    Save(obj: IObjectState);
-    SaveDirty();
-    RunWhenObjectsChange: () => void;
-    OnBindingComplete: () => void;
-    Delete(sender: HTMLElement, ajaxDeleteFunction: (a: CustomEventArg<Ajax>) => void);
-}
+interface IViewContainer {
+    DocumentTitle: (route: ViewInstance) => string;
+    IsDefault: boolean;
+    Show: (route: ViewInstance) => void;
+    Url: (route: ViewInstance) => string;
+    UrlPattern: () => string;
+    UrlReplacePattern: () => string;
+    UrlTitle: (route: ViewInstance) => string;
+    IsUrlPatternMatch: (url: string) => boolean;
+    Views: Array<IView>;
+    Name: string;
+    Parameters: (url: string) => Array<string>;
+} 
