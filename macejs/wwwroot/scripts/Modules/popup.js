@@ -4,16 +4,18 @@ var Placement;
     Placement[Placement["LeftBottom"] = 1] = "LeftBottom";
     Placement[Placement["RightTop"] = 2] = "RightTop";
     Placement[Placement["RightBottom"] = 3] = "RightBottom";
+    Placement[Placement["CenterLeft"] = 4] = "CenterLeft";
+    Placement[Placement["CenterRight"] = 5] = "CenterRight";
 })(Placement || (Placement = {}));
 var Popup;
 (function (Popup) {
     function Show(ele, coord) {
         var cpup = Popup.Element;
         document.removeEventListener('click', Popup.Click);
-        Is.Alive(cpup) ? cpup.style.display = "none" : null;
+        Is.Alive(cpup) ? cpup.style.visibility = "hidden" : null;
         Popup.Element = ele;
         var isFun = Is.Alive(coord) && Is.Func(coord);
-        ele.style.display = !isFun && coord && coord.displayOverride ? coord.displayOverride : "";
+        ele.style.visibility = "visible";
         var tempC = Is.Alive(coord) && Is.Func(coord) ? coord() : coord;
         if (Is.Alive(tempC)) {
             Popup.SetCoord(ele, "left", tempC);
@@ -37,7 +39,7 @@ var Popup;
     Popup.SetCoord = SetCoord;
     function Hide() {
         if (Popup.Element) {
-            Popup.Element.style.display = 'none';
+            Popup.Element.style.visibility = 'hidden';
             Popup.Element = null;
         }
     }

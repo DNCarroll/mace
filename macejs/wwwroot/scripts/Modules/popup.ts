@@ -1,19 +1,15 @@
 ﻿enum Placement {
-    LeftTop, LeftBottom, RightTop, RightBottom
+    LeftTop, LeftBottom, RightTop, RightBottom, CenterLeft, CenterRight
 }
 module Popup {
-
     export var Element: HTMLElement;
     export function Show(ele: HTMLElement, coord?: any) {
         var cpup = Popup.Element;
         document.removeEventListener('click', Popup.Click);
-
-        Is.Alive(cpup) ? cpup.style.display = "none" : null;
+        Is.Alive(cpup) ? cpup.style.visibility = "hidden" : null;
         Popup.Element = ele;
-
         var isFun = Is.Alive(coord) && Is.Func(coord);
-        ele.style.display = !isFun && coord && coord.displayOverride ? coord.displayOverride : "";
-
+        ele.style.visibility = "visible";
         var tempC = Is.Alive(coord) && Is.Func(coord) ? coord() : coord;
         if (Is.Alive(tempC)) {
             Popup.SetCoord(ele, "left", tempC);
@@ -35,7 +31,7 @@ module Popup {
     }
     export function Hide() {
         if (Popup.Element) {
-            Popup.Element.style.display = 'none'
+            Popup.Element.style.visibility = 'hidden';
             Popup.Element = null;
         }
     }

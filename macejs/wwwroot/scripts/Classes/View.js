@@ -41,7 +41,7 @@ var View = /** @class */ (function () {
         set: function (value) {
             this.preload = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     View.prototype.Cache = function (strategy) {

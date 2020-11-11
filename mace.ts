@@ -2081,21 +2081,17 @@ module Navigate {
     }
 }
 enum Placement {
-    LeftTop, LeftBottom, RightTop, RightBottom
+    LeftTop, LeftBottom, RightTop, RightBottom, CenterLeft, CenterRight
 }
 module Popup {
-
     export var Element: HTMLElement;
     export function Show(ele: HTMLElement, coord?: any) {
         var cpup = Popup.Element;
         document.removeEventListener('click', Popup.Click);
-
-        Is.Alive(cpup) ? cpup.style.display = "none" : null;
+        Is.Alive(cpup) ? cpup.style.visibility = "hidden" : null;
         Popup.Element = ele;
-
         var isFun = Is.Alive(coord) && Is.Func(coord);
-        ele.style.display = !isFun && coord && coord.displayOverride ? coord.displayOverride : "";
-
+        ele.style.visibility = "visible";
         var tempC = Is.Alive(coord) && Is.Func(coord) ? coord() : coord;
         if (Is.Alive(tempC)) {
             Popup.SetCoord(ele, "left", tempC);
@@ -2117,7 +2113,7 @@ module Popup {
     }
     export function Hide() {
         if (Popup.Element) {
-            Popup.Element.style.display = 'none'
+            Popup.Element.style.visibility = 'hidden';
             Popup.Element = null;
         }
     }
@@ -2349,22 +2345,19 @@ interface HTMLElement extends Element {
     PopupShow(coord?: any);
     PopupHide();
     PopupAt(target: HTMLElement, placement: Placement, offset?: { x: number, y: number });
-    GetPosition(): { x: number, y: number };
+    GetPosition(): { x: number, y: number, width: number, height: number };
 }
 HTMLElement.prototype.PopupHide = function () {
     Popup.Hide();
 };
 HTMLElement.prototype.GetPosition = function () {
-    var pos = { x: 0, y: 0 };
-    var el = <HTMLElement>this;
+    var el = <HTMLElement>this, gbr = el.getBoundingClientRect();
     var xPos = 0;
     var yPos = 0;
-
     while (el) {
         if (el.tagName == "BODY") {
             var xScroll = el.scrollLeft || document.documentElement.scrollLeft;
             var yScroll = el.scrollTop || document.documentElement.scrollTop;
-
             xPos += (el.offsetLeft - xScroll + el.clientLeft);
             yPos += (el.offsetTop - yScroll + el.clientTop);
         } else {
@@ -2375,26 +2368,32 @@ HTMLElement.prototype.GetPosition = function () {
     }
     return {
         x: xPos,
-        y: yPos
+        y: yPos,
+        width: gbr.width,
+        height: gbr.height
     };
 };
 HTMLElement.prototype.PopupAt = function (target: HTMLElement, placement: Placement, offset?: { x: number, y: number }) {
-
     var pup = <HTMLElement>this;
     let pos = target.GetPosition(),
-        width = pup.style.width,
-        wrad = width.indexOf("px") > -1 ? parseInt(width.replace("px", "")) :
-            parseInt(pup.style.width.replace("rem", "").replace("em", "")) * 16;
+        gbr = pup.getBoundingClientRect(),
+        wrad = gbr.width;
     switch (placement) {
         case Placement.RightBottom:
-            pos.x += target.clientWidth;
-            pos.y += target.clientHeight;
+            pos.x += pos.width;
+            pos.y += pos.height;
             break;
         case Placement.RightTop:
-            pos.x += target.clientWidth;
+            pos.x += pos.width;
             break;
         case Placement.LeftBottom:
-            pos.y += target.clientHeight;
+            pos.y += pos.height;
+            break;
+        case Placement.CenterLeft:
+            pos.y -= gbr.height / 2;
+            break;
+        case Placement.CenterRight:
+            pos.y -= gbr.height / 2;
             break;
         case Placement.LeftTop:
         default:
@@ -2876,8 +2875,3 @@ Window.prototype.Exception = function (parameters: any) {
     var a = alert, p = parameters;
     a(Is.Array(p) || !Is.String(p) ? JSON.stringify(p) : p.toString());
 }; 
-
-
-
-
-

@@ -42,7 +42,7 @@ var DataObject = /** @class */ (function () {
         set: function (value) {
             this.alternatingClass = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(DataObject.prototype, "DefaultRowClass", {
@@ -57,7 +57,7 @@ var DataObject = /** @class */ (function () {
         set: function (value) {
             this.defaultRowClass = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(DataObject.prototype, "SelectedRowClass", {
@@ -73,7 +73,7 @@ var DataObject = /** @class */ (function () {
         set: function (value) {
             this.selectedRowClass = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(DataObject.prototype, "ObjectState", {
@@ -85,7 +85,7 @@ var DataObject = /** @class */ (function () {
             t.objectState = value;
             t.OnObjectStateChanged();
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     DataObject.IsDataObject = function (object) {
@@ -134,7 +134,7 @@ var DataObject = /** @class */ (function () {
         set: function (value) {
             this.serverObject = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     DataObject.prototype.SetServerProperty = function (p, v) {

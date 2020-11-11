@@ -55,7 +55,7 @@ var DataObjectCacheArray = /** @class */ (function () {
         get: function () {
             return this.Data.length;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     DataObjectCacheArray.prototype.First = function (func) {

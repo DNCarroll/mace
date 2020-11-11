@@ -14,7 +14,7 @@ var Ajax = /** @class */ (function () {
         get: function () {
             return this.XHttp.responseText;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Ajax.prototype.Submit = function (method, url, parameters, asRaw) {
